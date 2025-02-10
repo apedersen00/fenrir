@@ -1,1 +1,4 @@
-/.snnenv
+**/.snnenv/
+**/__pycache__/
+**/data/
+**/cache/
