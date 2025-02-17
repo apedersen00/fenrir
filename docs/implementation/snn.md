@@ -1,9 +1,9 @@
 ---
-title: Home
-layout: home
+title: SNN
+parent: Implementation
 nav_order: 1
 ---
 
-# DVS on FPGA
+# SNN
 
 **Under Construction**
