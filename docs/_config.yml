@@ -6,3 +6,10 @@ url: https://ponti17.github.io/dvs-fpga/
 
 aux_links:
   GitHub: https://github.com/ponti17/dvs-fpga
+
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "default"
