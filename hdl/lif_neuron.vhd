@@ -73,9 +73,8 @@ begin
 
     state_core_next <= (others => '0') when spike_out = '1' else state_core_next_i;
 
-    syn_weight_ext <= (others => '1') when syn_weight(3) = '1' else
-                      (others => '0');
-    syn_weight_ext(3 downto 0)  <= syn_weight;
+    syn_weight_ext <= "11111111" & syn_weight when syn_weight(3) = '1' else
+                      "00000000" & syn_weight;
 
     process (state_core, event_leak, event_syn, state_leakp, state_leakn, state_syn)
     begin
