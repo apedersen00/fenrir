@@ -1,32 +1,35 @@
 /*
-Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+    Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
+    File: lif_neuron.vhd
+    Description: VHDL adaptation of tinyODIN's Leaky Integrate-and-Fire (LIF) neuron model.
 
-lif_neuron.vhd
-    VHDL adaptation of tinyODIN's LIF neuron model
+    Author(s):
+        - A. Pedersen, Aarhus University
+        - A. Cherencq, Aarhus University
 
-Author(s):
-    A. Pedersen, Aarhus University
-    A. Cherencq, Aarhus University
+    Citation(s):
+        - C. Frenkel, M. Lefebvre, J.-D. Legat and D. Bol, "A 0.086-mm² 12.7-pJ/SOP 64k-Synapse 
+          256-Neuron Online-Learning Digital Spiking Neuromorphic Processor in 28-nm CMOS,"
+          IEEE Transactions on Biomedical Circuits and Systems, vol. 13, no. 1, pp. 145-158, 2019.
 
-Citations:
-    C. Frenkel, M. Lefebvre, J.-D. Legat and D. Bol, "A 0.086-mm² 12.7-pJ/SOP 64k-Synapse 256-Neuron Online-Learning
-    Digital Spiking Neuromorphic Processor in 28-nm CMOS," IEEE Transactions on Biomedical Circuits and Systems,
-    vol. 13, no. 1, pp. 145-158, 2019.
+---------------------------------------------------------------------------------------------------
 
------------------------------------------------------------------------------
+    Functionality:
+        - Leakage Event (event_leak):
+            - Occurs when both `syn_event` and `time_ref` are high.
+            - If the neuron state is negative, it moves toward zero (reset).
+            - If positive, it decreases by `param_leak_str` (leak factor).
+        - Synaptic Event (event_syn):
+            - Triggers when `syn_event` is high and `time_ref` is low.
+            - Updates the state based on `syn_weight` (signed extension).
+        - Spike Generation (spike_out):
+            - Fires a spike when the state exceeds the threshold (`param_thr`).
+            - The neuron resets to zero upon firing.
 
-Description:
-    Implementation of Leaky Integrate-and-Fire (LIF) Neuron Model.
-    - Updates neuron state (state_core_next) based on synaptic events.
-    - Two event types:
-        - Leakage (event_leak): moves neuron state towards resting potential.
-        - Synaptic (event_syn): moves neuron state towards firing potential.
-    - Fires a spike (spike_out) when the state reaches the threshold (param_thr).
-    - Neuron state is reset upon firing.
-
------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 */
 
 library ieee;
