@@ -20,11 +20,11 @@
     Functionality:
         - Leakage Event (event_leak):
             - Occurs when both `syn_event` and `time_ref` are high.
-            - If the neuron state is negative, it moves toward zero (reset).
-            - If positive, it decreases by `param_leak_str` (leak factor).
+            - If the neuron state is positive, the state is updated by subtracting `param_leak_str`.
+            - If the neuron state is negative, the state is updated by adding `param_leak_str`.
         - Synaptic Event (event_syn):
             - Triggers when `syn_event` is high and `time_ref` is low.
-            - Updates the state based on `syn_weight` (signed extension).
+            - Updates the state based on `syn_weight`.
         - Spike Generation (spike_out):
             - Fires a spike when the state exceeds the threshold (`param_thr`).
             - The neuron resets to zero upon firing.
