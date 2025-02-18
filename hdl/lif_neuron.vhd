@@ -39,17 +39,17 @@ use ieee.std_logic_unsigned.all;
 
 entity lif_neuron is
     port (
-        param_leak_str  : in std_logic_vector(6 downto 0);
-        param_thr       : in std_logic_vector(11 downto 0);
+        param_leak_str  : in std_logic_vector(6 downto 0);      -- leakage stength parameter
+        param_thr       : in std_logic_vector(11 downto 0);     -- neuron firing threshold parameter
 
-        state_core      : in std_logic_vector(11 downto 0);
-        state_core_next : out std_logic_vector(11 downto 0);
+        state_core      : in std_logic_vector(11 downto 0);     -- core neuron state from SRAM
+        state_core_next : out std_logic_vector(11 downto 0);    -- next core neuron state to SRAM
 
-        syn_weight      : in std_logic_vector(3 downto 0);
-        syn_event       : in std_logic;
-        time_ref        : in std_logic;
+        syn_weight      : in std_logic_vector(3 downto 0);      -- synaptic weight
+        syn_event       : in std_logic;                         -- synaptic event trigger
+        time_ref        : in std_logic;                         -- time reference event trigger
 
-        spike_out       : out std_logic
+        spike_out       : out std_logic                         -- neuron spike event output
     );
 end lif_neuron;
 
