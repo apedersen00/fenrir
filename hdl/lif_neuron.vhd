@@ -92,10 +92,10 @@ begin
         end if;
     end process;
 
-    state_leakn_ovfl <= state_core - ("00000" * param_leak_str);
-    state_leakn      <= "000000000000" when state_leakn_ovfl(11) = '1' else state_leakn_ovfl;
-    state_leakp_ovfl <= state_core + ("00000" * param_leak_str);
-    state_leakp      <= "000000000000" when state_leakp_ovfl(11) = '0' else state_leakp_ovfl;
+    state_leakn_ovfl <= state_core - ("00000" & param_leak_str);
+    state_leakn      <= (others => '0') when state_leakn_ovfl(11) = '1' else state_leakn_ovfl;
+    state_leakp_ovfl <= state_core + ("00000" & param_leak_str);
+    state_leakp      <= (others => '0') when state_leakp_ovfl(11) = '0' else state_leakp_ovfl;
     state_syn_ovfl   <= state_core + syn_weight_ext;
 
     state_syn <= "100000000000" when (state_syn_ovfl(11) = '0' and state_core(11) = '1' and syn_weight_ext(11) = '1') else
