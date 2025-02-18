@@ -71,10 +71,11 @@ begin
     spike_out  <= '0' when state_core_next_i(11) = '1' else
                   '1' when state_core_next_i >= param_thr else '0';
 
-    spike_core_next <= (others => '0') when spike_out = '1' else state_core_next_i;
+    state_core_next <= (others => '0') when spike_out = '1' else state_core_next_i;
 
-    syn_weight_ext <= ("111111110000" & syn_weight) when syn_weight(3) = '1' else
-                      ("000000000000" & syn_weight);
+    syn_weight_ext <= (others => '1') when syn_weight(3) = '1' else
+                      (others => '0');
+    syn_weight_ext(3 downto 0)  <= syn_weight;
 
     process (state_core, event_leak, event_syn, state_leakp, state_leakn, state_syn)
     begin
