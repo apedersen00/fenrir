@@ -2,53 +2,74 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity synapse_memory is
+entity synapse_memory is 
     port (
-        clk          : in  std_logic;
-        rst          : in  std_logic;
-        
-        -- 13-bit address = { pre_neur<7:0>, post_neur<7:3> }
-        synapse_addr : in  std_logic_vector(12 downto 0);
-        
-        -- Output nibble (mapping bit + 3-bit weight)
-        synapse_nibble : out std_logic_vector(3 downto 0)
+        clk : in std_logic;
+        rst : in std_logic;
+
+        synapse_address : in std_logic_vector(3 downto 0);
+
+        we : in std_logic;
+        syn_in : in std_logic_vector(3 downto 0);
+
+        syn_out : out std_logic_vector(3 downto 0)
     );
 end synapse_memory;
 
 architecture Behavioral of synapse_memory is
-    type synapse_mem_t is array (0 to 127) of std_logic_vector(31 downto 0);
-    signal syn_mem : synapse_mem_t := (
-        0   => x"0000000B",   
-        32  => x"00000001",   
-        64  => x"00000005",   
-        96  => x"00000007",   
+    type synapse_mem_t is array (0 to 1) of std_logic_vector(31 downto 0);
+    signal mem : synapse_mem_t := (
         others => (others => '0')
-    );
-    signal word_address : unsigned(6 downto 0);
-    signal raw_word : std_logic_vector(31 downto 0);
+    ); 
 
-begin 
+    signal word_idx : unsigned(0 downto 0);
+    signal nibble_idx : unsigned(2 downto 0);
+    signal read_word : std_logic_vector(31 downto 0);
+    signal read_nibble : std_logic_vector(3 downto 0);
 
-    process(synapse_addr)
-        variable v_pre : unsigned(7 downto 0);
-        variable v_post : unsigned(4 downto 0);
+begin
+
+    process(synapse_address)
     begin
-        v_pre := unsigned(synapse_addr(12 downto 5));
-        v_post := unsigned(synapse_addr(4 downto 0));
-        word_address <= v_pre * 32 + v_post;
+        word_idx <= unsigned(synapse_address(3 downto 3));
+        nibble_idx <= unsigned(synapse_address(2 downto 0));
     end process;
 
     process(clk)
+        variable tmp_word : std_logic_vector(31 downto 0);
+        variable idx : integer;
+        variable nib_idx : integer;
+        variable start_byte : integer;
     begin
         if rising_edge(clk) then
             if rst = '1' then
-                raw_word <= (others => '0');
+                read_word <= (others => '0');
             else
-                raw_word <= syn_mem(to_integer(word_address));
+                idx := to_integer(word_idx);
+                tmp_word := mem(idx);
+
+                if we = '1' then
+                    nib_idx := to_integer(nibble_idx);
+                    start_byte := nib_idx * 4;
+                    tmp_word(start_byte + 3 downto start_byte) := syn_in;
+                    mem(idx) <= tmp_word;
+                end if;
+
+                read_word <= tmp_word;
+
             end if;
         end if;
     end process;
 
-    synapse_nibble <= raw_word(3 downto 0);
+    process(read_word, nibble_idx)
+        variable nib_idx : integer;
+        variable start_byte : integer;
 
+    begin
+        nib_idx := to_integer(nibble_idx);
+        start_byte := nib_idx * 4;
+        read_nibble <= read_word(start_byte + 3 downto start_byte);
+
+        syn_out <= read_nibble;
+    end process;
 end Behavioral;
