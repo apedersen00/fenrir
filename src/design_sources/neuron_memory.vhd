@@ -16,7 +16,7 @@ entity neuron_memory is
         state_core_next : in std_logic_vector(11 downto 0);
 
         we : in std_logic;
-        neuron_in : in std_logic_vector(31 downto 0);
+        neuron_in : in std_logic_vector(31 downto 0)
     );
 end neuron_memory;
 

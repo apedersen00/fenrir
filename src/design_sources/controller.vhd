@@ -8,7 +8,7 @@ entity controller is
         clk : in std_logic;
         rst : in std_logic;
         neuron_address : out std_logic_vector(3 downto 0);
-        synapse_address : out std_logic_vector(3 downto 0);
+        synapse_address : out std_logic_vector(3 downto 0)
     );
 end controller;
 
