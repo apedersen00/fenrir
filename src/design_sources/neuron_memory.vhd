@@ -50,7 +50,6 @@ begin
                     param_leak_str <= tmp_neuron(7 downto 1);
                     param_thr      <= tmp_neuron(19 downto 8);
                     state_core     <= tmp_neuron(31 downto 20);
-
                     
                     tmp_neuron(31 downto 20) := state_core_next;
                     mem(to_integer(unsigned(neuron_address))) <= tmp_neuron;

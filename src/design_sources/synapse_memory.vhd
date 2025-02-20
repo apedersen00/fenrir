@@ -26,7 +26,6 @@ architecture Behavioral of synapse_memory is
     signal nibble_idx : unsigned(2 downto 0);
     signal read_word : std_logic_vector(31 downto 0);
     signal read_nibble : std_logic_vector(3 downto 0);
-
 begin
 
     process(synapse_address)
@@ -54,9 +53,7 @@ begin
                     tmp_word(start_byte + 3 downto start_byte) := syn_in;
                     mem(idx) <= tmp_word;
                 end if;
-
                 read_word <= tmp_word;
-
             end if;
         end if;
     end process;
@@ -64,7 +61,6 @@ begin
     process(read_word, nibble_idx)
         variable nib_idx : integer;
         variable start_byte : integer;
-
     begin
         nib_idx := to_integer(nibble_idx);
         start_byte := nib_idx * 4;
@@ -72,4 +68,5 @@ begin
 
         syn_out <= read_nibble;
     end process;
+
 end Behavioral;
