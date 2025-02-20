@@ -5,18 +5,19 @@ use ieee.numeric_std.all;
 
 entity neuron_memory is
     port (
-        clk : in std_logic;
-        rst : in std_logic;
-        neuron_address : in std_logic_vector(3 downto 0);
+        clk                 : in std_logic;
+        rst                 : in std_logic;
         
-        param_leak_str : out std_logic_vector(6 downto 0);
-        param_thr : out std_logic_vector(11 downto 0);
+        neuron_address      : in std_logic_vector(3 downto 0);      -- neuron address
+        
+        param_leak_str      : out std_logic_vector(6 downto 0);     -- leakage stength parameter
+        param_thr           : out std_logic_vector(11 downto 0);    -- neuron firing threshold parameter
 
-        state_core : out std_logic_vector(11 downto 0);
-        state_core_next : in std_logic_vector(11 downto 0);
+        state_core          : out std_logic_vector(11 downto 0);    -- core neuron state from BRAM
+        state_core_next     : in std_logic_vector(11 downto 0);     -- next core neuron state to BRAM
 
-        we : in std_logic;
-        neuron_in : in std_logic_vector(31 downto 0)
+        we                  : in std_logic;                         -- write enable
+        neuron_in           : in std_logic_vector(31 downto 0)      -- neuron input data
     );
 end neuron_memory;
 
