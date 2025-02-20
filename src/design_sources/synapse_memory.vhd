@@ -4,15 +4,15 @@ use ieee.numeric_std.all;
 
 entity synapse_memory is 
     port (
-        clk : in std_logic;
-        rst : in std_logic;
+        clk                 : in std_logic;
+        rst                 : in std_logic;
 
-        synapse_address : in std_logic_vector(3 downto 0);
+        synapse_address     : in std_logic_vector(3 downto 0);  -- synapse address
 
-        we : in std_logic;
-        syn_in : in std_logic_vector(3 downto 0);
+        we                  : in std_logic;                     -- write enable
+        syn_in              : in std_logic_vector(3 downto 0);  -- synapse input data
 
-        syn_out : out std_logic_vector(3 downto 0)
+        syn_out             : out std_logic_vector(3 downto 0)  -- synapse output data
     );
 end synapse_memory;
 
