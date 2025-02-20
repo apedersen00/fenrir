@@ -1,3 +1,28 @@
+/*
+---------------------------------------------------------------------------------------------------
+    Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+
+    File: neuron_memory.vhd
+    Description: VHDL implementation of neuron memory (256x32b=1kB).
+
+    Author(s):
+        - A. Pedersen, Aarhus University
+        - A. Cherencq, Aarhus University
+
+    Citation(s):
+        - C. Frenkel, M. Lefebvre, J.-D. Legat and D. Bol, "A 0.086-mm² 12.7-pJ/SOP 64k-Synapse 
+          256-Neuron Online-Learning Digital Spiking Neuromorphic Processor in 28-nm CMOS,"
+          IEEE Transactions on Biomedical Circuits and Systems, vol. 13, no. 1, pp. 145-158, 2019.
+
+---------------------------------------------------------------------------------------------------
+
+    Functionality:
+        - WIP
+
+---------------------------------------------------------------------------------------------------
+*/
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
