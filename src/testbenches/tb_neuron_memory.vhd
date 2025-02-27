@@ -2,67 +2,98 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity neuron_memory_tb is
-end neuron_memory_tb;
+entity tb_neuron_bram is
+end tb_neuron_bram;
 
-architecture tb of neuron_memory_tb is
-    signal clk : std_logic := '0';
-    signal rst : std_logic := '1';
+architecture Behavioral of tb_neuron_bram is
 
-    signal neuron_addr : std_logic_vector(3 downto 0) := (others => '0');
-    signal neuron_we : std_logic := '0';
-    signal neuron_in : std_logic_vector(31 downto 0) := (others => '0');
-    signal param_leak_str : std_logic_vector(6 downto 0);
-    signal param_thr : std_logic_vector(11 downto 0);
-    signal state_core : std_logic_vector(11 downto 0);
-    signal state_core_next : std_logic_vector(11 downto 0) := (others => '0');
+    -- Component declaration for the Unit Under Test (UUT)
+    component neuron_bram is
+        port(
+            clk  : in  std_logic;
+            we   : in  std_logic;
+            en   : in  std_logic;
+            addr : in  std_logic_vector(7 downto 0);
+            di   : in  std_logic_vector(31 downto 0);
+            do   : out std_logic_vector(31 downto 0)
+        );
+    end component;
 
-    constant CLK_PERIOD : time := 10 ns;
-    
+    -- Signals to connect to the UUT
+    signal clk  : std_logic := '0';
+    signal we   : std_logic;
+    signal en   : std_logic;
+    signal addr : std_logic_vector(7 downto 0);
+    signal di   : std_logic_vector(31 downto 0);
+    signal do   : std_logic_vector(31 downto 0);
+
+    -- Clock period definition
+    constant clk_period : time := 10 ns;
+
+begin
+
+    -- Instantiate the BRAM
+    uut: neuron_bram port map(
+        clk  => clk,
+        we   => we,
+        en   => en,
+        addr => addr,
+        di   => di,
+        do   => do
+    );
+
+    -- Clock generation process
+    clk_gen : process
     begin
-        uut : entity work.neuron_memory
-            port map(
-                clk => clk,
-                rst => rst,
-                neuron_address => neuron_addr,
-                we => neuron_we,
-                neuron_in => neuron_in,
-                param_leak_str => param_leak_str,
-                param_thr => param_thr,
-                state_core => state_core,
-                state_core_next => state_core_next
-            );
+        while true loop
+            clk <= '0';
+            wait for clk_period/2;
+            clk <= '1';
+            wait for clk_period/2;
+        end loop;
+    end process;
 
-        clk_process : process
-        begin
-            while true loop
-                clk <= '0';
-                wait for CLK_PERIOD / 2;
-                clk <= '1';
-                wait for CLK_PERIOD / 2;
-            end loop;
-        end process;
+    -- Stimulus process
+    stim_proc : process
+    begin
+        -- Initialize signals
+        en   <= '1';
+        we   <= '0';
+        addr <= (others => '0');
+        di   <= (others => '0');
+        wait for 20 ns;
 
-        stim : process
-        begin
-            -- Reset
-            rst <= '1';
-            wait for 10*CLK_PERIOD;
-            rst <= '0';
-            neuron_we <= '0';
-            wait for CLK_PERIOD;
+        -- Write operation: write 0xDEADBEEF at address 0x10
+        addr <= x"10";
+        di   <= x"DEADBEEF";
+        we   <= '1';
+        wait for clk_period;
+        we   <= '0';
+        wait for clk_period;
 
-            -- read all 16 neurons should be 0
-            for i in 0 to 15 loop
-                neuron_addr <= std_logic_vector(to_unsigned(i, 4));
-                wait for CLK_PERIOD;
-            end loop;
+        -- Read operation: read from address 0x10
+        addr <= x"10";
+        wait for clk_period;
+        -- The output do should now be 0xDEADBEEF
 
-            -- write some values to the memory
-            neuron_we <= '1';
-            neuron_addr <= "0000";
-            wait;
+        wait for 20 ns;
 
-        end process;
-end architecture;
+        -- Write another value: write 0xAAAAAAAA at address 0x20
+        addr <= x"20";
+        di   <= x"AAAAAAAA";
+        we   <= '1';
+        wait for clk_period;
+        we   <= '0';
+        wait for clk_period;
 
+        -- Read back from address 0x20
+        addr <= x"20";
+        wait for clk_period;
+        -- The output do should now be 0xAAAAAAAA
+
+        wait for 50 ns;
+        -- End simulation
+        wait;
+    end process;
+
+end Behavioral;

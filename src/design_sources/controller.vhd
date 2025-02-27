@@ -4,57 +4,36 @@ use ieee.numeric_std.all;
 
 entity controller is
     port (
+
         clk             : in std_logic;
-        rst             : in std_logic;
-        neuron_address  : out std_logic_vector(7 downto 0);
-        synapse_address : out std_logic_vector(15 downto 0);
-        input_in        : in std_logic_vector(7 downto 0);
-        input_out       : out std_logic
+        -- Data
+        input_vector    : in std_logic_vector(15 downto 0); -- 16-bit input
+        input_select    : out std_logic_vector(3 downto 0); -- 4-bit selector for input
+
+        -- neuron and synapse 
+        neuron_address  : out std_logic_vector(7 downto 0); -- 8-bit address for neuron
+        neuron_input    : in std_logic_vector(31 downto 0); -- 32-bit input for neuron
+
+        synapse_address : out std_logic_vector(7 downto 0); -- 8-bit address for synapse
+        synapse_in      : in std_logic_vector(31 downto 0); -- 32-bit input for synapse
+
+        -- signals for active neuron
+        param_leak_str  : out std_logic_vector(6 downto 0); -- leakage stength parameter
+        param_thr       : out std_logic_vector(11 downto 0); -- neuron firing threshold parameter
+        state_core      : out std_logic_vector(11 downto 0); -- core neuron state from SRAM
+        syn_weight      : out std_logic_vector(3 downto 0); -- synaptic weight
+        syn_event       : out std_logic; -- synaptic event trigger
+        
+        state_core_next : in std_logic_vector(11 downto 0); -- next core neuron state to SRAM
+        spike_out       : in std_logic -- neuron spike event output
+
     );
 end controller;
 
 architecture Behavioral of controller is
-
-    signal counter_neuron  : unsigned(7 downto 0) := (others => '0');
-    signal counter_synapse : unsigned(7 downto 0) := (others => '0');
-    signal counter_input   : unsigned(7 downto 0) := (others => '0');
-
+    signal synapse_counter : integer := 0;
+    signal neuron_counter : integer := 0;
+    
 begin
-    process (clk)
-        constant last_neuron  : unsigned(7 downto 0) := to_unsigned(48, 8);
-        constant last_synapse : unsigned(7 downto 0) := to_unsigned(48, 8);
-    begin
-        if rising_edge(clk) then
-            if rst = '1' then
-                counter_neuron  <= (others => '0');
-                counter_synapse <= (others => '0');
-                counter_input   <= (others => '0');
-                neuron_address  <= (others => '0');
-                synapse_address <= (others => '0');
-                input_out       <= '0';
 
-            elsif counter_neuron = last_neuron then
-                counter_neuron  <= (others => '0');
-                counter_synapse <= (others => '0');
-                counter_input   <= (others => '0');
-
-            elsif counter_synapse = last_synapse then
-                counter_neuron  <= counter_neuron + 1;
-                counter_synapse <= (others => '0');
-
-            else 
-                neuron_address  <= std_logic_vector(counter_neuron);
-                synapse_address(7 downto 0) <= std_logic_vector(counter_synapse);
-                synapse_address(15 downto 8) <= std_logic_vector(counter_neuron);
-                
-                if to_integer(counter_input) < 8 then
-                    input_out <= input_in(to_integer(counter_input));
-                else
-                    input_out <= '0';
-                end if;
-
-                counter_synapse <= counter_synapse + 1;
-            end if;
-        end if;
-    end process;
 end Behavioral;
