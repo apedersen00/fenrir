@@ -60,7 +60,7 @@ begin
 
     process (clk)
 
-        variable temp_state_core : std_logic_vector(11 downto 0);
+        variable temp_neuron        : std_logic_vector(31 downto 0);
         
     begin
         if rising_edge(clk) then
@@ -125,16 +125,16 @@ begin
                 when WRITE_REQUEST =>
 
                     -- for updating neuron
-                    neuron_we       <= '1';
-                    neuron_update   <= temp_state_core;
+                    neuron_we           <= '1';
+                    neuron_update       <= temp_neuron;
 
-                    MAIN_STATE      <= READ_REQUEST;
-                    REQUEST_STATE   <= READ_BOTH;
+                    MAIN_STATE          <= READ_REQUEST;
+                    REQUEST_STATE       <= READ_BOTH;
 
                 when UPDATE => 
 
                     -- update internal signals and variables 
-                    temp_state_core := neuron_input(11 downto 0);
+                    temp_neuron := neuron_input;
 
                 when COMPUTE => 
                     -- main loop
@@ -142,7 +142,7 @@ begin
 
                     param_leak_str      <= neuron_input(30 downto 24);
                     param_thr           <= neuron_input(23 downto 12);
-                    state_core          <= temp_state_core;
+                    state_core          <= temp_neuron(11 downto 0);
 
                     -- we must update the synapse weight. Since we are reading synapses as 32 bit words, we need to extract the weight from the word
                     -- each synapse_in word contains 16 weights. We use the counter signal to index the 2 bit weight
@@ -155,7 +155,7 @@ begin
                     synapse_counter     <= synapse_counter + 1;
 
                     -- read the state core from the state_core_next signal
-                    temp_state_core     := state_core_next;
+                    temp_neuron(11 downto 0) := state_core_next;
 
                     -- check if the neuron has spiked
                     if spike_out = '1' then
@@ -170,21 +170,25 @@ begin
                     if synapse_counter = 16 or synapse_counter = 32 then
 
                         -- we need to read the following 16 weights and increment the row counter. 
-                        MAIN_STATE      <= READ_REQUEST;
-                        REQUEST_STATE   <= READ_SYNAPSE;
+                        MAIN_STATE          <= READ_REQUEST;
+                        REQUEST_STATE       <= READ_SYNAPSE;
+                        input_row_counter   <= input_row_counter + 1;
+                        -- update the input select port signal
+                        input_select        <= std_logic_vector(to_unsigned(input_row_counter, 4));
                         
                     elsif synapse_counter = 48 then 
 
                         -- next neuron
-                        synapse_counter <= 0;
-                        neuron_counter  <= neuron_counter + 1;
-                        MAIN_STATE      <= WRITE_REQUEST;
+                        synapse_counter     <= 0;
+                        neuron_counter      <= neuron_counter + 1;
+                        input_row_counter   <= 0;
+                        MAIN_STATE          <= WRITE_REQUEST;
         
                     end if;
 
                 when others => 
-                
-                    MAIN_STATE          <= IDLE;
+
+                    MAIN_STATE              <= IDLE;
 
             end case;
         end if;
