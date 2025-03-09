@@ -16,99 +16,79 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
-entity tb_neuron_bram is
-end tb_neuron_bram;
+entity rams_init_file_tb is
+end rams_init_file_tb;
 
-architecture Behavioral of tb_neuron_bram is
-
-    -- Component declaration for the Unit Under Test (UUT)
-    component neuron_bram is
-        port(
+architecture test of rams_init_file_tb is
+    constant CLK_PERIOD : time := 10 ns;
+    signal clk  : std_logic := '0';
+    signal we   : std_logic := '0';
+    signal addr : std_logic_vector(7 downto 0) := (others => '0');
+    signal din  : std_logic_vector(31 downto 0) := (others => '0');
+    signal dout : std_logic_vector(31 downto 0);
+    
+    component rams_init_file
+        port (
             clk  : in  std_logic;
             we   : in  std_logic;
-            en   : in  std_logic;
             addr : in  std_logic_vector(7 downto 0);
-            di   : in  std_logic_vector(31 downto 0);
-            do   : out std_logic_vector(31 downto 0)
+            din  : in  std_logic_vector(31 downto 0);
+            dout : out std_logic_vector(31 downto 0)
         );
     end component;
 
-    -- Signals to connect to the UUT
-    signal clk  : std_logic := '0';
-    signal we   : std_logic;
-    signal en   : std_logic;
-    signal addr : std_logic_vector(7 downto 0);
-    signal di   : std_logic_vector(31 downto 0);
-    signal do   : std_logic_vector(31 downto 0);
-
-    -- Clock period definition
-    constant clk_period : time := 10 ns;
-
 begin
-
-    -- Instantiate the BRAM
-    uut: neuron_bram port map(
-        clk  => clk,
-        we   => we,
-        en   => en,
-        addr => addr,
-        di   => di,
-        do   => do
-    );
-
-    -- Clock generation process
-    clk_gen : process
+    -- Instantiate the RAM module
+    uut: rams_init_file
+        port map (
+            clk  => clk,
+            we   => we,
+            addr => addr,
+            din  => din,
+            dout => dout
+        );
+    
+    -- Clock generation
+    process
     begin
-        while true loop
+        while now < 500 ns loop
             clk <= '0';
-            wait for clk_period/2;
+            wait for CLK_PERIOD / 2;
             clk <= '1';
-            wait for clk_period/2;
+            wait for CLK_PERIOD / 2;
         end loop;
-    end process;
-
-    -- Stimulus process
-    stim_proc : process
-    begin
-        -- Initialize signals
-        en   <= '1';
-        we   <= '0';
-        addr <= (others => '0');
-        di   <= (others => '0');
-        wait for 20 ns;
-
-        -- Write operation: write 0xDEADBEEF at address 0x10
-        addr <= x"10";
-        di   <= x"DEADBEEF";
-        we   <= '1';
-        wait for clk_period;
-        we   <= '0';
-        wait for clk_period;
-
-        -- Read operation: read from address 0x10
-        addr <= x"10";
-        wait for clk_period;
-        -- The output do should now be 0xDEADBEEF
-
-        wait for 20 ns;
-
-        -- Write another value: write 0xAAAAAAAA at address 0x20
-        addr <= x"20";
-        di   <= x"AAAAAAAA";
-        we   <= '1';
-        wait for clk_period;
-        we   <= '0';
-        wait for clk_period;
-
-        -- Read back from address 0x20
-        addr <= x"20";
-        wait for clk_period;
-        -- The output do should now be 0xAAAAAAAA
-
-        wait for 50 ns;
-        -- End simulation
         wait;
     end process;
+    
+    -- Test process
+    process
+    begin
+        wait for 20 ns;
+        
+        -- Read initial value from address 0
+        addr <= std_logic_vector(to_unsigned(0, 8));
+        wait for CLK_PERIOD;
+        report "Initial data at address 0: " & integer'image(to_integer(unsigned(dout)));
 
-end Behavioral;
+        -- Read initial value from address 1
+        addr <= std_logic_vector(to_unsigned(1, 8));
+        wait for CLK_PERIOD;
+        report "Initial data at address 1: " & integer'image(to_integer(unsigned(dout)));
+        
+        -- Write new data to address 2
+        addr <= std_logic_vector(to_unsigned(2, 8));
+        we <= '1';
+        din <= x"DEADBEEF";
+        wait for CLK_PERIOD;
+        we <= '0';
+        
+        -- Read back written data
+        wait for CLK_PERIOD;
+        report "New data at address 2: " & integer'image(to_integer(unsigned(dout)));
+        
+        -- Stop simulation
+        wait;
+    end process;
+end test;
