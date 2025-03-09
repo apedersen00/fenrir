@@ -1,32 +1,66 @@
+/*
+---------------------------------------------------------------------------------------------------
+    Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+
+    File: synapse_memory.vhd
+    Description: Initializing BRAM from an external data file.
+
+    Link(s):
+        - https://docs.amd.com/r/en-US/ug901-vivado-synthesis
+
+---------------------------------------------------------------------------------------------------
+
+    Functionality:
+        - Block RAM initialized from external data file (synapse_memory_init.data).
+        - External data must be in bit vector form.
+        - The RAM is 256x32 bits.
+        - Indexed by an 8-bit address.
+
+---------------------------------------------------------------------------------------------------
+*/
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
-entity synapse_bram is
-    port(
-        clk : in std_logic;
-        we : in std_logic;
-        en : in std_logic;
-        addr : in std_logic_vector(7 downto 0);
-        di : in std_logic_vector(31 downto 0);
-        do : out std_logic_vector(31 downto 0)
+entity synapse_memory is
+    port (
+        clk  : in  std_logic;
+        we   : in  std_logic;
+        addr : in  std_logic_vector(7 downto 0);
+        din  : in  std_logic_vector(31 downto 0);
+        dout : out std_logic_vector(31 downto 0)
     );
-end synapse_bram;
+end synapse_memory;
 
-architecture Behavioral of synapse_bram is
-    type ram_type is array (255 downto 0) of std_logic_vector(31 downto 0);
-    signal RAM : ram_type;
-begin
-    process(clk)
+architecture syn of synapse_memory is
+    type RamType is array (0 to 255) of bit_vector(31 downto 0);
+
+    impure function InitRamFromFile(RamFileName : in string) return RamType is
+        FILE RamFile         : text is in RamFileName;
+        variable RamFileLine : line;
+        variable RAM         : RamType;
     begin
-        if clk'event and clk = '1' then
-            if en = '1' then
-                if we = '1' then
-                    RAM(to_integer(unsigned(addr))) <= di;
-                end if;
-            do <= RAM(to_integer(unsigned(addr)));
-            end if;
-        end if;
-end process;
+        for I in RamType'range loop
+            readline(RamFile, RamFileLine);
+            read(RamFileLine, RAM(I));
+        end loop;
+        return RAM;
+    end function;
 
-end Behavioral;
+    signal RAM : RamType := InitRamFromFile("synapse_memory_init.data");
+
+begin
+    process (clk)
+    begin
+        if rising_edge(clk) then
+            if we = '1' then
+                RAM(to_integer(unsigned(addr))) <= to_bitvector(din);
+            end if;
+            dout <= to_stdlogicvector(RAM(to_integer(unsigned(addr))));
+        end if;
+    end process;
+end syn;
+
