@@ -140,6 +140,9 @@ class BRAM:
         def __len__(self):
             return len(self.neurons)
         
+        def __iter__(self):
+            return iter(self.neurons)
+
         def __repr__(self):
             return f"BRAM_Neuron(neurons={self.neurons})"
         
