@@ -1,14 +1,29 @@
+/*
+---------------------------------------------------------------------------------------------------
+    Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+
+    File: tb_memory.vhd
+    Description: Testbench for BRAM initialization from external data file.
+
+    Author(s):
+        - A. Pedersen, Aarhus University
+        - A. Cherencq, Aarhus University
+
+---------------------------------------------------------------------------------------------------
+*/
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity tb_synapse_bram is
-end tb_synapse_bram;
+entity tb_neuron_bram is
+end tb_neuron_bram;
 
-architecture Behavioral of tb_synapse_bram is
+architecture Behavioral of tb_neuron_bram is
 
     -- Component declaration for the Unit Under Test (UUT)
-    component synapse_bram is
+    component neuron_bram is
         port(
             clk  : in  std_logic;
             we   : in  std_logic;
@@ -33,7 +48,7 @@ architecture Behavioral of tb_synapse_bram is
 begin
 
     -- Instantiate the BRAM
-    uut: synapse_bram port map(
+    uut: neuron_bram port map(
         clk  => clk,
         we   => we,
         en   => en,
