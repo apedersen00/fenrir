@@ -3,7 +3,7 @@
     Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
 
-    File: tb.vhd
+    File: tb_lif_neuron.vhd
     Description: Testbench for the LIF neuron model (lif_neuron.vhd).
 
     Author(s):
