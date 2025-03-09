@@ -25,7 +25,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
-entity rams_init_file is
+entity neuron_memory is
     port (
         clk  : in  std_logic;
         we   : in  std_logic;
@@ -33,9 +33,9 @@ entity rams_init_file is
         din  : in  std_logic_vector(31 downto 0);
         dout : out std_logic_vector(31 downto 0)
     );
-end rams_init_file;
+end neuron_memory;
 
-architecture syn of rams_init_file is
+architecture syn of neuron_memory is
     type RamType is array (0 to 255) of bit_vector(31 downto 0);
 
     impure function InitRamFromFile(RamFileName : in string) return RamType is
