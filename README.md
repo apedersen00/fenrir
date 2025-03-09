@@ -1,6 +1,20 @@
-# Neural DVS Processing on FPGA using SNNs
+# FENRIR
 
-DVS Camera processing using SNN on FPGA.
+Fast Event-Driven Neural Recognition for dvs InfeRence.
+
+## Branch Conventions
+
+Three main branch groups:
+
+- `docs`: documentation
+- `py`: python
+- `hw`: HDL and FPGA related work
+
+Subgroups (at the time of writing):
+
+- `8x6`: initial one layer network
+- `fenrir`: work on main CNN/SNN hardware 
+- `vortex`: python framework for testing and validation
 
 ## Python Environment Installation
 
