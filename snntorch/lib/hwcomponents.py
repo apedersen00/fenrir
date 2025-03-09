@@ -105,7 +105,7 @@ class Utils:
         Returns a discrete sample from a normal distribution
         Clips the output to the range [min, max]
         """
-        sample = np.random.nomarl(loc=mu, scale=sigma)
+        sample = np.random.normal(loc=mu, scale=sigma)
         return np.clip(
             np.round(sample),
             min, max
