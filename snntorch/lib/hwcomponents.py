@@ -105,12 +105,45 @@ class Utils:
         Returns a discrete sample from a normal distribution
         Clips the output to the range [min, max]
         """
-        sample = np.random.nomarl(loc=mu, scale=sigma)
+        sample = np.random.normal(loc=mu, scale=sigma)
         return np.clip(
             np.round(sample),
             min, max
         )
     
+    class Print:
+        @staticmethod
+        def PrettyNeuron(
+            neuron: DataStructures.Neuron
+        ) -> None:
+            print(
+                f"Neuron state and params:",
+                f"\n - Leak strength: \t{neuron.leak_str}",
+                f"\n - threshold: \t\t{neuron.threshold}",
+                f"\n - reset value: \t{neuron.reset}",
+                f"\n - core state: \t\t{neuron.core}",
+            )
+    
+    class Plotting:
+
+        @staticmethod
+        def input_data_as_heatmap(input_data: DataStructures.InputData):
+            """Plots the InputData as a heatmap."""
+            data_matrix = np.array([sample.data for sample in input_data.samples])  # Convert to 2D array
+            
+            plt.figure(figsize=(10, 6))
+            plt.imshow(data_matrix, cmap="coolwarm", aspect="auto", interpolation="nearest")  # Heatmap
+
+            # Labels and formatting
+            plt.colorbar(label="Value Intensity")
+            plt.xlabel("Input Index")
+            plt.ylabel("Sample Index")
+            plt.title("InputData Heatmap")
+            # set ticks to show every 10th index
+            plt.xticks(np.arange(0, len(data_matrix[0]), 10))
+            plt.yticks(np.arange(0, len(data_matrix), 10))
+
+            plt.show()
     
 class BRAM:
 
@@ -140,6 +173,9 @@ class BRAM:
         def __len__(self):
             return len(self.neurons)
         
+        def __iter__(self):
+            return iter(self.neurons)
+
         def __repr__(self):
             return f"BRAM_Neuron(neurons={self.neurons})"
         
@@ -163,8 +199,13 @@ class BRAM:
             for i in range(self.length):
                 self.synapses[i] = callback(self.depth)
         
-        def __getitem__(self, key):
-            return self.synapses[key]
+        def __getitem__(self, address, key: Optional[int] = None):
+
+            if key:
+                return self.synapses[address][key]
+            else:
+                return self.synapses[address]
+            
         
         def __setitem__(self, key, value):
             self.synapses[key] = value
@@ -185,7 +226,7 @@ class Neurons:
         def change_neuron(self, neuron: DataStructures.Neuron):
             self.neuron = neuron
 
-        def change_weights(self, weight: int):
+        def change_weight(self, weight: int):
             self.weight = weight
         
         def forward(self, input):
