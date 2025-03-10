@@ -2,10 +2,10 @@ title: DVS on FPGA
 description: Real-Time Neuromorphic Processing of DVS Data on FPGA
 theme: just-the-docs
 
-url: https://ponti17.github.io/dvs-fpga/
+url: https://ponti17.github.io/fenrir/
 
 aux_links:
-  GitHub: https://github.com/ponti17/dvs-fpga
+  GitHub: https://github.com/ponti17/fenrir
 
 defaults:
   -
