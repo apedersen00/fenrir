@@ -139,8 +139,9 @@ class Utils:
             plt.xlabel("Input Index")
             plt.ylabel("Sample Index")
             plt.title("InputData Heatmap")
-            plt.xticks(np.arange(data_matrix.shape[1]))
-            plt.yticks(np.arange(data_matrix.shape[0]))
+            # set ticks to show every 10th index
+            plt.xticks(np.arange(0, len(data_matrix[0]), 10))
+            plt.yticks(np.arange(0, len(data_matrix), 10))
 
             plt.show()
     

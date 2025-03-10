@@ -17,7 +17,7 @@ class VortexSetings:
     InputData: Optional[DataStructures.InputData] = None
 
     def __post_init__(self):
-        
+
         if self.InputData is None:
             self.InputData = DataStructures.InputData()
             for _ in range(self.amount_samples):
@@ -59,11 +59,15 @@ class VortexOne:
         )
 
         self.active_neuron = settings.neuron
-        
+        self.input_data = settings.InputData
+
+        self.log = []
+        self.spike_log = []
+
     def rand_neuron(self):
         return DataStructures.Neuron(
             param_leak_str=Utils.DiscreteNORM(2**3, 2, 0, 2**5),
-            param_threshold=Utils.DiscreteNORM(2**6, 2**3, 0, 2**11),
+            param_threshold=Utils.DiscreteNORM(2**4, 2**2, 0, 2**11),
             state_core=0,
             param_reset=Utils.DiscreteNORM(4., 1., 0, 2**3)
         )
@@ -77,5 +81,38 @@ class VortexOne:
             temp_synapse[i] = Utils.DiscreteNORM(0.5, 1., 0, 3)
         return temp_synapse
     
+    def simulate(self):
+        for sample in self.input_data:
+            self.sim_sample(sample)
+            
+
+
+    def sim_sample(self, sample: DataStructures.InputSample):
+        counter_neuron, counter_synapse = 0, 0
+
+        temp_log = []
+        
+
+        for neuron in self.neurons:
+            
+            spike_event = 0
+
+            self.active_neuron.change_neuron(neuron)
+
+            for synapse in self.synapses[counter_neuron]:
+                self.active_neuron.change_weight(synapse)
+                x = self.active_neuron.forward(sample[counter_synapse])
+                if x==1:
+                    spike_event = 1
+                
+                counter_synapse += 1
+                
+            counter_neuron += 1
+            counter_synapse = 0
+
+            temp_log.append([self.active_neuron.neuron.core, spike_event])
+        
+        self.log.append(temp_log)
+        
 
     
