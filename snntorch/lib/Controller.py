@@ -127,9 +127,32 @@ class Export(VortexOne):
         self.original_neurons = copy.deepcopy(self.neurons)
         self.word_sizes = word_sizes
         self.dir_name = dir_name
+        
+        self.export()
 
     def export(self):
-        pass
+        
+        if self.make_dir():
+            print("Directory created")
+        else:
+            return False
+        
+        if self.export_neurons(self.original_neurons, "start_neurons"):
+            print("Neurons exported")
+        else:
+            return False
+        
+        if self.export_synapses():
+            print("Synapses exported")
+        else:
+            return False
+
+        self.simulate()
+
+        if self.export_neurons(self.neurons, "end_neurons"):
+            print("Neurons exported")
+        else:
+            return False
 
     def make_dir(self) -> bool:
         if self.dir_name is None:
@@ -148,8 +171,27 @@ class Export(VortexOne):
                 print(f"Error creating directory {self.dir_name}")
                 return False
         
-    def export_neurons(self, neurons: BRAM.Neurons) -> bool:
-        pass
+    def export_neurons(self, neurons: BRAM.Neurons, filename: str) -> bool:
+
+        words: List[str] = []
+        wz = self.word_sizes
+        
+        conv = self.convert_int_to_bin
+        for neuron in neurons:
+            leak_str = conv(int(neuron.leak_str), wz["param_leak_str"])
+            threshold = conv(int(neuron.threshold), wz["param_threshold"])
+            reset = conv(int(neuron.reset), wz["param_reset"])
+            state_core = conv(int(neuron.core), wz["state_core"])
+
+            #make sure the final word is the correct size
+            word = f"{state_core}{reset}{threshold}{leak_str}"
+            word = "0" * (wz["bram_neuron"] - len(word)) + word
+            words.append(word)
+            
+        return self.export_list_to_file(
+            data = words,
+            filename=f"{filename}.mem"
+        )
 
     def export_synapses(self) -> bool:
         
@@ -195,15 +237,10 @@ class Export(VortexOne):
         return bin(value)[2:].zfill(width)
     
     def export_list_to_file(self, data: List[str], filename: str) -> bool:
-        # try to make an export to a file in the created subdirectory
         try:
             with open(filename, "w") as f:
-                for line in data:
-                    if line == data[-1]:
-                        f.write(line)
-                    else:
-                        f.write(line + "\n")
+                f.write("\n".join(data))  # No extra newline at the end
             return True
-        except:
-            print(f"Error writing to file {filename}")
+        except Exception as e:
+            print(f"Error writing to file {filename}: {e}")
             return False

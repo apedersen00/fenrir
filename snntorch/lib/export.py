@@ -15,10 +15,7 @@ word_sizes = {
     "param_threshold": 5,
     "param_reset": 5,
     "state_core": 5,
-    "synapses_width": 4
+    "synapses_width": 8
 }
 
-Sim = Export(settings, word_sizes)
-#print(Sim.neurons)
-Sim.make_dir()
-Sim.export_synapses()
+Export(settings, word_sizes)
