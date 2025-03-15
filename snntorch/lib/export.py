@@ -4,7 +4,7 @@ from Controller import *
 settings = VortexSetings(
     amount_neurons=10,
     amount_synapses=10,
-    amount_samples=50,
+    amount_samples=3,
     neuron=Neurons.LIF()
 )
 

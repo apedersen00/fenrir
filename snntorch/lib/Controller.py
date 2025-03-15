@@ -2,7 +2,7 @@ import numpy as np
 from hwcomponents import *
 from dataclasses import dataclass
 from typing import Callable, List, Optional, Union
-import copy, os, datetime
+import copy, os, datetime, json
 
 @dataclass
 class VortexSetings:
@@ -128,7 +128,7 @@ class Export(VortexOne):
         self.word_sizes = word_sizes
         self.dir_name = dir_name
         
-        #self.export()
+        self.export()
 
     def export(self):
         
@@ -158,7 +158,11 @@ class Export(VortexOne):
             print("Input exported")
         else:
             return False
-        # need to export input sample and ouputs from the simulation
+
+        if self.export_output():
+            print("Output exported")
+        else:
+            return False
 
 
     def export_input(self) -> bool:
@@ -196,10 +200,36 @@ class Export(VortexOne):
 
     def export_output(self) -> bool:
 
-        self.simulate()
+        log = self.log
 
-        print(self.log)
-        pass
+        export_json: dict = {}
+        sample_id = 0
+        for output in log:
+            
+            sample: dict = {}
+            neuron_states = [int(neuron_state[0]) for neuron_state in output]
+            neuron_spikes = [neuron_spike[1] for neuron_spike in output]
+
+            sample["neuron_states"] = neuron_states
+            sample["neuron_synapse_out"] = neuron_spikes
+
+            export_json[f"sample_{sample_id}"] = sample
+            sample_id += 1
+        
+        return self.export_json_to_file(
+            data=export_json,
+            filename="outputs.json"
+        )
+        
+    def export_json_to_file(self, data: dict, filename: str) -> bool:
+        try:
+            with open(filename, 'w') as f:
+                json.dump(data, f, indent=4, separators=(", ", ": "))  # Ensures horizontal array format
+            return True
+        except Exception as e:
+            print(f"Error writing to file {filename}: {e}")
+            return False
+
 
     def make_dir(self) -> bool:
         if self.dir_name is None:
