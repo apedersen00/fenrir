@@ -128,7 +128,7 @@ class Export(VortexOne):
         self.word_sizes = word_sizes
         self.dir_name = dir_name
         
-        self.export()
+        #self.export()
 
     def export(self):
         
@@ -153,6 +153,16 @@ class Export(VortexOne):
             print("Neurons exported")
         else:
             return False
+        
+        # need to export input sample and ouputs from the simulation
+
+
+    def export_input(self) -> bool:
+
+        print("Exporting input data")
+        print(self.input_data)
+
+        pass
 
     def make_dir(self) -> bool:
         if self.dir_name is None:
