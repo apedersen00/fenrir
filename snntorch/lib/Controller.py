@@ -31,7 +31,7 @@ class VortexSetings:
 
     def randSample(self, length: int):
         return np.array([
-            Utils.DiscreteNORM(.1, .5, -1, 1) for _ in range(length)
+            Utils.DiscreteNORM(.5, .5, 0, 1) for _ in range(length)
         ])
 
 
@@ -154,14 +154,51 @@ class Export(VortexOne):
         else:
             return False
         
+        if self.export_input():
+            print("Input exported")
+        else:
+            return False
         # need to export input sample and ouputs from the simulation
 
 
     def export_input(self) -> bool:
 
         print("Exporting input data")
-        print(self.input_data)
 
+        words: List[str] = []
+
+        for sample in self.input_data:
+            counter = 0
+            tmp_word = ""
+            if len(sample) < 31:
+                for i in sample:
+                    tmp_word = self.convert_int_to_bin(int(i), 1) + tmp_word
+                # add zeros to fill the last word
+                tmp_word = "0" * (32 - len(tmp_word)) + tmp_word
+                words.append(tmp_word)
+            else:
+                for i in sample:
+                    if counter % 32 == 0 and counter != 0:
+                        words.append(tmp_word)
+                        tmp_word = self.convert_int_to_bin(int(i), 1)
+                        counter += 1
+                    else:
+                        tmp_word = self.convert_int_to_bin(int(i), 1) + tmp_word
+                        counter += 1
+                # add zeros to fill the last word
+                tmp_word = "0" * (32 - len(tmp_word)) + tmp_word
+                words.append(tmp_word)
+        
+        return self.export_list_to_file(
+            data = words,
+            filename="input.mem"
+        )
+
+    def export_output(self) -> bool:
+
+        self.simulate()
+
+        print(self.log)
         pass
 
     def make_dir(self) -> bool:
