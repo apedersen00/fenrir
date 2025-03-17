@@ -22,24 +22,20 @@ entity mem_synapse is
 end entity mem_synapse;
 
 architecture behavioral of mem_synapse is
+
     type RamType is array(0 to DEPTH - 1) of std_logic_vector(WIDTH - 1 downto 0);
-    
-    -- Local signal for debug counter
     signal debug_counter : integer := G_DEBUG_COUNTER_INIT;
 
-    -- Function to initialize RAM from file if provided, otherwise initialize with zeros
     impure function InitRam(fName : in string) return RamType is
         FILE RamFile : text;
         variable file_status : file_open_status;
         variable RamFileLine : line;
-        variable RAM : RamType := (others => (others => '0'));  -- Default to all zeros
+        variable RAM : RamType := (others => (others => '0'));
         variable v_data : std_logic_vector(WIDTH - 1 downto 0);
     begin
-        -- Check if filename is provided and not empty
         if fName'length > 0 then
             file_open(file_status, RamFile, fName, read_mode);
             
-            -- Only read from file if successfully opened
             if file_status = open_ok then
                 for I in RamType'range loop
                     if not endfile(RamFile) then
@@ -51,11 +47,9 @@ architecture behavioral of mem_synapse is
                 file_close(RamFile);
             else
                 report "Failed to open file: " & fName severity warning;
-                -- RAM remains initialized to zeros
             end if;
         else
             report "No filename provided, initializing RAM with zeros" severity note;
-            -- RAM remains initialized to zeros
         end if;
         
         return RAM;
