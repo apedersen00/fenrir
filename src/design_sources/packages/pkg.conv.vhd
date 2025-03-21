@@ -7,17 +7,23 @@ package conv_types is
     constant DEFAULT_KERNEL_BIT_WIDTH : integer := 3;
     constant CONV_OUT_BIT_WIDTH : integer := 8;
     
+    subtype int2_t is signed(1 downto 0);
+    subtype kernel_val_t is signed(DEFAULT_KERNEL_BIT_WIDTH-1 downto 0);
+
     type window_t is record
-        v00, v01, v02 : signed(1 downto 0);
-        v10, v11, v12 : signed(1 downto 0);
-        v20, v21, v22 : signed(1 downto 0);
+        v00, v01, v02 : int2_t;
+        v10, v11, v12 : int2_t;
+        v20, v21, v22 : int2_t;
     end record;
 
     type kernel_t is record
-        k00, k01, k02 : signed(DEFAULT_KERNEL_BIT_WIDTH-1 downto 0);
-        k10, k11, k12 : signed(DEFAULT_KERNEL_BIT_WIDTH-1 downto 0);
-        k20, k21, k22 : signed(DEFAULT_KERNEL_BIT_WIDTH-1 downto 0);
+        k00, k01, k02 : kernel_val_t;
+        k10, k11, k12 : kernel_val_t;
+        k20, k21, k22 : kernel_val_t;
     end record;
+
+    attribute use_dsp : string;
+    attribute use_dsp of dot_product : function is "yes";
 
     function dot_product(
         w: window_t;
@@ -32,10 +38,6 @@ package conv_types is
 end package conv_types;
 
 package body conv_types is
-
-
-    attribute use_dsp : string;
-    attribute use_dsp of dot_product : function is "yes";
 
     function dot_product(
         w: window_t;
