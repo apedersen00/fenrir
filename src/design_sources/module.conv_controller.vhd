@@ -12,8 +12,9 @@ entity conv_controller is
     );
     port(
         clk : in std_logic;
-        rst : in std_logic;
-
+        --rst : in std_logic;
+        data_ready : in std_logic;
+        
         -- for the 8xConv block
         windows : out window_array_8_t;
         kernel : out kernel_t;
@@ -41,10 +42,34 @@ architecture Behavioral of conv_controller is
     );
 
     signal STATE : states := IDLE;
+    signal request_kernel : boolean := false;
+    signal kernel_counter : integer := 0;
 
 begin
 
-process (clk, rst)
+process (clk)
+begin
+    if rising_edge(clk) then
+        case STATE is
+            WHEN IDLE =>
+                if data_ready = '1' then
+                    STATE <= READ_KERNEL;
+                end if;
+            WHEN READ_KERNEL =>
+                -- this lasts two cycles
+                if request_kernel then
+                    request_kernel <= not request_kernel;
+                    kernel_address <= std_logic_vector(to_unsigned(kernel_counter, 8));
+                else
+                    request_kernel <= not request_kernel;
+                    kernel <= kernel_ram_to_kernel_t(kernel_data_in);
+                    kernel_counter <= kernel_counter + 1;
+                end if;
 
+            WHEN READ_IMG_ROW =>
+            WHEN COMPUTE_CONV =>
+        end case;
+    end if;
+end process;
 
 end architecture Behavioral; 
