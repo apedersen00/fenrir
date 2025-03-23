@@ -5,7 +5,7 @@ use ieee.fixed_float_types.all;
 
 package conv_types is
 
-    constant DEFAULT_KERNEL_BIT_WIDTH : integer := 3;
+    constant DEFAULT_KERNEL_BIT_WIDTH : integer := 7;
     constant CONV_OUT_BIT_WIDTH : integer := 8;
     
     subtype int2_t is signed(1 downto 0);
