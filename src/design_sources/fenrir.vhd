@@ -3,8 +3,8 @@
     Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
 
-    File: top.vhd
-    Description: Top module of 8x6 neural network.
+    File: fenrir.vhd
+    Description: Top module of FENRIR.
 
     Author(s):
         - A. Pedersen, Aarhus University
