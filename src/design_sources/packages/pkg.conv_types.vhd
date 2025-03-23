@@ -43,9 +43,29 @@ package conv_types is
     type window_array_8_t is array(0 to 7) of window_t;
     type conv_out_array_t is array(0 to 7) of signed(CONV_OUT_BIT_WIDTH-1 downto 0);
 
+    type window_row is array(0 to 2) of int2_t;
+    type window_rows is array(0 to 7) of window_row;
+
+    function transform_ram_to_window_rows(
+        ram_data: std_logic_vector(63 downto 0)
+    ) return window_rows;
+
 end package conv_types;
 
 package body conv_types is
+
+    function transform_ram_to_window_rows(
+        ram_data: std_logic_vector(63 downto 0)
+    ) return window_rows is
+
+    variable rows : window_rows;
+    begin
+
+        -- lets make a for loop for 8 windows. Since we have a 64 bit word, and each window has 3 values, we need 6 bits per window
+         
+
+    end function;
+   
 
     function kernel_ram_to_kernel_t(
         kernel_data : std_logic_vector(63 downto 0)

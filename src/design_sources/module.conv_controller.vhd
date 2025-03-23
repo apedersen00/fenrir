@@ -38,9 +38,9 @@ architecture Behavioral of conv_controller is
         IDLE,
         KERNEL_READ_REQ,
         KERNEL_READ_DATA,
-        IMG_ROW_REQ_ROW,
-        IMG_ROW_REQ_AND_READ,
-        COMPUTE_CONV
+        IMG_ROW_REQ_ROW, -- request first row block
+        IMG_ROW_REQ_AND_READ, -- read previous row block and request next row block
+        COMPUTE_CONV -- read the previous row block and send data to convolution blocks
     );
 
     signal STATE : states := IDLE;
@@ -50,7 +50,7 @@ begin
 process (clk)
     variable kernel_counter : integer := 0;
     variable request_kernel : boolean := true;
-    variable 
+    variable row_counter : integer := 0;
 begin
     if rising_edge(clk) then
         case STATE is
@@ -74,9 +74,12 @@ begin
             WHEN IMG_ROW_REQ_ROW =>
 
                 -- do math on img width later but for now its fine
-
+                img_row_address <= std_logic_vector(to_unsigned(row_counter, 8));
+                STATE <= IMG_ROW_REQ_AND_READ;
 
             WHEN IMG_ROW_REQ_AND_READ =>
+
+                
             WHEN COMPUTE_CONV =>
             WHEN OTHERS =>
 
