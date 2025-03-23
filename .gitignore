@@ -1,4 +1,11 @@
+# Ignore python cache and virtual environment
 **/.snnenv/
-**/__pycache__/
-**/data/
+**/.venv
 **/cache/
+**/__pycache__/
+
+# Ignore BRAM initialization files
+**/design_sources/data
+
+# Ignore the Vivado project directory
+vivado/
