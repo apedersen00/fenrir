@@ -1,9 +1,37 @@
+/*
+---------------------------------------------------------------------------------------------------
+    Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+
+    File: bram_mem.vhd
+    Description: General purpose, parametric BRAM memory module.
+
+    Author(s):
+        - A. Pedersen, Aarhus University
+        - A. Cherencq, Aarhus University
+
+---------------------------------------------------------------------------------------------------
+
+    Functionality:
+        - The module implements a generic, parametric BRAM memory module.
+
+    Parameters:
+        - G_DEBUG: Debug flag to enable debug output.
+        - G_DEBUG_COUNTER_INIT: Initial value for the debug counter.
+        - DEPTH: Depth of the memory.
+        - WIDTH: Data width in bits.
+        - WIDTH_ADDR: Address width in bits.
+        - FILENAME: Path to a file containing initial memory values.
+
+---------------------------------------------------------------------------------------------------
+*/
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use std.textio.all;
 
-entity mem_synapse is 
+entity bram_mem is 
     generic (
         G_DEBUG                 : boolean   := false;
         G_DEBUG_COUNTER_INIT    : integer   := 0;
@@ -19,9 +47,9 @@ entity mem_synapse is
         din : in std_logic_vector(WIDTH - 1 downto 0);
         dout : out std_logic_vector(WIDTH - 1 downto 0)
     );
-end entity mem_synapse;
+end entity bram_mem;
 
-architecture behavioral of mem_synapse is
+architecture behavioral of bram_mem is
 
     type RamType is array(0 to DEPTH - 1) of std_logic_vector(WIDTH - 1 downto 0);
     signal debug_counter : integer := G_DEBUG_COUNTER_INIT;

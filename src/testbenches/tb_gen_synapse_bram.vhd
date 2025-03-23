@@ -5,14 +5,14 @@ use std.textio.all;
 
 use std.env.all;
 
-entity mem_synapse_tb is
+entity bram_mem_tb is
 generic(
     TEST_DATA_FILE : string := "";
     REPORT_ONLY_ERRORS : boolean := true
 );
-end mem_synapse_tb;
+end bram_mem_tb;
 
-architecture testbench of mem_synapse_tb is
+architecture testbench of bram_mem_tb is
     -- Constants
     constant CLK_PERIOD : time := 10 ns;
     constant MEM_DEPTH  : natural := 256;
@@ -34,7 +34,7 @@ begin
     clk <= not clk after CLK_PERIOD/2 when not sim_done else '0';
     
     -- Device Under Test (DUT)
-    dut: entity work.mem_synapse
+    dut: entity work.bram_mem
     generic map (
         G_DEBUG             => false,
         G_DEBUG_COUNTER_INIT => 0,
