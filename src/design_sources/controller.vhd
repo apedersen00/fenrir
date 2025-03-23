@@ -30,11 +30,6 @@ entity controller is
         busy                : out std_logic;                        -- busy (1 = busy)
         data_rdy            : in  std_logic;                        -- data ready (1 = data ready)
 
-        -- outputs
-        out0                : out std_logic_vector(31 downto 0);    -- temp general purpose output
-        out1                : out std_logic_vector(31 downto 0);    -- temp general purpose output
-        out2                : out std_logic_vector(31 downto 0);    -- temp general purpose output
-
         -- memory
         ibf_addr            : out std_logic_vector(7 downto 0);     -- 8-bit address for input buffer
         ibf_in              : in  std_logic_vector(31 downto 0);    -- 32-bit input for synapse

@@ -12,10 +12,6 @@ architecture behavior of controller_tb is
     signal busy            : std_logic;
     signal data_rdy        : std_logic := '0';
 
-    signal out0            : std_logic_vector(31 downto 0);
-    signal out1            : std_logic_vector(31 downto 0);
-    signal out2            : std_logic_vector(31 downto 0);
-
     signal ibf_addr        : std_logic_vector(7 downto 0);
     signal ibf_in          : std_logic_vector(31 downto 0);
 
@@ -69,10 +65,6 @@ begin
             nRst            => nRst,
             busy            => busy,
             data_rdy        => data_rdy,
-
-            out0            => out0,
-            out1            => out1,
-            out2            => out2,
 
             ibf_addr        => ibf_addr,
             ibf_in          => ibf_dout,
