@@ -171,6 +171,7 @@ begin
 
                     when WRITE_NRN =>
                         nrn_addr <= std_logic_vector(to_unsigned(nrn_idx, 8));
+                        nrn_out(31) <= '0';
                         nrn_out(30 downto 19) <= state_core_next(11 downto 0);
                         nrn_out(18 downto 7)  <= nrn_in(18 downto 7);
                         nrn_out(6 downto 0)   <= nrn_in(6 downto 0);
