@@ -4,16 +4,11 @@
 ---------------------------------------------------------------------------------------------------
 
     File: controller.vhd
-    Description: Controller for 8x6 SNN.
+    Description: Controller for FENRIR.
 
     Author(s):
         - A. Pedersen, Aarhus University
         - A. Cherencq, Aarhus University
-
----------------------------------------------------------------------------------------------------
-
-    Functionality:
-        - Controller for 8x6 SNN.
 
 ---------------------------------------------------------------------------------------------------
 */
