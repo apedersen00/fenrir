@@ -75,6 +75,9 @@ begin
 
     -- instantiate controller
     controller: entity work.controller
+        generic map (
+            NUM_NRN         => NUM_NRN
+        )
         port map (
             clk             => clk,
             nRst            => nRst,
