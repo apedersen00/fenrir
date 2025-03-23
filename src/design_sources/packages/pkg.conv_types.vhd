@@ -1,7 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.fixed_float_types.all;
 
 package conv_types is
 
@@ -73,23 +72,23 @@ package body conv_types is
         k: kernel_t
     ) return std_logic_vector is
 
-        variable kernel_data : std_logic_vector(63 downto 0);
+    variable kernel_data : std_logic_vector(63 downto 0);
+        variable tmp : std_logic_vector(62 downto 0);
     begin
+        tmp := 
+            std_logic_vector(resize(k.k22, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k21, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k20, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k12, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k11, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k10, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k02, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k01, DEFAULT_KERNEL_BIT_WIDTH)) &
+            std_logic_vector(resize(k.k00, DEFAULT_KERNEL_BIT_WIDTH));
 
-        kernel_data :=  std_logic_vector(
-                            resize(k.k00, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k01, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k02, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k10, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k11, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k12, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k20, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k21, DEFAULT_KERNEL_BIT_WIDTH) &
-                            resize(k.k22, DEFAULT_KERNEL_BIT_WIDTH)
-                        );
+        kernel_data := "0" & tmp;
 
         return kernel_data;
-
     end function;
 
     function dot_product(

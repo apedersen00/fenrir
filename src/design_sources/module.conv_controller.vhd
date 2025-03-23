@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
 
 use work.conv_types.all;
 
@@ -28,7 +29,6 @@ entity conv_controller is
         kernel_data_in : in std_logic_vector(63 downto 0);
         kernel_address : out std_logic_vector(7 downto 0);
         kernel_write_en : out std_logic;
-
     );
 end entity conv_controller;
 
@@ -36,40 +36,54 @@ architecture Behavioral of conv_controller is
 
     type states is (
         IDLE,
-        READ_KERNEL,
-        READ_IMG_ROW,
+        KERNEL_READ_REQ,
+        KERNEL_READ_DATA,
+        IMG_ROW_REQ_ROW,
+        IMG_ROW_REQ_AND_READ,
         COMPUTE_CONV
     );
 
     signal STATE : states := IDLE;
-    signal request_kernel : boolean := false;
-    signal kernel_counter : integer := 0;
-
+    
 begin
 
 process (clk)
+    variable kernel_counter : integer := 0;
+    variable request_kernel : boolean := true;
+    variable 
 begin
     if rising_edge(clk) then
         case STATE is
+
             WHEN IDLE =>
                 if data_ready = '1' then
-                    STATE <= READ_KERNEL;
-                end if;
-            WHEN READ_KERNEL =>
-                -- this lasts two cycles
-                if request_kernel then
-                    request_kernel <= not request_kernel;
-                    kernel_address <= std_logic_vector(to_unsigned(kernel_counter, 8));
-                else
-                    request_kernel <= not request_kernel;
-                    kernel <= kernel_ram_to_kernel_t(kernel_data_in);
-                    kernel_counter <= kernel_counter + 1;
+                    STATE <= KERNEL_READ_REQ;
                 end if;
 
-            WHEN READ_IMG_ROW =>
+            WHEN KERNEL_READ_REQ =>
+
+                kernel_address <= std_logic_vector(to_unsigned(kernel_counter, 8));
+                STATE <= KERNEL_READ_DATA;
+
+            WHEN KERNEL_READ_DATA =>
+
+                kernel <= kernel_ram_to_kernel_t(kernel_data_in);
+                kernel_counter := kernel_counter + 1;
+                STATE <= IMG_REQ_ROW;
+
+            WHEN IMG_ROW_REQ_ROW =>
+
+                -- do math on img width later but for now its fine
+
+
+            WHEN IMG_ROW_REQ_AND_READ =>
             WHEN COMPUTE_CONV =>
+            WHEN OTHERS =>
+
         end case;
+        
     end if;
+    -- 
 end process;
 
 end architecture Behavioral; 
