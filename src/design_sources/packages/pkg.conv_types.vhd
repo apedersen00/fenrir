@@ -26,6 +26,14 @@ package conv_types is
     attribute use_dsp : string;
     attribute use_dsp of dot_product : function is "yes";
 
+    function kernel_ram_to_kernel_t(
+        kernel_data : std_logic_vector(63 downto 0)
+    ) return kernel_t;
+
+    function kernel_t_to_kernel_ram(
+        k: kernel_t
+    ) return std_logic_vector;
+
     function dot_product(
         w: window_t;
         k: kernel_t;
@@ -39,6 +47,50 @@ package conv_types is
 end package conv_types;
 
 package body conv_types is
+
+    function kernel_ram_to_kernel_t(
+        kernel_data : std_logic_vector(63 downto 0)
+    ) return kernel_t is
+
+        variable k : kernel_t;
+
+    begin
+
+        k.k00 := signed(kernel_data(DEFAULT_KERNEL_BIT_WIDTH - 1 downto 0));
+        k.k01 := signed(kernel_data(2*DEFAULT_KERNEL_BIT_WIDTH - 1 downto DEFAULT_KERNEL_BIT_WIDTH));
+        k.k02 := signed(kernel_data(3*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 2*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k10 := signed(kernel_data(4*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 3*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k11 := signed(kernel_data(5*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 4*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k12 := signed(kernel_data(6*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 5*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k20 := signed(kernel_data(7*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 6*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k21 := signed(kernel_data(8*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 7*DEFAULT_KERNEL_BIT_WIDTH));
+        k.k22 := signed(kernel_data(9*DEFAULT_KERNEL_BIT_WIDTH - 1 downto 8*DEFAULT_KERNEL_BIT_WIDTH));
+
+        return k;
+    end function;
+
+    function kernel_t_to_kernel_ram(
+        k: kernel_t
+    ) return std_logic_vector is
+
+        variable kernel_data : std_logic_vector(63 downto 0);
+    begin
+
+        kernel_data :=  std_logic_vector(
+                            resize(k.k00, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k01, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k02, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k10, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k11, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k12, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k20, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k21, DEFAULT_KERNEL_BIT_WIDTH) &
+                            resize(k.k22, DEFAULT_KERNEL_BIT_WIDTH)
+                        );
+
+        return kernel_data;
+
+    end function;
 
     function dot_product(
         w: window_t;
