@@ -15,7 +15,7 @@ entity conv_controller is
 
         -- for the 8xConv block
         windows : out window_array_8_t;
-        kernel : out kernel_t;
+        kernel : out kernel_t
     );
 end entity conv_controller;
 
