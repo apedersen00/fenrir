@@ -113,7 +113,15 @@ begin
             );
 
     -- instantiate memory modules with unique names
-    ibf_memory: entity work.input_memory
+    ibf_mem: entity work.bram_mem
+        generic map (
+            G_DEBUG                 => false,
+            G_DEBUG_COUNTER_INIT    => 0,
+            DEPTH                   => 256,
+            WIDTH                   => 32,
+            WIDTH_ADDR              => 8,
+            FILENAME                => "data/ibf_init.data"
+        )
         port map (
             clk         => clk,
             we          => ibf_we,
@@ -122,7 +130,15 @@ begin
             dout        => ibf_dout
         );
 
-    out_memory: entity work.out_memory
+    out_mem: entity work.bram_mem
+        generic map (
+            G_DEBUG                 => false,
+            G_DEBUG_COUNTER_INIT    => 0,
+            DEPTH                   => 256,
+            WIDTH                   => 32,
+            WIDTH_ADDR              => 8,
+            FILENAME                => "data/out_init.data"
+        )
         port map (
             clk         => clk,
             we          => out_we,
@@ -131,7 +147,15 @@ begin
             dout        => out_dout
         );
 
-    syn_memory: entity work.synapse_memory
+    syn_mem: entity work.bram_mem
+        generic map (
+            G_DEBUG                 => false,
+            G_DEBUG_COUNTER_INIT    => 0,
+            DEPTH                   => 65536,
+            WIDTH                   => 32,
+            WIDTH_ADDR              => 16,
+            FILENAME                => "data/syn_init.data"
+        )
         port map (
             clk         => clk,
             we          => syn_we,
@@ -140,7 +164,15 @@ begin
             dout        => syn_dout
         );
 
-    nrn_memory: entity work.neuron_memory
+    nrn_mem: entity work.bram_mem
+        generic map (
+            G_DEBUG                 => false,
+            G_DEBUG_COUNTER_INIT    => 0,
+            DEPTH                   => 256,
+            WIDTH                   => 32,
+            WIDTH_ADDR              => 8,
+            FILENAME                => "data/nrn_init.data"
+        )
         port map (
             clk         => clk,
             we          => nrn_we,
