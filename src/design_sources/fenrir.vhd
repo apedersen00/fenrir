@@ -18,34 +18,34 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity fenrir is
+    generic (
+        NUM_NRN : integer := 64
+    );
     port (
+        -- control
         clk             : in std_logic;
+        nRst            : in std_logic;
+        busy            : out std_logic;
+
+        -- data in
+        data_rdy        : in std_logic;
+        ibf_addr        : out std_logic_vector(15 downto 0);
+        ibf_in          : in std_logic_vector(31 downto 0);
     );
 end fenrir;
 
 architecture Structural of fenrir is
     -- controller signals
-    signal nRst            : std_logic := '1';
-    signal busy            : std_logic;
-    signal data_rdy        : std_logic := '0';
-
-    signal ibf_addr        : std_logic_vector(7 downto 0);
-    signal ibf_in          : std_logic_vector(31 downto 0);
-
-    signal out_addr        : std_logic_vector(7 downto 0);
+    signal out_addr        : std_logic_vector(15 downto 0);
     signal out_in          : std_logic_vector(31 downto 0);
 
     signal syn_addr        : std_logic_vector(15 downto 0);
     signal syn_in          : std_logic_vector(31 downto 0);
 
-    signal nrn_addr        : std_logic_vector(7 downto 0);
+    signal nrn_addr        : std_logic_vector(15 downto 0);
     signal nrn_in          : std_logic_vector(31 downto 0);
 
     -- memory signals
-    signal ibf_we          : std_logic := '0';                 -- Write enable for memory
-    signal ibf_din         : std_logic_vector(31 downto 0);    -- Data input to memory
-    signal ibf_dout        : std_logic_vector(31 downto 0);    -- Data output from memory
-
     signal out_we          : std_logic := '0';                 -- Write enable for memory
     signal out_din         : std_logic_vector(31 downto 0);    -- Data input to memory
     signal out_dout        : std_logic_vector(31 downto 0);    -- Data output from memory
@@ -82,7 +82,7 @@ begin
             data_rdy        => data_rdy,
 
             ibf_addr        => ibf_addr,
-            ibf_in          => ibf_dout,
+            ibf_in          => ibf_in,
 
             out_addr        => out_addr,
             out_in          => out_dout,
@@ -108,42 +108,25 @@ begin
         );
 
     lif_neuron: entity work.lif_neuron
-            port map (
-                param_leak_str  => param_leak_str,
-                param_thr       => param_thr,
-                state_core      => state_core,
-                state_core_next => state_core_next,
-                syn_weight      => syn_weight,
-                syn_event       => syn_event,
-                time_ref        => time_ref,
-                spike_out       => spike_out
-            );
-
-    -- instantiate memory modules with unique names
-    ibf_mem: entity work.bram_mem
-        generic map (
-            G_DEBUG                 => false,
-            G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => 256,
-            WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
-            FILENAME                => "data/ibf_init.data"
-        )
         port map (
-            clk         => clk,
-            we          => ibf_we,
-            addr        => ibf_addr,
-            din         => ibf_din,
-            dout        => ibf_dout
+            param_leak_str  => param_leak_str,
+            param_thr       => param_thr,
+            state_core      => state_core,
+            state_core_next => state_core_next,
+            syn_weight      => syn_weight,
+            syn_event       => syn_event,
+            time_ref        => time_ref,
+            spike_out       => spike_out
         );
 
+    -- instantiate memory modules with unique names
     out_mem: entity work.bram_mem
         generic map (
             G_DEBUG                 => false,
             G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => 256,
+            DEPTH                   => NUM_NRN / 32 + 1,
             WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
+            WIDTH_ADDR              => 16,
             FILENAME                => "data/out_init.data"
         )
         port map (
@@ -158,7 +141,7 @@ begin
         generic map (
             G_DEBUG                 => false,
             G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => 65536,
+            DEPTH                   => NUM_NRN * NUM_NRN,
             WIDTH                   => 32,
             WIDTH_ADDR              => 16,
             FILENAME                => "data/syn_init.data"
@@ -175,9 +158,9 @@ begin
         generic map (
             G_DEBUG                 => false,
             G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => 256,
+            DEPTH                   => NUM_NRN,
             WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
+            WIDTH_ADDR              => 16,
             FILENAME                => "data/nrn_init.data"
         )
         port map (
