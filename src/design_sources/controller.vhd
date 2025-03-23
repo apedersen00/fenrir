@@ -23,6 +23,9 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity controller is
+    generic (
+        NUM_NRN : integer := 48
+    );
     port (
         -- control
         clk                 : in  std_logic;
@@ -31,10 +34,10 @@ entity controller is
         data_rdy            : in  std_logic;                        -- data ready (1 = data ready)
 
         -- memory
-        ibf_addr            : out std_logic_vector(7 downto 0);     -- 8-bit address for input buffer
+        ibf_addr            : out std_logic_vector(15 downto 0);     -- 8-bit address for input buffer
         ibf_in              : in  std_logic_vector(31 downto 0);    -- 32-bit input for synapse
 
-        out_addr            : out std_logic_vector(7 downto 0);     -- 8-bit address for output memory
+        out_addr            : out std_logic_vector(15 downto 0);     -- 8-bit address for output memory
         out_in              : in  std_logic_vector(31 downto 0);    -- 32-bit value for output memory
         out_out             : out std_logic_vector(31 downto 0);    -- 32-bit value from output memory
         out_we              : out std_logic;                        -- write enable for output memory
@@ -42,7 +45,7 @@ entity controller is
         syn_addr            : out std_logic_vector(15 downto 0);    -- 8-bit address for synapse memory
         syn_in              : in  std_logic_vector(31 downto 0);    -- 32-bit value for synapse memory
 
-        nrn_addr            : out std_logic_vector(7 downto 0);     -- 8-bit address for neuron memory
+        nrn_addr            : out std_logic_vector(15 downto 0);     -- 8-bit address for neuron memory
         nrn_in              : in  std_logic_vector(31 downto 0);    -- 32-bit value for neuron memory
         nrn_out             : out std_logic_vector(31 downto 0);    -- 32-bit value from neuron memory
         nrn_we              : out std_logic;                        -- write enable for neuron memory
@@ -75,9 +78,9 @@ architecture Behavioral of controller is
     );
     signal cur_state    : states;
 
-    signal nrn_idx      : integer range 0 to 47 := 0;
-    signal syn_idx      : integer range 0 to 47 := 0;
-    signal ibf_idx      : integer range 0 to 47 := 0;
+    signal nrn_idx      : integer range 0 to (NUM_NRN - 1) := 0;
+    signal syn_idx      : integer range 0 to (NUM_NRN - 1) := 0;
+    signal ibf_idx      : integer range 0 to (NUM_NRN - 1) := 0;
     signal acc_sum      : integer range 0 to 2048 := 0; -- accumulator for neuron potential (0 to 2^11)
 
 begin
@@ -111,8 +114,8 @@ begin
                         end if;
 
                     when ITRT_NRN =>
-                        nrn_addr <= std_logic_vector(to_unsigned(nrn_idx, 8));
-                        out_addr      <= std_logic_vector(to_unsigned(nrn_idx / 32, 8));
+                        nrn_addr <= std_logic_vector(to_unsigned(nrn_idx, 16));
+                        out_addr <= std_logic_vector(to_unsigned(nrn_idx / 32, 16));
                         nrn_we   <= '0';
                         out_we   <= '0';
 
@@ -124,7 +127,7 @@ begin
 
                     when ITRT_SYN =>
                         syn_addr <= std_logic_vector(to_unsigned(syn_idx / 8 + nrn_idx * 6, 16));
-                        ibf_addr <= std_logic_vector(to_unsigned(ibf_idx / 16, 8));
+                        ibf_addr <= std_logic_vector(to_unsigned(ibf_idx / 16, 16));
 
                         cur_state <= WAIT_CYC;
 
@@ -141,7 +144,7 @@ begin
                         end loop;
                         acc_sum <= acc_sum + par_sum;
 
-                        if syn_idx < 47 - 8 then
+                        if syn_idx < (NUM_NRN - 1) - 8 then
                             syn_idx <= syn_idx + 8;
                             ibf_idx <= ibf_idx + 8;
                             cur_state <= ITRT_SYN;
@@ -165,7 +168,7 @@ begin
                         cur_state <= WRITE_NRN;
 
                     when WRITE_NRN =>
-                        nrn_addr <= std_logic_vector(to_unsigned(nrn_idx, 8));
+                        nrn_addr <= std_logic_vector(to_unsigned(nrn_idx, 16));
                         nrn_out(31) <= '0';
                         nrn_out(30 downto 19) <= state_core_next(11 downto 0);
                         nrn_out(18 downto 7)  <= nrn_in(18 downto 7);
@@ -176,7 +179,7 @@ begin
                         out_out  <= out_in when spike_out = '0' else
                                     out_in or (std_logic_vector(to_unsigned(1, 32)) sll (nrn_idx mod 32));
 
-                        if nrn_idx < 47 then
+                        if nrn_idx < (NUM_NRN - 1) then
                             nrn_idx <= nrn_idx + 1;
                             cur_state <= ITRT_NRN;
                         else

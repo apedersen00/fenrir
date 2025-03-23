@@ -12,16 +12,16 @@ architecture behavior of controller_tb is
     signal busy            : std_logic;
     signal data_rdy        : std_logic := '0';
 
-    signal ibf_addr        : std_logic_vector(7 downto 0);
+    signal ibf_addr        : std_logic_vector(15 downto 0);
     signal ibf_in          : std_logic_vector(31 downto 0);
 
-    signal out_addr        : std_logic_vector(7 downto 0);
+    signal out_addr        : std_logic_vector(15 downto 0);
     signal out_in          : std_logic_vector(31 downto 0);
 
     signal syn_addr        : std_logic_vector(15 downto 0);
     signal syn_in          : std_logic_vector(31 downto 0);
 
-    signal nrn_addr        : std_logic_vector(7 downto 0);
+    signal nrn_addr        : std_logic_vector(15 downto 0);
     signal nrn_in          : std_logic_vector(31 downto 0);
 
     -- memory signals
@@ -60,6 +60,9 @@ architecture behavior of controller_tb is
 begin
     -- instantiate controller
     uut: entity work.controller
+        generic map (
+            NUM_NRN         => 64
+        )
         port map (
             clk             => clk,
             nRst            => nRst,
@@ -111,7 +114,7 @@ begin
             G_DEBUG_COUNTER_INIT    => 0,
             DEPTH                   => 256,
             WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
+            WIDTH_ADDR              => 16,
             FILENAME                => "data/ibf_init.data"
         )
         port map (
@@ -128,7 +131,7 @@ begin
             G_DEBUG_COUNTER_INIT    => 0,
             DEPTH                   => 256,
             WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
+            WIDTH_ADDR              => 16,
             FILENAME                => "data/out_init.data"
         )
         port map (
@@ -162,7 +165,7 @@ begin
             G_DEBUG_COUNTER_INIT    => 0,
             DEPTH                   => 256,
             WIDTH                   => 32,
-            WIDTH_ADDR              => 8,
+            WIDTH_ADDR              => 16,
             FILENAME                => "data/nrn_init.data"
         )
         port map (
@@ -196,7 +199,7 @@ begin
         wait for clk_period;
 
         -- Simulate reading and incrementing address
-        for i in 0 to 1200 loop
+        for i in 0 to 1800 loop
             data_rdy <= '0';
             wait for clk_period;
         end loop;
