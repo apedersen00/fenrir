@@ -9,8 +9,7 @@ aux_links:
   GitHub: https://github.com/ponti17/fenrir
 
 defaults:
-  -
-    scope:
+  - scope:
       path: ""
     values:
       layout: "default"
