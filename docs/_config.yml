@@ -1,6 +1,7 @@
 title: DVS on FPGA
 description: Real-Time Neuromorphic Processing of DVS Data on FPGA
 theme: just-the-docs
+math: mathjax
 
 url: https://ponti17.github.io/fenrir/
 
@@ -13,3 +14,8 @@ defaults:
       path: ""
     values:
       layout: "default"
+
+callouts:
+  highlight:
+    color: blue
+    opacity: 0.2
