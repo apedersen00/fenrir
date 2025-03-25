@@ -4,6 +4,6 @@ layout: home
 nav_order: 1
 ---
 
-# DVS on FPGA
+# FENRIR
 
-**Under Construction**
+_Fast Event-Driven Neural Recognition for dvs InfeRence_
