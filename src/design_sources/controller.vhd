@@ -62,7 +62,8 @@ entity controller is
 end controller;
 
 architecture Behavioral of controller is
-    -- state machine
+
+    -- fsm states
     type states is (
         IDLE,       -- idle state
         ITRT_NRN,   -- iterate neurons
@@ -121,7 +122,7 @@ begin
                         cur_state <= ITRT_SYN;
 
                     when ITRT_SYN =>
-                        syn_addr <= std_logic_vector(to_unsigned(syn_idx / 8 + nrn_idx * 6, 16));
+                        syn_addr <= std_logic_vector(to_unsigned(syn_idx / 8, 16));
                         ibf_addr <= std_logic_vector(to_unsigned(ibf_idx / 16, 16));
 
                         cur_state <= WAIT_CYC;
@@ -139,11 +140,13 @@ begin
                         end loop;
                         acc_sum <= acc_sum + par_sum;
 
-                        if syn_idx - (nrn_idx * IN_SIZE / 8) < (IN_SIZE - 1) - 8 then
+                        if ((syn_idx + 8) mod 1024) /= 0 then
                             syn_idx <= syn_idx + 8;
                             ibf_idx <= ibf_idx + 8;
                             cur_state <= ITRT_SYN;
                         else
+                            syn_idx <= syn_idx + 8;
+                            ibf_idx <= ibf_idx + 8;
                             cur_state <= UPDT_NRN;
                         end if;
                     
