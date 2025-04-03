@@ -24,7 +24,8 @@ begin
     -- instantiate controller
     uut: entity work.fenrir
         generic map (
-            NUM_NRN         => 64
+            IN_SIZE         => 1024,
+            NUM_NRN         => 10
         )
         port map (
             clk             => clk,
@@ -40,7 +41,7 @@ begin
         generic map (
             G_DEBUG                 => false,
             G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => 64 / 16 + 1,
+            DEPTH                   => 1024 / 16 + 1,
             WIDTH                   => 32,
             WIDTH_ADDR              => 16,
             FILENAME                => "data/ibf_init.data"

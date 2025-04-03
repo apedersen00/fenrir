@@ -19,7 +19,8 @@ use ieee.numeric_std.all;
 
 entity fenrir is
     generic (
-        NUM_NRN : integer := 64
+        IN_SIZE : integer := 1024;
+        NUM_NRN : integer := 10
     );
     port (
         -- control
@@ -76,6 +77,7 @@ begin
     -- instantiate controller
     controller: entity work.controller
         generic map (
+            IN_SIZE         => IN_SIZE,
             NUM_NRN         => NUM_NRN
         )
         port map (
@@ -144,10 +146,10 @@ begin
         generic map (
             G_DEBUG                 => false,
             G_DEBUG_COUNTER_INIT    => 0,
-            DEPTH                   => NUM_NRN * NUM_NRN,
+            DEPTH                   => IN_SIZE * IN_SIZE,
             WIDTH                   => 32,
             WIDTH_ADDR              => 16,
-            FILENAME                => "data/syn_init.data"
+            FILENAME                => "data/4bit_syn.data"
         )
         port map (
             clk         => clk,

@@ -19,7 +19,8 @@ use ieee.numeric_std.all;
 
 entity controller is
     generic (
-        NUM_NRN : integer := 48
+        IN_SIZE : integer := 1024;
+        NUM_NRN : integer := 10
     );
     port (
         -- control
@@ -74,8 +75,8 @@ architecture Behavioral of controller is
     signal cur_state    : states;
 
     signal nrn_idx      : integer range 0 to (NUM_NRN - 1) := 0;
-    signal syn_idx      : integer range 0 to (NUM_NRN - 1) := 0;
-    signal ibf_idx      : integer range 0 to (NUM_NRN - 1) := 0;
+    signal syn_idx      : integer range 0 to (IN_SIZE - 1) := 0;
+    signal ibf_idx      : integer range 0 to (IN_SIZE - 1) := 0;
     signal acc_sum      : integer range 0 to 2048 := 0; -- accumulator for neuron potential (0 to 2^11)
 
 begin
@@ -114,7 +115,6 @@ begin
                         nrn_we   <= '0';
                         out_we   <= '0';
 
-                        syn_idx <= 0;
                         ibf_idx <= 0;
                         acc_sum <= 0;
 
@@ -139,7 +139,7 @@ begin
                         end loop;
                         acc_sum <= acc_sum + par_sum;
 
-                        if syn_idx < (NUM_NRN - 1) - 8 then
+                        if syn_idx - (nrn_idx * IN_SIZE / 8) < (IN_SIZE - 1) - 8 then
                             syn_idx <= syn_idx + 8;
                             ibf_idx <= ibf_idx + 8;
                             cur_state <= ITRT_SYN;
