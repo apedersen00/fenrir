@@ -1,6 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library std;
+use std.textio.all;
+use ieee.std_logic_textio.all;
 
 entity fenrir_tb is
 end fenrir_tb;
@@ -19,6 +22,40 @@ architecture behavior of fenrir_tb is
 
     -- Clock period
     constant clk_period : time := 10 ns;
+
+procedure load_spike_data (
+    signal clk      : in std_logic;
+    signal ibf_addr : out std_logic_vector(15 downto 0);
+    signal ibf_dout : out std_logic_vector(31 downto 0);
+    signal ibf_din  : out std_logic_vector(31 downto 0);
+    signal ibf_we   : out std_logic;
+    file spike_file : text;
+    start_line      : in integer;
+) is
+    variable line_buffer : line;
+    variable data_word   : std_logic_vector(31 downto 0);
+begin
+    -- Skip to the desired starting line
+    for skip in 0 to start_line - 1 loop
+        exit when endfile(f);
+        readline(f, line_buf); -- discard
+    end loop;
+
+    -- Load 64 lines
+    for i in 0 to 63 loop
+        exit when endfile(f);
+        readline(f, line_buf);
+        hread(line_buf, word);
+
+        ibf_addr <= std_logic_vector(to_unsigned(i, ibf_addr'length));
+        ibf_din  <= word;
+        ibf_we   <= '1';
+        wait for clk_period;
+
+        ibf_we <= '0';
+        wait for clk_period;
+    end loop;
+end procedure;
 
 begin
     -- instantiate controller
@@ -65,6 +102,11 @@ begin
 
     -- Stimulus process
     stimulus: process
+
+    file spike_file         : text open read_mode is "data/spike_data.txt";
+    variable line_buffer    : line;
+    variable data_word      : std_logic_vector(31 downto 0);
+
     begin
         -- Reset the DUT
         nRst <= '0';
@@ -72,23 +114,21 @@ begin
         nRst <= '1';
         wait for clk_period;
 
-        -- Test 1: When data is ready, controller should go into READ state
-        data_rdy <= '1';
-        wait for clk_period;
+        for block in 0 to 99 loop
+            load_spike_data(clk, ibf_addr, ibf_dout, ibf_din, ibf_we, spike_file, block * 64);
+            wait for clk_period * 10;
 
-        -- Simulate reading and incrementing address
-        for i in 0 to 1800 loop
-            data_rdy <= '0';
+            data_rdy <= '1';
             wait for clk_period;
-        end loop;
 
-        data_rdy <= '1';
-        wait for clk_period;
+            loop
+                exit when busy = '0';
+                data_rdy <= '0';
+                wait for clk_period;
+            end loop;
 
-        -- Simulate reading and incrementing address
-        for i in 0 to 255 loop
-            data_rdy <= '0';
-            wait for clk_period;
+            wait for clk_period * 10;
+            
         end loop;
 
         wait;
