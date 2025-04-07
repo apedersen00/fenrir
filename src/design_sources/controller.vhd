@@ -80,6 +80,17 @@ architecture Behavioral of controller is
     signal ibf_idx      : integer range 0 to (IN_SIZE - 1) := 0;
     signal acc_sum      : integer range 0 to 2048 := 0; -- accumulator for neuron potential (0 to 2^11)
 
+    signal spike_cnt_0  : integer;
+    signal spike_cnt_1  : integer;
+    signal spike_cnt_2  : integer;
+    signal spike_cnt_3  : integer;
+    signal spike_cnt_4  : integer;
+    signal spike_cnt_5  : integer;
+    signal spike_cnt_6  : integer;
+    signal spike_cnt_7  : integer;
+    signal spike_cnt_8  : integer;
+    signal spike_cnt_9  : integer;
+
 begin
     process(clk) is
 
@@ -97,6 +108,18 @@ begin
                 ibf_idx     <= 0;
                 acc_sum     <= 0;
                 cur_state   <= IDLE;
+
+                spike_cnt_0 <= 0;
+                spike_cnt_1 <= 0;
+                spike_cnt_2 <= 0;
+                spike_cnt_3 <= 0;
+                spike_cnt_4 <= 0;
+                spike_cnt_5 <= 0;
+                spike_cnt_6 <= 0;
+                spike_cnt_7 <= 0;
+                spike_cnt_8 <= 0;
+                spike_cnt_9 <= 0;
+
             else
                 case cur_state is
                     when IDLE =>
@@ -176,6 +199,21 @@ begin
                         out_we   <= '1';
                         out_out  <= out_in when spike_out = '0' else
                                     out_in or (std_logic_vector(to_unsigned(1, 32)) sll (nrn_idx mod 32));
+
+                        if spike_out = '1' then
+                            case nrn_idx is
+                                when 0 => spike_cnt_0 <= spike_cnt_0 + 1;
+                                when 1 => spike_cnt_1 <= spike_cnt_1 + 1;
+                                when 2 => spike_cnt_2 <= spike_cnt_2 + 1;
+                                when 3 => spike_cnt_3 <= spike_cnt_3 + 1;
+                                when 4 => spike_cnt_4 <= spike_cnt_4 + 1;
+                                when 5 => spike_cnt_5 <= spike_cnt_5 + 1;
+                                when 6 => spike_cnt_6 <= spike_cnt_6 + 1;
+                                when 7 => spike_cnt_7 <= spike_cnt_7 + 1;
+                                when 8 => spike_cnt_8 <= spike_cnt_8 + 1;
+                                when others => spike_cnt_9 <= spike_cnt_9 + 1;
+                            end case;
+                        end if;
 
                         if nrn_idx < (NUM_NRN - 1) then
                             nrn_idx <= nrn_idx + 1;
