@@ -20,6 +20,21 @@ architecture behavior of fenrir_tb is
     signal ibf_din         : std_logic_vector(31 downto 0);
     signal ibf_we          : std_logic := '0';
 
+    -- FENRIR memory signals
+    signal fnr_ibf_addr        : std_logic_vector(15 downto 0);
+    signal fnr_ibf_dout        : std_logic_vector(31 downto 0);
+    signal fnr_ibf_din         : std_logic_vector(31 downto 0);
+    signal fnr_ibf_we          : std_logic := '0';
+
+    -- TB stimulus signals
+    signal tb_ibf_addr     : std_logic_vector(15 downto 0);
+    signal tb_ibf_dout     : std_logic_vector(15 downto 0);
+    signal tb_ibf_din      : std_logic_vector(31 downto 0);
+    signal tb_ibf_we       : std_logic := '0';
+
+    -- Enable TB mode, muxing the stimulus to the IBF memory
+    signal tb_mode         : std_logic :=  '0';
+
     -- Clock period
     constant clk_period : time := 10 ns;
 
@@ -36,7 +51,7 @@ begin
             busy            => busy,
     
             data_rdy        => data_rdy,
-            ibf_addr        => ibf_addr,
+            ibf_addr        => fnr_ibf_addr,
             ibf_in          => ibf_dout
         );
 
@@ -57,6 +72,11 @@ begin
             dout        => ibf_dout
         );
 
+    -- MUX logic
+    ibf_addr <= tb_ibf_addr when tb_mode = '1' else fnr_ibf_addr;
+    ibf_we   <= tb_ibf_we   when tb_mode = '1' else '0';
+    ibf_din  <= tb_ibf_din;
+
     -- Generate clock signal
     clk_process : process
     begin
@@ -76,7 +96,6 @@ begin
         procedure load_spike_data (
             signal clk      : in std_logic;
             signal ibf_addr : out std_logic_vector(15 downto 0);
-            signal ibf_dout : out std_logic_vector(31 downto 0);
             signal ibf_din  : out std_logic_vector(31 downto 0);
             signal ibf_we   : out std_logic;
             file spike_file : text;
@@ -115,19 +134,17 @@ begin
         wait for clk_period;
 
         for frame in 0 to 99 loop
-            load_spike_data(clk, ibf_addr, ibf_dout, ibf_din, ibf_we, spike_file, frame * 64);
+            tb_mode <= '1';
+            load_spike_data(clk, tb_ibf_addr, tb_ibf_din, tb_ibf_we, spike_file, frame * 64);
+            tb_mode <= '0';
             wait for clk_period * 10;
 
             data_rdy <= '1';
             wait for clk_period;
-
-            loop
-                exit when busy = '0';
-                data_rdy <= '0';
-                wait for clk_period;
+            data_rdy <= '0';
+            loop 
+                wait until busy = '0';
             end loop;
-
-            wait for clk_period * 10;
         end loop;
 
         wait;
