@@ -142,9 +142,7 @@ begin
             data_rdy <= '1';
             wait for clk_period;
             data_rdy <= '0';
-            loop 
-                wait until busy = '0';
-            end loop;
+            wait until busy = '0';
         end loop;
 
         wait;
