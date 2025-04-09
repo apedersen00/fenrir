@@ -38,6 +38,9 @@ architecture behavior of fenrir_tb is
     -- Clock period
     constant clk_period : time := 10 ns;
 
+    type spike_array_t is array(0 to 6399) of std_logic_vector(31 downto 0);
+    signal spike_data : spike_array_t;
+
 begin
     -- instantiate controller
     uut: entity work.fenrir
@@ -88,39 +91,38 @@ begin
 
     -- Stimulus process
     stimulus: process
-
-        file spike_file         : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/spike_data.txt";
-        variable line_buffer    : line;
-        variable data_word      : std_logic_vector(31 downto 0);
     
-        procedure load_spike_data (
-            signal clk      : in std_logic;
-            signal ibf_addr : out std_logic_vector(15 downto 0);
-            signal ibf_din  : out std_logic_vector(31 downto 0);
-            signal ibf_we   : out std_logic;
-            file spike_file : text;
-            start_line      : in integer
+        procedure load_all_spike_data(
+            signal memory : out spike_array_t
         ) is
-            variable line_buf : line;
-            variable word     : std_logic_vector(31 downto 0);
+            file spike_file     : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/spike_data.txt";
+            variable line_buf   : line;
+            variable word       : std_logic_vector(31 downto 0);
         begin
-            -- Skip to the desired starting line
-            for skip in 0 to start_line - 1 loop
+            for i in 0 to 6399 loop
                 exit when endfile(spike_file);
                 readline(spike_file, line_buf);
+                read(line_buf, word);
+                memory(i) <= word;
             end loop;
-    
-            -- Load 64 lines
+        end procedure;
+        
+        procedure load_frame(
+            signal clk          : in std_logic;
+            signal ibf_addr     : out std_logic_vector(15 downto 0);
+            signal ibf_din      : out std_logic_vector(31 downto 0);
+            signal ibf_we       : out std_logic;
+            signal memory       : in spike_array_t;
+            frame_idx           : in integer
+        ) is
+            variable base : integer := frame_idx * 64;
+        begin
             for i in 0 to 63 loop
-                exit when endfile(spike_file);
-                readline(spike_file, line_buf);
-                hread(line_buf, word);
-    
                 ibf_addr <= std_logic_vector(to_unsigned(i, ibf_addr'length));
-                ibf_din  <= word;
+                ibf_din  <= memory(base + i);
                 ibf_we   <= '1';
                 wait for clk_period;
-    
+
                 ibf_we <= '0';
                 wait for clk_period;
             end loop;
@@ -133,9 +135,11 @@ begin
         nRst <= '1';
         wait for clk_period;
 
+        load_all_spike_data(spike_data);
+
         for frame in 0 to 99 loop
             tb_mode <= '1';
-            load_spike_data(clk, tb_ibf_addr, tb_ibf_din, tb_ibf_we, spike_file, frame * 64);
+            load_frame(clk, tb_ibf_addr, tb_ibf_din, tb_ibf_we, spike_data, frame);
             tb_mode <= '0';
             wait for clk_period * 10;
 
