@@ -11,6 +11,7 @@ entity conv_unit is
         NEURON_THRESHOLD_WIDTH : integer := 4;
         KERNEL_BIT_WIDTH : integer := 4;
         LEAKAGE_PARAM_WIDTH : integer := 4;
+        TIME_SCALING_FACTOR : integer := 200
     );
     port(
         enable : in std_logic;
@@ -45,26 +46,52 @@ architecture behavioral of conv_unit is
         end function;
 
     function calculate_leakage(
-        neuron_value: std_logic_vector(BITS_PER_NEURON - 1 downto 0);
-        leakage_param: std_logic_vector(LEAKAGE_PARAM_WIDTH - 1 downto 0);
-        timestamp: std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
-        timestamp_new: std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0)
-    ) return std_logic_vector(BITS_PER_NEURON - 1 DOWNto 0) is
+        neuron_value    : std_logic_vector;
+        leakage_param   : std_logic_vector;
+        timestamp_old   : std_logic_vector;
+        timestamp_new   : std_logic_vector
+    ) return std_logic_vector is
+        variable mem      : unsigned(neuron_value'range)    := unsigned(neuron_value);
+        variable leak     : unsigned(leakage_param'range)   := unsigned(leakage_param);
+        variable t_old    : unsigned(timestamp_old'range)   := unsigned(timestamp_old);
+        variable t_new    : unsigned(timestamp_new'range)   := unsigned(timestamp_new);
+        variable delta_t  : unsigned(timestamp_old'range);
+        variable scaled_leak : unsigned(mem'range);
+        variable leak_product : unsigned(mem'range);
     begin
+        -- Calculate time delta
+        if t_new >= t_old then
+            delta_t := t_new - t_old;
+        else
+            -- for wraparound
+            delta_t := (others => '0');
+        end if;
 
+        -- Multiply leakage × delta_t
+        leak_product := resize(leak * delta_t, mem'length);
+
+        -- Apply scaling divisor
+        scaled_leak := leak_product / TIME_SCALING_FACTOR;
+
+        -- Apply leakage with saturation
+        if mem > scaled_leak then
+            mem := mem - scaled_leak;
+        else
+            mem := (others => '0');
+        end if;
+
+        return std_logic_vector(mem);
     end function;
 
     procedure set_out_vector_slice(
-        data_vector: inout std_logic_vector;
-        index: integer;
-        width: integer;
-        value: std_logic_vector
+        variable data_vector : inout std_logic_vector;
+        index  : integer;
+        width  : integer;
+        value  : std_logic_vector
     ) is
-        begin
-
-            data_vector((index + 1) * width - 1 downto index * width) := value;
-
-        end procedure;
+    begin
+        data_vector((index + 1) * width - 1 downto index * width) := value;
+    end procedure;
 
 begin
 
@@ -74,6 +101,7 @@ process(enable)
     variable current_neuron_membrane_potential : std_logic_vector(BITS_PER_NEURON - 1 downto 0);
     variable kernel_value : std_logic_vector(KERNEL_BIT_WIDTH - 1 downto 0);
     variable event_happened : std_logic := '0';
+    variable output_data_var : std_logic_vector(output_data'range);
 
 begin
     if rising_edge(enable) then
@@ -100,19 +128,19 @@ begin
             
             -- check if spike event happened
             if unsigned(current_neuron_membrane_potential) >= unsigned(neuron_threshold_value) then
-                spike_events(i) := '1';
+                spike_events(i) <= '1';
                 -- reset neuron membrane potential
-                current_neuron_membrane_potential := neuron_reset_value;
+                current_neuron_membrane_potential := std_logic_vector(resize(unsigned(neuron_reset_value), BITS_PER_NEURON));
                 event_happened := '1';
             else
-                spike_events(i) := '0';
+                spike_events(i) <= '0';
             end if;
             -- if spike event happened, set spike_events(i) to '1'
             -- else set spike_events(i) to '0'
             -- set the output_data to the result of the multiplication
 
             set_out_vector_slice(
-                output_data,
+                output_data_var,
                 i,
                 BITS_PER_NEURON,
                 current_neuron_membrane_potential
@@ -121,7 +149,7 @@ begin
         end loop;
 
         -- set the timestamp in the output data and OR the spike events to set event_happened_flag if needed
-        output_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON) <= timestamp_event;
+        output_data <= output_data_var;
 
         event_happened_flag <= event_happened;
 
