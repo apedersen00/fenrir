@@ -1,3 +1,4 @@
+-- Updated Conv Unit Architecture
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -28,9 +29,6 @@ entity conv_unit is
 end entity conv_unit;
 
 architecture behavioral of conv_unit is
-
-    signal timestamp : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
-
     function get_vector_slice(
         data_vector: std_logic_vector;
         index: integer;
@@ -38,11 +36,8 @@ architecture behavioral of conv_unit is
     ) return std_logic_vector is
         variable slice: std_logic_vector(width - 1 downto 0);
         begin
-
             slice := data_vector((index + 1) * width - 1 downto index * width);
-
             return slice;
-
         end function;
 
     function calculate_leakage(
@@ -94,76 +89,76 @@ architecture behavioral of conv_unit is
     end procedure;
 
 begin
-
-process(all)
-
-    variable timestamp : std_logic_vector (TIMESTAMP_WIDTH - 1 downto 0);
-    variable current_neuron_membrane_potential : std_logic_vector(BITS_PER_NEURON - 1 downto 0);
-    variable kernel_value : std_logic_vector(KERNEL_BIT_WIDTH - 1 downto 0);
-    variable event_happened : std_logic := '0';
-    variable output_data_var : std_logic_vector(output_data'range);
-
-begin
-    
-
-        -- update timestamp
-        timestamp := input_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON);
-
-        for i in 0 to FEATURE_MAPS - 1 loop
-
-            -- add report statement for debuggin at each stage that changes the membrane potential
-            report "Neuron " & integer'image(i) &
-            ": Mem(before) = " & to_hstring(current_neuron_membrane_potential)
-            severity note;
+    process(all)  -- Make the process sensitive to all signals
+        variable timestamp_var : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
+        variable current_neuron_membrane_potential : std_logic_vector(BITS_PER_NEURON - 1 downto 0);
+        variable kernel_value : std_logic_vector(KERNEL_BIT_WIDTH - 1 downto 0);
+        variable event_happened : std_logic;
+        variable output_data_var : std_logic_vector(output_data'range);
+        variable spike_events_var : std_logic_vector(FEATURE_MAPS - 1 downto 0);
+    begin
+        if enable = '1' then
+            -- Initialize variables
+            event_happened := '0';
+            output_data_var := (others => '0');
+            spike_events_var := (others => '0');
             
-            -- apply leakage
-            current_neuron_membrane_potential := get_vector_slice(input_data, i, BITS_PER_NEURON);
-            report "Before leakage: " & to_hstring(current_neuron_membrane_potential) severity note;
-
-            current_neuron_membrane_potential := calculate_leakage(
-                current_neuron_membrane_potential,
-                leakage_param,
-                timestamp,
-                timestamp_event
-            );
-            report "After leakage: " & to_hstring(current_neuron_membrane_potential) severity note;
-
-            -- get kernel value
-            kernel_value := get_vector_slice(kernels, i, KERNEL_BIT_WIDTH);
-            report "Kernel value: " & to_hstring(kernel_value) severity note;
-            report "Kernel(" & integer'image(i) & ") = " & to_hstring(kernel_value) severity note;
-
-            -- add kernel value to neuron membrane potential
-            current_neuron_membrane_potential := std_logic_vector(unsigned(current_neuron_membrane_potential) + unsigned(kernel_value));
-            report "After adding kernel value: " & to_hstring(current_neuron_membrane_potential) severity note;
-            -- check if spike event happened
-            if unsigned(current_neuron_membrane_potential) >= unsigned(neuron_threshold_value) then
-                spike_events(i) <= '1';
-                -- reset neuron membrane potential
-                current_neuron_membrane_potential := std_logic_vector(resize(unsigned(neuron_reset_value), BITS_PER_NEURON));
-                event_happened := '1';
-            else
-                spike_events(i) <= '0';
-            end if;
-            -- if spike event happened, set spike_events(i) to '1'
-            -- else set spike_events(i) to '0'
-            -- set the output_data to the result of the multiplication
+            -- Get timestamp from input data
+            timestamp_var := input_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON);
             
-            set_out_vector_slice(
-                output_data_var,
-                i,
-                BITS_PER_NEURON,
-                current_neuron_membrane_potential
-            );
-
-        end loop;
-
-        -- set the timestamp in the output data and OR the spike events to set event_happened_flag if needed
-        output_data <= output_data_var;
-        output_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON) <= timestamp_event;
-        event_happened_flag <= event_happened;
-
-    
-end process;
-
+            -- Copy timestamp to output data right away
+            output_data_var(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON) := timestamp_event;
+            
+            -- Process each neuron
+            for i in 0 to FEATURE_MAPS - 1 loop
+                -- Get current membrane potential
+                current_neuron_membrane_potential := get_vector_slice(input_data, i, BITS_PER_NEURON);
+                
+                report "Neuron " & integer'image(i) &
+                ": Mem(before) = " & to_hstring(current_neuron_membrane_potential)
+                severity note;
+                
+                -- Apply leakage
+                current_neuron_membrane_potential := calculate_leakage(
+                    current_neuron_membrane_potential,
+                    leakage_param,
+                    timestamp_var,
+                    timestamp_event
+                );
+                report "After leakage: " & to_hstring(current_neuron_membrane_potential) severity note;
+                
+                -- Get kernel value
+                kernel_value := get_vector_slice(kernels, i, KERNEL_BIT_WIDTH);
+                report "Kernel value: " & to_hstring(kernel_value) severity note;
+                report "Kernel(" & integer'image(i) & ") = " & to_hstring(kernel_value) severity note;
+                
+                -- Add kernel value to neuron membrane potential
+                current_neuron_membrane_potential := std_logic_vector(unsigned(current_neuron_membrane_potential) + unsigned(kernel_value));
+                report "After adding kernel value: " & to_hstring(current_neuron_membrane_potential) severity note;
+                
+                -- Check if spike event happened
+                if unsigned(current_neuron_membrane_potential) >= unsigned(neuron_threshold_value) then
+                    spike_events_var(i) := '1';
+                    -- Reset neuron membrane potential
+                    current_neuron_membrane_potential := std_logic_vector(resize(unsigned(neuron_reset_value), BITS_PER_NEURON));
+                    event_happened := '1';
+                else
+                    spike_events_var(i) := '0';
+                end if;
+                
+                -- Update output data for this neuron
+                set_out_vector_slice(
+                    output_data_var,
+                    i,
+                    BITS_PER_NEURON,
+                    current_neuron_membrane_potential
+                );
+            end loop;
+            
+            -- Update outputs all at once
+            output_data <= output_data_var;
+            spike_events <= spike_events_var;
+            event_happened_flag <= event_happened;
+        end if;
+    end process;
 end architecture behavioral;
