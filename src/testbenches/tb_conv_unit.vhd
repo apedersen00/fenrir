@@ -9,30 +9,34 @@ architecture testbench of tb_conv_unit is
     CONSTANT CLK_PERIOD : time := 10 ns;
     
     -- Constants matching the DUT
-    CONSTANT BITS_PER_NEURON : integer := 10;
-    CONSTANT FEATURE_MAPS : integer := 10;
-    CONSTANT TIMESTAMP_WIDTH : integer := 12;
+    CONSTANT BITS_PER_NEURON : integer := 4;
+    CONSTANT FEATURE_MAPS : integer := 2;
+    CONSTANT TIMESTAMP_WIDTH : integer := 4;
     
+    -- Number of pixels in kernel window
+    CONSTANT KERNEL_SIZE : integer := 9;  -- Simulating a 3x3 kernel window
+    
+    -- Signals for the DUT
     signal clk : std_logic := '1';
     signal enable : std_logic := '0';
     signal input_data : std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0) := (others => '0');
     signal output_data : std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0);
     signal kernels : std_logic_vector(FEATURE_MAPS * 4 - 1 downto 0) := (others => '0');
-    signal neuron_reset_value : std_logic_vector(3 downto 0) := "0001";  -- Reset to 1
-    signal neuron_threshold_value : std_logic_vector(3 downto 0) := "1111";  -- Threshold 15
-    signal leakage_param : std_logic_vector(3 downto 0) := "0001";  -- Small leakage
-    signal timestamp_event : std_logic_vector(11 downto 0) := x"008";
+    signal neuron_reset_value : std_logic_vector(3 downto 0) := "0001"; 
+    signal neuron_threshold_value : std_logic_vector(3 downto 0) := "1100";  
+    signal leakage_param : std_logic_vector(3 downto 0) := "0000";  -- Small leakage
+    signal timestamp_event : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0) := (others => '0');
     signal spike_events : std_logic_vector(FEATURE_MAPS - 1 downto 0);
     signal event_happened_flag : std_logic;
     
-    -- Helper procedure to set neuron value in input_data
+    -- Helper procedure to set neuron value in a vector
     procedure set_neuron_value(
-        signal data : inout std_logic_vector;
+        variable data_vec : inout std_logic_vector;
         index : integer;
         value : std_logic_vector
     ) is
     begin
-        data(BITS_PER_NEURON * (index + 1) - 1 downto BITS_PER_NEURON * index) <= value;
+        data_vec(BITS_PER_NEURON * (index + 1) - 1 downto BITS_PER_NEURON * index) := value;
     end procedure;
     
     -- Helper procedure to set kernel value
@@ -45,7 +49,7 @@ architecture testbench of tb_conv_unit is
         k_data(4 * (index + 1) - 1 downto 4 * index) <= value;
     end procedure;
     
-    -- Helper function to extract neuron value from output_data
+    -- Helper function to extract neuron value from a vector
     function get_neuron_value(
         data : std_logic_vector;
         index : integer
@@ -54,12 +58,37 @@ architecture testbench of tb_conv_unit is
         return data(BITS_PER_NEURON * (index + 1) - 1 downto BITS_PER_NEURON * index);
     end function;
     
+    function get_timestamp(
+        data : std_logic_vector
+    ) return std_logic_vector is
+    begin
+        return data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON);
+    end function;
+    
+    type pixel_mem is array (0 to 8) of std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0);
+    signal pixel_data : pixel_mem := (
+        x"010",
+        x"020",
+        x"030",
+        x"040",
+        x"050",
+        x"060",
+        x"070",
+        x"080",
+        x"090"
+    );
+
 begin
     -- Clock generation
     clk <= not clk after CLK_PERIOD / 2;
     
     -- Device under test instantiation
     dut : entity work.conv_unit
+        generic map(
+            BITS_PER_NEURON => BITS_PER_NEURON,
+            FEATURE_MAPS => FEATURE_MAPS,
+            TIMESTAMP_WIDTH => TIMESTAMP_WIDTH
+        )
         port map(
             enable => enable,
             input_data => input_data,
@@ -73,91 +102,27 @@ begin
             event_happened_flag => event_happened_flag
         );
     
-    -- Stimulus process
     stimulus : process
     begin
-        -- Initialize all inputs
-        input_data <= (others => '0');
-        kernels <= (others => '0');
-        wait for CLK_PERIOD * 5;
-        
-        -- Set timestamp in input_data
-        input_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto BITS_PER_NEURON * FEATURE_MAPS) <= x"001";
-        
-        -- Set initial neuron values (10 neurons with values 1 to 10)
-        for i in 0 to FEATURE_MAPS - 1 loop
-            set_neuron_value(input_data, i, std_logic_vector(to_unsigned(i + 1, BITS_PER_NEURON)));
-        end loop;
-        
-        -- Set kernel values (all 4-bit values set to 2)
-        for i in 0 to FEATURE_MAPS - 1 loop
-            set_kernel_value(kernels, i, "0010");  -- Value 2
-        end loop;
-        
-        -- Apply stimulus
-        wait for CLK_PERIOD;
-        enable <= '1';  -- Enable the module
-        wait for CLK_PERIOD * 2;  -- Wait a bit to see the results
-        
-        -- Print out the results
-        for i in 0 to FEATURE_MAPS - 1 loop
-            report "Output Neuron " & integer'image(i) & " = " & 
-                   integer'image(to_integer(unsigned(get_neuron_value(output_data, i))));
-        end loop;
-        
-        report "Spike events = " & to_string(spike_events);
-        report "Event happened flag = " & std_logic'image(event_happened_flag);
-        
-        -- Second test: Try to generate spikes
-        wait for CLK_PERIOD * 5;
-        enable <= '0';  -- Disable temporarily
-        
-        -- Set timestamp in input_data
-        input_data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto BITS_PER_NEURON * FEATURE_MAPS) <= x"002";
-        
-        -- Set high neuron values to trigger spikes
-        for i in 0 to FEATURE_MAPS - 1 loop
-            set_neuron_value(input_data, i, std_logic_vector(to_unsigned(13 + i, BITS_PER_NEURON)));  -- Close to threshold
-        end loop;
-        
-        -- Set kernel values high enough to push some neurons over threshold
-        for i in 0 to FEATURE_MAPS - 1 loop
-            set_kernel_value(kernels, i, "0011");  -- Value 3
-        end loop;
-        
-        -- Apply stimulus
-        timestamp_event <= x"010";  -- Different timestamp
-        wait for CLK_PERIOD;
-        enable <= '1';  -- Enable the module
-        wait for CLK_PERIOD * 2;  -- Wait a bit to see the results
-        
-        -- Print out the results
-        for i in 0 to FEATURE_MAPS - 1 loop
-            report "Output Neuron " & integer'image(i) & " = " & 
-                   integer'image(to_integer(unsigned(get_neuron_value(output_data, i))));
-        end loop;
-        
-        report "Spike events = " & to_string(spike_events);
-        report "Event happened flag = " & std_logic'image(event_happened_flag);
-        
-        -- End simulation
         wait for CLK_PERIOD * 10;
-        report "Simulation finished" severity note;
+
+        timestamp_event <= "0010";
+
+        enable <= '1';
+
+        for i in 0 to 8 loop
+
+            input_data <= pixel_data(i);
+            kernels <= x"11";
+            wait for CLK_PERIOD;
+
+        end loop;
+
         wait;
+
     end process;
     
-    -- Monitoring process
-    monitor: process
-    begin
-        wait for CLK_PERIOD;
-        while true loop
-            if enable = '1' then
-                report "====== At time " & time'image(now) & " ======";
-                report "Enable = " & std_logic'image(enable);
-                report "Event happened = " & std_logic'image(event_happened_flag);
-                report "Timestamp = " & to_string(timestamp_event);
-            end if;
-            wait for CLK_PERIOD;
-        end loop;
-    end process;
+    
+    
+    
 end architecture testbench;
