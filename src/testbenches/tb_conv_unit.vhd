@@ -29,6 +29,17 @@ architecture testbench of tb_conv_unit is
     signal spike_events : std_logic_vector(FEATURE_MAPS - 1 downto 0);
     signal event_happened_flag : std_logic;
     
+
+    -- Signals for the BRAM
+    signal addra : std_logic_vector(6 downto 0) := (others => '0');
+    signal addrb : std_logic_vector(6 downto 0) := (others => '0');
+    signal dina : std_logic_vector(11 downto 0) := (others => '0');
+    signal dinb : std_logic_vector(11 downto 0) := (others => '0');
+    signal douta : std_logic_vector(11 downto 0) := (others => '0');
+    signal doutb : std_logic_vector(11 downto 0) := (others => '0');
+    signal wea : std_logic := '0';
+    signal web : std_logic := '0';
+    
     -- Helper procedure to set neuron value in a vector
     procedure set_neuron_value(
         variable data_vec : inout std_logic_vector;
@@ -65,23 +76,37 @@ architecture testbench of tb_conv_unit is
         return data(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto FEATURE_MAPS * BITS_PER_NEURON);
     end function;
     
-    type pixel_mem is array (0 to 8) of std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0);
-    signal pixel_data : pixel_mem := (
-        x"010",
-        x"020",
-        x"030",
-        x"040",
-        x"050",
-        x"060",
-        x"070",
-        x"080",
-        x"090"
-    );
+    function address_calculation(
+        row : integer;
+        col : integer;
+        width : integer
+    ) return std_logic_vector is
+        variable addr : std_logic_vector(6 downto 0);
+        begin
+        addr := std_logic_vector(to_unsigned(col + row * width, addr'length));
+        return addr;
+    end function;
+
 
 begin
     -- Clock generation
     clk <= not clk after CLK_PERIOD / 2;
     
+    -- bram instantiation from BMG
+    bram : entity work.conv_unit_test_bram_12bit
+        port map(
+            clka => clk,
+            clkb => clk,
+            addra => addra,
+            addrb => addrb,
+            dina => dina,
+            dinb => output_data, 
+            wea => wea,
+            web => web,
+            douta => input_data,
+            doutb => doutb
+        );
+
     -- Device under test instantiation
     dut : entity work.conv_unit
         generic map(
@@ -104,25 +129,34 @@ begin
     
     stimulus : process
     begin
+        addrb <= "WWWWWWW";
         wait for CLK_PERIOD * 10;
-
+        dina <= x"112";
+        wea <= '1';
+        for i in 0 to 99 loop
+            addra <= std_logic_vector(to_unsigned(i, addra'length));
+            wait for CLK_PERIOD * 1;
+        end loop;
+        wea <= '0';
         timestamp_event <= "0010";
 
         enable <= '1';
 
-        for i in 0 to 8 loop
+        -- first event arrives at pixel (3,3) in an 10x10 image, output is 10x10x2
+        -- start by setting address to the pixel by using formula: addr = col + row * width
+        -- address a is for reading, address b is for writing
 
-            input_data <= pixel_data(i);
-            kernels <= x"11";
-            wait for CLK_PERIOD;
+        for dy in -1 to 1 loop
+            for dx in -1 to 1 loop
 
+                addra <= address_calculation(3 + dy, 3 + dx, 10);
+                wait for CLK_PERIOD * 1;
+
+            end loop;
         end loop;
 
         wait;
 
     end process;
-    
-    
-    
-    
+
 end architecture testbench;
