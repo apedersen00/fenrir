@@ -2,6 +2,20 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- Output event format
+-- x , y , z
+
+package conv_control_t is 
+
+    type main_states_t is (
+        IDLE,
+        PROCESS_EVENT,
+        UPDATE_ALL_NEURON_TIMESTAMPS
+    );
+
+end package conv_control_t;
+package body conv_control_t is end package body conv_control_t;
+
 entity conv_control is
     generic(
         BITS_PER_NEURON : integer := 10;
@@ -20,5 +34,15 @@ entity conv_control is
     port(
         clk : in std_logic;
         reset : in std_logic;
-        event_out : out std_logic_vector();
-    )
+        event_out : out std_logic_vector
+    );
+
+architecture fsm of conv_control is
+
+    signal state : main_states_t;
+
+begin
+
+
+
+end architecture fsm;
