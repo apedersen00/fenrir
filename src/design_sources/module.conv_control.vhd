@@ -49,6 +49,10 @@ end package body conv_control_t;
 
 use work.conv_control_t.all;
 
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
 entity conv_control is
     port(
         clk : in std_logic;
@@ -58,20 +62,31 @@ end entity conv_control;
 
 architecture fsm of conv_control is
 
-    signal state : main_states_t;
-    
-    signal ram_ena : std_logic;
-    signal ram_enb : std_logic;
-    signal ram_wea : std_logic_vector(0 downto 0);
-    signal ram_web : std_logic_vector(0 downto 0);
-    signal ram_addra : std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
-    signal ram_addrb : std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
-    signal ram_dina : std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
-    signal ram_dinb : std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
-    signal ram_douta : std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
-    signal ram_doutb : std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
+    signal ram_ena:     std_logic;
+    signal ram_enb:     std_logic;
+    signal ram_wea:     std_logic_vector(0 downto 0);
+    signal ram_web:     std_logic_vector(0 downto 0);
+    signal ram_addra:   std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
+    signal ram_addrb:   std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
+    signal ram_dina:    std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
+    signal ram_dinb:    std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
+    signal ram_douta:   std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
+    signal ram_doutb:   std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
 
-    mem_neuron_potentials : mem_neuron_potentials
+    signal state : main_states_t;
+
+    signal enable_conv_unit : std_logic;
+    signal kernels : std_logic_vector(FEATURE_MAPS * KERNEL_BIT_WIDTH - 1 downto 0);
+    signal neuron_reset_value : std_logic_vector(NEURON_RESET_WIDTH - 1 downto 0);
+    signal neuron_threshold_value : std_logic_vector(NEURON_THRESHOLD_WIDTH - 1 downto 0);
+    signal leakage_param : std_logic_vector(LEAKAGE_PARAM_WIDTH - 1 downto 0);
+    signal timestamp_event : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
+    signal spike_events : std_logic_vector(FEATURE_MAPS - 1 downto 0);
+    signal event_happened_flag : std_logic;
+
+begin
+    -- port a for reading, port b for writing. 
+    mem_neurons : mem_neuron_potentials
     port map(
         clka => clk,
         clkb => clk,
@@ -86,8 +101,31 @@ architecture fsm of conv_control is
         douta => ram_douta,
         doutb => ram_doutb
     );
+    conv_unit : entity work.conv_unit
+    generic map(
+        BITS_PER_NEURON => BITS_PER_NEURON,
+        FEATURE_MAPS => FEATURE_MAPS,
+        TIMESTAMP_WIDTH => TIMESTAMP_WIDTH,
+        NEURON_RESET_WIDTH => NEURON_RESET_WIDTH,
+        NEURON_THRESHOLD_WIDTH => NEURON_THRESHOLD_WIDTH,
+        KERNEL_BIT_WIDTH => KERNEL_BIT_WIDTH,
+        LEAKAGE_PARAM_WIDTH => LEAKAGE_PARAM_WIDTH,
+        TIME_SCALING_FACTOR => TIME_SCALING_FACTOR
+    )
+    port map(
+        enable => enable_conv_unit,
+        input_data => ram_douta,
+        output_data => ram_dinb,
+        kernels => kernels,
+        neuron_reset_value => neuron_reset_value,
+        neuron_threshold_value => neuron_threshold_value,
+        leakage_param => leakage_param,
+        timestamp_event => timestamp_event,
+        spike_events => spike_events,
+        event_happened_flag => event_happened_flag
+    );
+    
 
-begin
 
 
 
