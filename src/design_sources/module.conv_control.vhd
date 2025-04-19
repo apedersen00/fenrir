@@ -6,12 +6,13 @@ PACKAGE conv_control_t IS
 
     CONSTANT IMAGE_WIDTH            :integer:= 10;
     CONSTANT IMAGE_HEIGHT           :integer:= 10; 
-
     CONSTANT BITS_PER_NEURON        :integer:= 4;
     CONSTANT FEATURE_MAPS           :integer:= 2;
     CONSTANT TIMESTAMP_WIDTH        :integer:= 4;
     CONSTANT NEURON_ADDRESS_WIDTH   :integer:= 7;
-    CONSTANT MEM_SIZE_OF_ADDRESS    :integer:= BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH;
+    CONSTANT MEM_SIZE_OF_ADDRESS    :integer:=    BITS_PER_NEURON 
+                                                * FEATURE_MAPS 
+                                                + TIMESTAMP_WIDTH;
 
     CONSTANT NEURON_RESET_WIDTH      :integer:= 4;
     CONSTANT NEURON_THRESHOLD_WIDTH  :integer:= 4;
@@ -19,6 +20,20 @@ PACKAGE conv_control_t IS
     CONSTANT LEAKAGE_PARAM_WIDTH     :integer:= 4;
     CONSTANT TIME_SCALING_FACTOR     :integer:= 200;
 
+    CONSTANT RAW_EVENT_X_WIDTH       :integer:= 10;
+    CONSTANT RAW_EVENT_Y_WIDTH       :integer:= 8;
+    CONSTANT RAW_EVENT_POLARITY_WIDTH:integer:= 2;
+    
+    CONSTANT FIFO_IN_DATA_WIDTH      :integer:=   RAW_EVENT_X_WIDTH 
+                                                + RAW_EVENT_Y_WIDTH 
+                                                + RAW_EVENT_POLARITY_WIDTH 
+                                                + TIMESTAMP_WIDTH;
+
+    CONSTANT EVENT_OUT_X_WIDTH      :integer:= 10;
+    CONSTANT EVENT_OUT_Y_WIDTH      :integer:= 8;
+    CONSTANT FIFO_OUT_DATA_WIDTH    :integer:=    EVENT_OUT_X_WIDTH
+                                                + EVENT_OUT_Y_WIDTH
+                                                + TIMESTAMP_WIDTH;
     type main_states_t is (
         IDLE,
         PROCESS_EVENT,
@@ -56,11 +71,13 @@ use ieee.numeric_std.all;
 entity conv_control is
     port(
         clk : in std_logic;
-        reset : in std_logic
+        reset : in std_logic;
+        fifo_empty : in std_logic; -- just NOT this signal to see if data is ready. 
+        data_from_fifo : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
     );
 end entity conv_control;
 
-architecture fsm of conv_control is
+ architecture fsm of conv_control is
 
     signal ram_ena:     std_logic;
     signal ram_enb:     std_logic;
@@ -73,7 +90,8 @@ architecture fsm of conv_control is
     signal ram_douta:   std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
     signal ram_doutb:   std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
 
-    signal state : main_states_t;
+    signal state : main_states_t := IDLE;
+    signal data_ready : std_logic;
 
     signal enable_conv_unit : std_logic;
     signal kernels : std_logic_vector(FEATURE_MAPS * KERNEL_BIT_WIDTH - 1 downto 0);
@@ -125,8 +143,19 @@ begin
         event_happened_flag => event_happened_flag
     );
     
+data_ready <= not fifo_empty;
 
 
+process (clk)
+begin
+
+    CASE state is 
+        WHEN IDLE => 
+        WHEN PROCESS_EVENT => 
+        WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
+    END CASE;
+
+end process;
 
 
 end architecture fsm;

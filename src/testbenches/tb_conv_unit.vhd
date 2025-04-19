@@ -93,7 +93,7 @@ begin
     clk <= not clk after CLK_PERIOD / 2;
     
     -- bram instantiation from BMG
-    bram : entity work.conv_unit_test_bram_12bit
+    bram : entity work.mem_neuron_potentials
         port map(
             clka => clk,
             clkb => clk,
