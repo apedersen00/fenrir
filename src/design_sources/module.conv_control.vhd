@@ -17,6 +17,7 @@ PACKAGE conv_control_t IS
     CONSTANT NEURON_RESET_WIDTH      :integer:= 4;
     CONSTANT NEURON_THRESHOLD_WIDTH  :integer:= 4;
     CONSTANT KERNEL_BIT_WIDTH        :integer:= 4;
+    CONSTANT KERNEL_SIZE             :integer:= 3 * 3; -- Simulating a 3x3 kernel window
     CONSTANT LEAKAGE_PARAM_WIDTH     :integer:= 4;
     CONSTANT TIME_SCALING_FACTOR     :integer:= 200;
 
@@ -39,6 +40,8 @@ PACKAGE conv_control_t IS
         PROCESS_EVENT,
         UPDATE_ALL_NEURON_TIMESTAMPS
     );
+
+    type kernels_t is array (0 to KERNEL_SIZE - 1) of std_logic_vector(FEATURE_MAPS * KERNEL_BIT_WIDTH - 1 downto 0);
 
     component mem_neuron_potentials
         port(
@@ -74,6 +77,7 @@ entity conv_control is
         reset : in std_logic;
         fifo_empty : in std_logic; -- just NOT this signal to see if data is ready. 
         data_from_fifo : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
+        read_from_fifo : out std_logic -- signal to read from FIFO
     );
 end entity conv_control;
 
@@ -92,9 +96,10 @@ end entity conv_control;
 
     signal state : main_states_t := IDLE;
     signal data_ready : std_logic;
+    signal kernels : kernels_t := (others => (others => '0'));
 
     signal enable_conv_unit : std_logic;
-    signal kernels : std_logic_vector(FEATURE_MAPS * KERNEL_BIT_WIDTH - 1 downto 0);
+    signal kernel_for_conv_unit : std_logic_vector(KERNEL_BIT_WIDTH * FEATURE_MAPS - 1 downto 0);
     signal neuron_reset_value : std_logic_vector(NEURON_RESET_WIDTH - 1 downto 0);
     signal neuron_threshold_value : std_logic_vector(NEURON_THRESHOLD_WIDTH - 1 downto 0);
     signal leakage_param : std_logic_vector(LEAKAGE_PARAM_WIDTH - 1 downto 0);
@@ -148,12 +153,18 @@ data_ready <= not fifo_empty;
 
 process (clk)
 begin
-
+    IF RISING_EDGE(CLK) THEN
     CASE state is 
-        WHEN IDLE => 
+        WHEN IDLE =>
+            IF data_ready = '1' then
+                read_from_fifo <= '1';
+                state <= PROCESS_EVENT;
+            END IF;
         WHEN PROCESS_EVENT => 
+
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
     END CASE;
+    END IF;
 
 end process;
 
