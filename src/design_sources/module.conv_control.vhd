@@ -38,10 +38,23 @@ PACKAGE conv_control_t IS
     type main_states_t is (
         IDLE,
         PROCESS_EVENT,
-        UPDATE_ALL_NEURON_TIMESTAMPS
+        UPDATE_ALL_NEURON_TIMESTAMPS,
+        INITIALIZE
     );
 
     type kernels_t is array (0 to KERNEL_SIZE - 1) of std_logic_vector(FEATURE_MAPS * KERNEL_BIT_WIDTH - 1 downto 0);
+
+    type event_raw is record
+        x : integer range 0 to IMAGE_WIDTH - 1;
+        y : integer range 0 to IMAGE_HEIGHT - 1;
+        polarity : integer range -1 to 1;
+        timestamp : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
+    end record;
+
+    procedure convert_vector_to_event(
+        signal data_vector : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
+        signal event : out event_raw
+    );
 
     component mem_neuron_potentials
         port(
@@ -63,6 +76,28 @@ PACKAGE conv_control_t IS
 END PACKAGE conv_control_t;
 
 package body conv_control_t is 
+
+    procedure convert_vector_to_event(
+        signal data_vector : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
+        signal event : out event_raw
+    ) is
+        variable x : integer;
+        variable y : integer;
+        variable polarity : integer;
+        variable timestamp : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
+    begin
+        x := to_integer(unsigned(data_vector(0 to RAW_EVENT_X_WIDTH - 1)));
+        y := to_integer(unsigned(data_vector(RAW_EVENT_X_WIDTH to RAW_EVENT_X_WIDTH + RAW_EVENT_Y_WIDTH - 1)));
+        polarity := to_integer(unsigned(data_vector(RAW_EVENT_X_WIDTH + RAW_EVENT_Y_WIDTH to FIFO_IN_DATA_WIDTH - 1)));
+        timestamp := data_vector(FIFO_IN_DATA_WIDTH - 1 downto FIFO_IN_DATA_WIDTH - TIMESTAMP_WIDTH);
+        
+        event.x := x;
+        event.y := y;
+        event.polarity := polarity;
+        event.timestamp := timestamp;
+    end procedure convert_vector_to_event;
+    
+
 end package body conv_control_t;
 
 use work.conv_control_t.all;
@@ -97,9 +132,13 @@ end entity conv_control;
     signal state : main_states_t := IDLE;
     signal data_ready : std_logic;
     signal kernels : kernels_t := (others => (others => '0'));
+    signal event : event_raw;
+
+    signal dx : integer range -1 to 1;
+    signal dy : integer range -1 to 1;
 
     signal enable_conv_unit : std_logic;
-    signal kernel_for_conv_unit : std_logic_vector(KERNEL_BIT_WIDTH * FEATURE_MAPS - 1 downto 0);
+    signal kernels_for_conv_unit : std_logic_vector(KERNEL_BIT_WIDTH * FEATURE_MAPS - 1 downto 0);
     signal neuron_reset_value : std_logic_vector(NEURON_RESET_WIDTH - 1 downto 0);
     signal neuron_threshold_value : std_logic_vector(NEURON_THRESHOLD_WIDTH - 1 downto 0);
     signal leakage_param : std_logic_vector(LEAKAGE_PARAM_WIDTH - 1 downto 0);
@@ -139,7 +178,7 @@ begin
         enable => enable_conv_unit,
         input_data => ram_douta,
         output_data => ram_dinb,
-        kernels => kernels,
+        kernels => kernels_for_conv_unit,
         neuron_reset_value => neuron_reset_value,
         neuron_threshold_value => neuron_threshold_value,
         leakage_param => leakage_param,
@@ -149,21 +188,52 @@ begin
     );
     
 data_ready <= not fifo_empty;
-
+-- always convert the data vector to event.
+convert_vector_to_event(data_from_fifo, event);
 
 process (clk)
 begin
     IF RISING_EDGE(CLK) THEN
+    IF RESET = '1' then
+
+    ELSE
+
     CASE state is 
         WHEN IDLE =>
             IF data_ready = '1' then
                 read_from_fifo <= '1';
+                -- enable ram
+                ram_ena <= '1';
+                ram_enb <= '1';
+                ram_wea <= "0";
+                ram_web <= "0";
+                enable_conv_unit <= '1';
+
                 state <= PROCESS_EVENT;
+
             END IF;
         WHEN PROCESS_EVENT => 
 
+            read_from_fifo <= '0';
+            for dy in -1 to 1 loop
+            for dx in -1 to 1 loop
+            
+                -- calculate address for kernel
+                ram_addra <= std_logic_vector(
+                    to_unsigned((event.x + dx) * IMAGE_WIDTH + (event.y + dy), NEURON_ADDRESS_WIDTH)
+                );
+
+                
+
+            end loop;
+            end loop;
+
+
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
+        WHEN INITIALIZE => 
     END CASE;
+
+    END IF;
     END IF;
 
 end process;

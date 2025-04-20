@@ -15,7 +15,7 @@ architecture testbench of tb_conv_control is
     signal RESET : std_logic := '0';
     signal FIFO_EMPTY : std_logic := '0';
     signal FIFO_IN_DATA : std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0) := (others => '0');
-
+    signal READ_FIFO : std_logic := '0';
 begin
 
     CLK <= not CLK after CLK_PERIOD / 2;
@@ -25,7 +25,8 @@ begin
             clk => CLK,
             reset => RESET,
             fifo_empty => FIFO_EMPTY,
-            data_from_fifo => FIFO_IN_DATA
+            data_from_fifo => FIFO_IN_DATA,
+            read_from_fifo => READ_FIFO
         );
 
     stimulus : process
