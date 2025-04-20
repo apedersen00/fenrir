@@ -22,17 +22,17 @@ entity DUAL_PORT_BRAM is
     generic(
         DEPTH : integer;    -- BRAM depth
         WIDTH : integer     -- BRAM width
-    )
+    );
     port(
         -- write interface
-        i_wen   : in std_logic;                                                   -- write enable
-        i_waddr : in std_logic_vector(integer(ceil(log2(real(DEPTH)))) downto 0); -- write address
-        i_wdata : in std_logic_vector(WIDTH - 1 downto 0);                        -- write data
+        i_wen   : in std_logic;                                                     -- write enable
+        i_waddr : in std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0); -- write address
+        i_wdata : in std_logic_vector(WIDTH - 1 downto 0);                          -- write data
         
         -- read interface
-        i_ren   : in std_logic;                                                   -- read enable
-        i_raddr : in std_logic_vector(integer(ceil(log2(real(DEPTH)))) downto 0); -- read address
-        o_rdata : out std_logic_vector(WIDTH - 1 downto 0);                       -- read data
+        i_ren   : in std_logic;                                                     -- read enable
+        i_raddr : in std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0); -- read address
+        o_rdata : out std_logic_vector(WIDTH - 1 downto 0);                         -- read data
 
         -- auxiliary
         i_clk   : in std_logic;
@@ -46,18 +46,18 @@ architecture syn of DUAL_PORT_BRAM is
 
     begin
 
-    process(clk)
+    process(i_clk)
     begin
-        if clk'event and clk = '1' then
+        if i_clk'event and i_clk = '1' then
             if i_wen = '1' then
                 RAM(conv_integer(i_waddr)) := i_wdata;
             end if;
         end if;
     end process;
 
-    process(clk)
+    process(i_clk)
     begin
-        if clk'event and clk = '1' then
+        if i_clk'event and i_clk = '1' then
             if i_ren = '1' then
                 o_rdata <= RAM(conv_integer(i_raddr));
             end if;
