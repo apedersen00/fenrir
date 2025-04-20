@@ -198,11 +198,26 @@ begin
 data_ready <= not fifo_empty;
 -- always convert the data vector to event.
 convert_vector_to_event(data_from_fifo, event);
-
+-- Connect doutb to our signal
+ram_doutb <= ram_doutb;
 process (clk)
 begin
     IF RISING_EDGE(CLK) THEN
     IF RESET = '1' then
+
+        -- Reset all signals
+        ram_ena <= '0';
+        ram_enb <= '0';
+        ram_wea <= "0";
+        ram_web <= "0";
+        ram_addra <= (others => '0');
+        ram_addrb <= (others => '0');
+        ram_dina <= (others => '0');
+        ram_dinb <= (others => '0');
+        
+        state <= IDLE;
+        data_ready <= '0';
+        
 
     ELSE
     CASE state is 
