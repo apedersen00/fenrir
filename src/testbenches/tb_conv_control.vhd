@@ -11,9 +11,9 @@ architecture testbench of tb_conv_control is
 
     CONSTANT CLK_PERIOD : time := 10 ns;
     
-    signal CLK : std_logic := '0';
+    signal CLK : std_logic := '1';
     signal RESET : std_logic := '0';
-    signal FIFO_EMPTY : std_logic := '0';
+    signal FIFO_EMPTY : std_logic := '1';
     signal FIFO_IN_DATA : std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0) := (others => '0');
     signal READ_FIFO : std_logic := '0';
 begin
@@ -36,7 +36,19 @@ begin
         -- RESET THE DUT
         RESET <= '1';
         wait for CLK_PERIOD * 2;
+        RESET <= '0';
+
+        wait for CLK_PERIOD * 2;
+
+        FIFO_EMPTY <= '0'; -- Simulate data being available in FIFO
+        
+        wait for CLK_PERIOD * 1;
+        FIFO_IN_DATA <= b"00100010011111";
+
+        FIFO_EMPTY <= '1'; -- Simulate FIFO being empty
+
+        wait;
 
     end process;
-
+ 
 end architecture testbench;

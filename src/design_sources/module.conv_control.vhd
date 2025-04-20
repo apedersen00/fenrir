@@ -21,8 +21,8 @@ PACKAGE conv_control_t IS
     CONSTANT LEAKAGE_PARAM_WIDTH     :integer:= 4;
     CONSTANT TIME_SCALING_FACTOR     :integer:= 200;
 
-    CONSTANT RAW_EVENT_X_WIDTH       :integer:= 10;
-    CONSTANT RAW_EVENT_Y_WIDTH       :integer:= 8;
+    CONSTANT RAW_EVENT_X_WIDTH       :integer:= 4 ;
+    CONSTANT RAW_EVENT_Y_WIDTH       :integer:= 4;
     CONSTANT RAW_EVENT_POLARITY_WIDTH:integer:= 2;
     
     CONSTANT FIFO_IN_DATA_WIDTH      :integer:=   RAW_EVENT_X_WIDTH 
@@ -205,7 +205,6 @@ begin
     IF RESET = '1' then
 
     ELSE
-
     CASE state is 
         WHEN IDLE =>
             IF data_ready = '1' then
@@ -220,7 +219,7 @@ begin
                 dy <= -1;
                 dx <= -1;
                 counter <= 0;
-                state <= PROCESS_EVENT;
+                state <= PROCESS_EVENT_START;
 
             END IF;
         WHEN PROCESS_EVENT_START => 
@@ -238,7 +237,7 @@ begin
             kernels_for_conv_unit <= kernels(counter);
 
             IF (counter + 1) MOD 3 = 0 AND counter /= 9 THEN
-
+                
                 dx <= - 1;
                 dy <= dy + 1;
 
@@ -248,6 +247,11 @@ begin
                 ram_enb <= '0';
 
                 state <= IDLE;
+
+            ELSE 
+                
+                dx <= dx + 1;
+                counter <= counter + 1;
 
             END IF;
 
