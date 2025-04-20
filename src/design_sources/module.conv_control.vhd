@@ -37,6 +37,7 @@ PACKAGE conv_control_t IS
                                                 + TIMESTAMP_WIDTH;
     type main_states_t is (
         IDLE,
+        PROCESS_EVENT_START,
         PROCESS_EVENT,
         UPDATE_ALL_NEURON_TIMESTAMPS,
         INITIALIZE
@@ -78,24 +79,30 @@ END PACKAGE conv_control_t;
 package body conv_control_t is 
 
     procedure convert_vector_to_event(
-        signal data_vector : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
-        signal event : out event_raw
-    ) is
-        variable x : integer;
-        variable y : integer;
-        variable polarity : integer;
-        variable timestamp : std_logic_vector(TIMESTAMP_WIDTH - 1 downto 0);
-    begin
-        x := to_integer(unsigned(data_vector(0 to RAW_EVENT_X_WIDTH - 1)));
-        y := to_integer(unsigned(data_vector(RAW_EVENT_X_WIDTH to RAW_EVENT_X_WIDTH + RAW_EVENT_Y_WIDTH - 1)));
-        polarity := to_integer(unsigned(data_vector(RAW_EVENT_X_WIDTH + RAW_EVENT_Y_WIDTH to FIFO_IN_DATA_WIDTH - 1)));
-        timestamp := data_vector(FIFO_IN_DATA_WIDTH - 1 downto FIFO_IN_DATA_WIDTH - TIMESTAMP_WIDTH);
-        
-        event.x := x;
-        event.y := y;
-        event.polarity := polarity;
-        event.timestamp := timestamp;
-    end procedure convert_vector_to_event;
+    signal data_vector : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
+    signal event : out event_raw
+) is
+    constant X_MSB         : integer := FIFO_IN_DATA_WIDTH - 1;
+    constant X_LSB         : integer := X_MSB - RAW_EVENT_X_WIDTH + 1;
+
+    constant Y_MSB         : integer := X_LSB - 1;
+    constant Y_LSB         : integer := Y_MSB - RAW_EVENT_Y_WIDTH + 1;
+
+    constant POLARITY_MSB  : integer := Y_LSB - 1;
+    constant POLARITY_LSB  : integer := POLARITY_MSB - RAW_EVENT_POLARITY_WIDTH + 1;
+
+    constant TIMESTAMP_MSB : integer := POLARITY_LSB - 1;
+    constant TIMESTAMP_LSB : integer := TIMESTAMP_MSB - TIMESTAMP_WIDTH + 1;
+begin
+    -- Proper signal assignment with correct slicing
+    event.x <= to_integer(unsigned(data_vector(X_MSB downto X_LSB)));
+    event.y <= to_integer(unsigned(data_vector(Y_MSB downto Y_LSB)));
+    
+    -- Assuming polarity is signed 2-bit value (range -1 to 1)
+    event.polarity <= to_integer(signed(data_vector(POLARITY_MSB downto POLARITY_LSB)));
+    
+    event.timestamp <= data_vector(TIMESTAMP_MSB downto TIMESTAMP_LSB);
+end procedure;
     
 
 end package body conv_control_t;
@@ -136,6 +143,7 @@ end entity conv_control;
 
     signal dx : integer range -1 to 1;
     signal dy : integer range -1 to 1;
+    signal counter : integer range 0 to KERNEL_SIZE - 1;
 
     signal enable_conv_unit : std_logic;
     signal kernels_for_conv_unit : std_logic_vector(KERNEL_BIT_WIDTH * FEATURE_MAPS - 1 downto 0);
@@ -207,26 +215,41 @@ begin
                 ram_enb <= '1';
                 ram_wea <= "0";
                 ram_web <= "0";
-                enable_conv_unit <= '1';
 
+                -- initialize dx,dy
+                dy <= -1;
+                dx <= -1;
+                counter <= 0;
                 state <= PROCESS_EVENT;
 
             END IF;
-        WHEN PROCESS_EVENT => 
+        WHEN PROCESS_EVENT_START => 
 
             read_from_fifo <= '0';
-            for dy in -1 to 1 loop
-            for dx in -1 to 1 loop
-            
-                -- calculate address for kernel
-                ram_addra <= std_logic_vector(
-                    to_unsigned((event.x + dx) * IMAGE_WIDTH + (event.y + dy), NEURON_ADDRESS_WIDTH)
-                );
+            enable_conv_unit <= '1';
+            state <= PROCESS_EVENT;
+        
+        WHEN PROCESS_EVENT =>
 
-                
+            ram_addra <= std_logic_vector(
+                    to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
+            );
 
-            end loop;
-            end loop;
+            kernels_for_conv_unit <= kernels(counter);
+
+            IF (counter + 1) MOD 3 = 0 AND counter /= 9 THEN
+
+                dx <= - 1;
+                dy <= dy + 1;
+
+            ELSIF counter = (KERNEL_SIZE - 1) then
+
+                ram_ena <= '0';
+                ram_enb <= '0';
+
+                state <= IDLE;
+
+            END IF;
 
 
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>

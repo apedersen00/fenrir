@@ -33,7 +33,9 @@ begin
 
     begin
 
-        wait for 10 * CLK_PERIOD;
+        -- RESET THE DUT
+        RESET <= '1';
+        wait for CLK_PERIOD * 2;
 
     end process;
 
