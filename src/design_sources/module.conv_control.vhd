@@ -43,6 +43,7 @@ PACKAGE conv_control_t IS
         IDLE,
         PROCESS_EVENT_START,
         PROCESS_EVENT,
+        DELAY,
         UPDATE_ALL_NEURON_TIMESTAMPS,
         INITIALIZE
     );
@@ -123,7 +124,9 @@ entity conv_control is
         reset : in std_logic;
         fifo_empty : in std_logic; -- just NOT this signal to see if data is ready. 
         data_from_fifo : in std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0);
-        read_from_fifo : out std_logic -- signal to read from FIFO
+        read_from_fifo : out std_logic; -- signal to read from FIFO
+        init : in std_logic; -- signal to initialize the neuron potentials
+        initialize_value : in std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0)
     );
 end entity conv_control;
 
@@ -141,6 +144,7 @@ end entity conv_control;
     signal ram_doutb:   std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0);
 
     signal state : main_states_t := IDLE;
+    signal next_state : main_states_t := IDLE;
     signal data_ready : std_logic;
     signal kernels : kernels_t := (others => (others => '0'));
     signal event : event_raw;
@@ -148,6 +152,9 @@ end entity conv_control;
     signal dx : integer range -1 to 1;
     signal dy : integer range -1 to 1;
     signal counter : integer range 0 to KERNEL_SIZE - 1;
+    signal next_read_address : std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
+    signal previous_read_address : std_logic_vector(NEURON_ADDRESS_WIDTH - 1 downto 0);
+    signal init_counter : integer range 0 to IMAGE_HEIGHT * IMAGE_WIDTH - 1;
 
     signal enable_conv_unit : std_logic;
     signal kernels_for_conv_unit : std_logic_vector(KERNEL_BIT_WIDTH * FEATURE_MAPS - 1 downto 0);
@@ -219,11 +226,26 @@ begin
         ram_addrb <= (others => '0');
         ram_dina <= (others => '0');
         ram_dinb <= (others => '0');
-        
+        next_read_address <= (others => '0');
+        previous_read_address <= (others => '0');
         read_from_fifo <= '0';
         enable_conv_unit <= '0';
 
-        state <= IDLE;
+        -- test values
+        for i in 0 to KERNEL_SIZE - 1 loop
+            kernels(i) <= std_logic_vector(to_unsigned(i, FEATURE_MAPS * KERNEL_BIT_WIDTH));
+        end loop;
+        neuron_reset_value <= std_logic_vector(to_unsigned(PARAM_NEURON_RESET, NEURON_RESET_WIDTH));
+        neuron_threshold_value <= std_logic_vector(to_unsigned(PARAM_NEURON_THRESHOLD, NEURON_THRESHOLD_WIDTH));
+        leakage_param <= std_logic_vector(to_unsigned(PARAM_LEAKAGE, LEAKAGE_PARAM_WIDTH));
+        -- lets just put some value in the timestamp
+        timestamp_event <= std_logic_vector(to_unsigned(3, TIMESTAMP_WIDTH));
+
+        if init = '1' then
+            STATE <= INITIALIZE;
+        else 
+            STATE <= IDLE;
+        end if;
         
     ELSE
     CASE state is 
@@ -247,30 +269,45 @@ begin
 
             read_from_fifo <= '0';
             enable_conv_unit <= '1';
-            if read_from_fifo = '0' then
-            else
-
             state <= PROCESS_EVENT;
-        
-            end if;
+            
+        WHEN DELAY => 
+
+            STATE <= next_state;
+
         WHEN PROCESS_EVENT =>
 
-            ram_addra <= std_logic_vector(
+            if counter = 0 then
+                next_read_address <= std_logic_vector(
                     to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
-            );
+                );
+                previous_read_address <= std_logic_vector(
+                    to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
+                );
+            else 
+                previous_read_address <= next_read_address;
+                next_read_address <= std_logic_vector(
+                    to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
+                );
+                kernels_for_conv_unit <= kernels(counter-1);
+            end if;
 
-            kernels_for_conv_unit <= kernels(counter);
+            ram_addra <= next_read_address;
+            ram_addrb <= previous_read_address;
 
-            IF (counter + 1) MOD 3 = 0 AND counter /= 9 THEN
+            
+
+            IF (counter + 1) MOD 3 = 0 AND counter /= (KERNEL_SIZE -1 ) THEN
                 
                 dx <= - 1;
                 dy <= dy + 1;
+                counter <= counter + 1;
 
             ELSIF counter = (KERNEL_SIZE - 1) then
 
                 ram_ena <= '0';
                 ram_enb <= '0';
-
+                
                 state <= IDLE;
 
             ELSE 
@@ -283,6 +320,22 @@ begin
 
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
         WHEN INITIALIZE => 
+        
+            ram_ena <= '1';
+            ram_wea <= "1";
+
+            ram_addra <= std_logic_vector(to_unsigned(init_counter, NEURON_ADDRESS_WIDTH));
+            ram_dina <= initialize_value;
+
+            init_counter <= init_counter + 1;
+            IF init_counter = IMAGE_HEIGHT * IMAGE_WIDTH - 1 THEN
+                ram_ena <= '0';
+                ram_wea <= "0";
+                init_counter <= 0;
+                state <= IDLE;
+            END IF;
+
+
     END CASE;
 
     END IF;

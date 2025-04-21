@@ -16,6 +16,8 @@ architecture testbench of tb_conv_control is
     signal FIFO_EMPTY : std_logic := '1';
     signal FIFO_IN_DATA : std_logic_vector(FIFO_IN_DATA_WIDTH - 1 downto 0) := (others => '0');
     signal READ_FIFO : std_logic := '0';
+    signal INITIALIZE : std_logic := '0';
+    signal initialize_value : std_logic_vector(MEM_SIZE_OF_ADDRESS - 1 downto 0) := (others => '0');
 begin
 
     CLK <= not CLK after CLK_PERIOD / 2;
@@ -26,7 +28,9 @@ begin
             reset => RESET,
             fifo_empty => FIFO_EMPTY,
             data_from_fifo => FIFO_IN_DATA,
-            read_from_fifo => READ_FIFO
+            read_from_fifo => READ_FIFO,
+            init => INITIALIZE,
+            initialize_value => initialize_value
         );
 
     stimulus : process
@@ -35,8 +39,17 @@ begin
         FIFO_EMPTY <= '1'; -- Simulate FIFO being empty
         -- RESET THE DUT
         RESET <= '1';
-        wait for CLK_PERIOD * 2;
+        INITIALIZE <= '1';
+        wait for clk_period;
         RESET <= '0';
+        
+        for i in 0 to 99 loop
+            
+            initialize_value <= x"22" & std_logic_vector(to_unsigned(i MOD 4, 4));
+
+            wait for clk_period;
+        end loop;
+        
 
         wait for CLK_PERIOD * 2;
 
