@@ -32,7 +32,7 @@ begin
     stimulus : process
 
     begin
-
+        FIFO_EMPTY <= '1'; -- Simulate FIFO being empty
         -- RESET THE DUT
         RESET <= '1';
         wait for CLK_PERIOD * 2;
@@ -42,7 +42,7 @@ begin
 
         FIFO_EMPTY <= '0'; -- Simulate data being available in FIFO
         
-        wait for CLK_PERIOD * 1;
+        wait for CLK_PERIOD * 2;
         FIFO_IN_DATA <= b"00100010011111";
 
         FIFO_EMPTY <= '1'; -- Simulate FIFO being empty

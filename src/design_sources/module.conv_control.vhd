@@ -20,6 +20,10 @@ PACKAGE conv_control_t IS
     CONSTANT KERNEL_SIZE             :integer:= 3 * 3; -- Simulating a 3x3 kernel window
     CONSTANT LEAKAGE_PARAM_WIDTH     :integer:= 4;
     CONSTANT TIME_SCALING_FACTOR     :integer:= 200;
+    -- PLaceholder for params
+    CONSTANT PARAM_NEURON_RESET      :integer:= 0;
+    CONSTANT PARAM_NEURON_THRESHOLD  :integer:= 12;
+    CONSTANT PARAM_LEAKAGE           :integer:= 0;
 
     CONSTANT RAW_EVENT_X_WIDTH       :integer:= 4 ;
     CONSTANT RAW_EVENT_Y_WIDTH       :integer:= 4;
@@ -200,6 +204,7 @@ data_ready <= not fifo_empty;
 convert_vector_to_event(data_from_fifo, event);
 -- Connect doutb to our signal
 ram_doutb <= ram_doutb;
+
 process (clk)
 begin
     IF RISING_EDGE(CLK) THEN
@@ -215,10 +220,11 @@ begin
         ram_dina <= (others => '0');
         ram_dinb <= (others => '0');
         
-        state <= IDLE;
-        data_ready <= '0';
-        
+        read_from_fifo <= '0';
+        enable_conv_unit <= '0';
 
+        state <= IDLE;
+        
     ELSE
     CASE state is 
         WHEN IDLE =>
@@ -241,8 +247,12 @@ begin
 
             read_from_fifo <= '0';
             enable_conv_unit <= '1';
+            if read_from_fifo = '0' then
+            else
+
             state <= PROCESS_EVENT;
         
+            end if;
         WHEN PROCESS_EVENT =>
 
             ram_addra <= std_logic_vector(
