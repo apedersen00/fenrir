@@ -29,16 +29,6 @@ architecture testbench of tb_conv_unit is
     signal spike_events : std_logic_vector(FEATURE_MAPS - 1 downto 0);
     signal event_happened_flag : std_logic;
     
-
-    -- Signals for the BRAM
-    signal addra : std_logic_vector(6 downto 0) := (others => '0');
-    signal addrb : std_logic_vector(6 downto 0) := (others => '0');
-    signal dina : std_logic_vector(11 downto 0) := (others => '0');
-    signal dinb : std_logic_vector(11 downto 0) := (others => '0');
-    signal douta : std_logic_vector(11 downto 0) := (others => '0');
-    signal doutb : std_logic_vector(11 downto 0) := (others => '0');
-    signal wea : std_logic := '0';
-    signal web : std_logic := '0';
     
     -- Helper procedure to set neuron value in a vector
     procedure set_neuron_value(
@@ -88,24 +78,36 @@ architecture testbench of tb_conv_unit is
     end function;
 
 
+    type input_array is array (0 to 8) of std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0);
+    signal i_data : input_array := (
+        x"220",
+        x"223",
+        x"220",
+        x"221",
+        x"221",
+        x"222",
+        x"223",
+        x"223",
+        x"223"
+    );
+    type kernel_array is array (0 to 8) of std_logic_vector(7 downto 0);
+    signal k_data : kernel_array := (
+        x"00",
+        x"01",
+        x"02",
+        x"03",
+        x"04",
+        x"05",
+        x"06",
+        x"07",
+        x"08"
+    );
 begin
     -- Clock generation
     clk <= not clk after CLK_PERIOD / 2;
     
     -- bram instantiation from BMG
-    bram : entity work.mem_neuron_potentials
-        port map(
-            clka => clk,
-            clkb => clk,
-            addra => addra,
-            addrb => addrb,
-            dina => dina,
-            dinb => output_data, 
-            wea => wea,
-            web => web,
-            douta => input_data,
-            doutb => doutb
-        );
+    
 
     -- Device under test instantiation
     dut : entity work.conv_unit
@@ -129,30 +131,16 @@ begin
     
     stimulus : process
     begin
-        addrb <= "WWWWWWW";
-        wait for CLK_PERIOD * 10;
-        dina <= x"112";
-        wea <= '1';
-        for i in 0 to 99 loop
-            addra <= std_logic_vector(to_unsigned(i, addra'length));
-            wait for CLK_PERIOD * 1;
-        end loop;
-        wea <= '0';
-        timestamp_event <= "0010";
-
+        neuron_reset_value <= "0000";
+        neuron_threshold_value <= "1100";
+        leakage_param <= "0000"; -- Small leakage
+        timestamp_event <= "0011"; -- Initial timestamp
         enable <= '1';
 
-        -- first event arrives at pixel (3,3) in an 10x10 image, output is 10x10x2
-        -- start by setting address to the pixel by using formula: addr = col + row * width
-        -- address a is for reading, address b is for writing
-
-        for dy in -1 to 1 loop
-            for dx in -1 to 1 loop
-
-                addra <= address_calculation(3 + dy, 3 + dx, 10);
-                wait for CLK_PERIOD * 1;
-
-            end loop;
+        for i in 0 to 8 loop
+            input_data <= i_data(i);
+            kernels <= k_data(i);
+            wait for CLK_PERIOD;
         end loop;
 
         wait;

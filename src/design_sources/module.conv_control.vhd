@@ -225,7 +225,7 @@ begin
         ram_addra <= (others => '0');
         ram_addrb <= (others => '0');
         ram_dina <= (others => '0');
-        ram_dinb <= (others => '0');
+        
         next_read_address <= (others => '0');
         previous_read_address <= (others => '0');
         read_from_fifo <= '0';
@@ -284,39 +284,43 @@ begin
                 previous_read_address <= std_logic_vector(
                     to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
                 );
+                ram_web <= "1";
+                
+                counter <= 1;
+
             else 
                 previous_read_address <= next_read_address;
                 next_read_address <= std_logic_vector(
                     to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
                 );
                 kernels_for_conv_unit <= kernels(counter-1);
+
+                IF (counter + 1) MOD 3 = 0 AND counter /= (KERNEL_SIZE -1 ) THEN
+                
+                    dx <= - 1;
+                    dy <= dy + 1;
+                    counter <= counter + 1;
+
+                ELSIF counter = (KERNEL_SIZE - 1) then
+
+                    ram_ena <= '0';
+                    ram_enb <= '0';
+                    
+                    enable_conv_unit <= '0';
+                    state <= IDLE;
+
+                ELSE 
+                    
+                    dx <= dx + 1;
+                    counter <= counter + 1;
+
+                END IF;
+
+
             end if;
 
             ram_addra <= next_read_address;
             ram_addrb <= previous_read_address;
-
-            
-
-            IF (counter + 1) MOD 3 = 0 AND counter /= (KERNEL_SIZE -1 ) THEN
-                
-                dx <= - 1;
-                dy <= dy + 1;
-                counter <= counter + 1;
-
-            ELSIF counter = (KERNEL_SIZE - 1) then
-
-                ram_ena <= '0';
-                ram_enb <= '0';
-                
-                state <= IDLE;
-
-            ELSE 
-                
-                dx <= dx + 1;
-                counter <= counter + 1;
-
-            END IF;
-
 
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
         WHEN INITIALIZE => 
@@ -332,6 +336,7 @@ begin
                 ram_ena <= '0';
                 ram_wea <= "0";
                 init_counter <= 0;
+                ram_addra <= (others => '0');
                 state <= IDLE;
             END IF;
 

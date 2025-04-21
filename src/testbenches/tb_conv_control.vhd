@@ -42,10 +42,10 @@ begin
         INITIALIZE <= '1';
         wait for clk_period;
         RESET <= '0';
-        
+
         for i in 0 to 99 loop
             
-            initialize_value <= x"22" & std_logic_vector(to_unsigned(i MOD 4, 4));
+            initialize_value <= x"A2" & std_logic_vector(to_unsigned(i MOD 4, 4));
 
             wait for clk_period;
         end loop;
