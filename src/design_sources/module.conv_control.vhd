@@ -238,7 +238,7 @@ begin
         neuron_threshold_value <= std_logic_vector(to_unsigned(PARAM_NEURON_THRESHOLD, NEURON_THRESHOLD_WIDTH));
         leakage_param <= std_logic_vector(to_unsigned(PARAM_LEAKAGE, LEAKAGE_PARAM_WIDTH));
         -- lets just put some value in the timestamp
-        timestamp_event <= std_logic_vector(to_unsigned(3, TIMESTAMP_WIDTH));
+        timestamp_event <= (others => 'W');
 
         if init = '1' then
             STATE <= INITIALIZE;
@@ -277,7 +277,7 @@ begin
 
         WHEN PROCESS_EVENT =>
             ram_ena <= '1';
-
+            timestamp_event <= event.timestamp;
             if counter < KERNEL_SIZE then
                 ram_addra <= std_logic_vector(
                         to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
