@@ -55,6 +55,11 @@ begin
     PROC_SEQUENCER : process
     begin
 
+        -- Test 1: fill and empty FIFO
+        rst     <= '1';
+        wdata   <= (others => '0');
+        we      <= '0';
+        re      <= '0';
         wait for 10 * clk_period;
         rst <= '0';
         wait until rising_edge(clk);
@@ -74,8 +79,31 @@ begin
         -- empty the FIFO
         re <= '1';
         wait until empty_next = '1';
-
         wait for 10 * clk_period;
+
+        -- Test 2: concurrent fill and empty
+        rst     <= '1';
+        wdata   <= (others => '0');
+        we      <= '0';
+        re      <= '0';
+        wait for 10 * clk_period;
+        rst <= '0';
+        wait until rising_edge(clk);
+
+        we <= '1';
+
+        for i in 0 to DEPTH - 1 loop
+            wdata <= std_logic_vector(unsigned(wdata) + 1);
+            if i >= DEPTH / 2 then
+                re <= '1';
+            end if;
+            wait until rising_edge(clk);
+        end loop;
+        
+        we <= '0';
+        wait until empty_next = '1';
+        wait for 10 * clk_period;
+
         finish;
     end process;
 
