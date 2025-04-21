@@ -153,6 +153,9 @@ end entity conv_control;
     signal dy : integer range -1 to 1;
     signal counter : integer range 0 to KERNEL_SIZE - 1;
 
+    signal x_for_ev_gen : integer range 0 to IMAGE_WIDTH - 1;
+    signal y_for_ev_gen : integer range 0 to IMAGE_HEIGHT - 1;
+
     signal init_counter : integer range 0 to IMAGE_HEIGHT * IMAGE_WIDTH - 1;
 
     signal enable_conv_unit : std_logic;
@@ -204,6 +207,15 @@ begin
         spike_events => spike_events,
         event_happened_flag => event_happened_flag
     );
+    conv_event_gen : entity work.conv_event_gen
+    port map(
+        clk => clk,
+        event_happened => event_happened_flag,
+        events => spike_events,
+        x => x_for_ev_gen,
+        y => y_for_ev_gen,
+        timestamp => event.timestamp
+    );
     
 data_ready <= not fifo_empty;
 -- always convert the data vector to event.
@@ -239,6 +251,10 @@ begin
         leakage_param <= std_logic_vector(to_unsigned(PARAM_LEAKAGE, LEAKAGE_PARAM_WIDTH));
         -- lets just put some value in the timestamp
         timestamp_event <= (others => 'W');
+        x_for_ev_gen <= 0;
+        y_for_ev_gen <= 0;
+        event_happened_flag <= '0';
+        
 
         if init = '1' then
             STATE <= INITIALIZE;
@@ -282,6 +298,8 @@ begin
                 ram_addra <= std_logic_vector(
                         to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
                 );
+                --x_for_ev_gen <= event.x + dx;
+                --y_for_ev_gen <= event.y + dy;
             else 
                 ram_ena <= '0';
                 ram_addra <= (others => 'W');
@@ -305,6 +323,7 @@ begin
                 counter <= 0;
                 kernels_for_conv_unit <= (others => 'W');
                 enable_conv_unit <= '0';
+                timestamp_event <= (others => 'W');
                 state <= idle;
             
             else
