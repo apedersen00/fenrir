@@ -80,15 +80,15 @@ architecture testbench of tb_conv_unit is
 
     type input_array is array (0 to 8) of std_logic_vector(BITS_PER_NEURON * FEATURE_MAPS + TIMESTAMP_WIDTH - 1 downto 0);
     signal i_data : input_array := (
-        x"220",
-        x"223",
-        x"220",
-        x"221",
-        x"221",
-        x"222",
-        x"223",
-        x"223",
-        x"223"
+        x"a20",
+        x"a23",
+        x"a22",
+        x"a21",
+        x"a20",
+        x"a23",
+        x"a22",
+        x"a21",
+        x"a20"
     );
     type kernel_array is array (0 to 8) of std_logic_vector(7 downto 0);
     signal k_data : kernel_array := (
