@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
+use std.env.finish;
 
 entity fifo_tb is
 end fifo_tb;
@@ -11,9 +13,9 @@ architecture behavior of fifo_tb is
     constant DEPTH      : integer := 128;
     constant WIDTH      : integer := 32;
 
-    signal we           : std_logic;
-    signal wdata        : std_logic_vector(WIDTH - 1 downto 0);
-    signal re           : std_logic;
+    signal we           : std_logic := '0';
+    signal wdata        : std_logic_vector(WIDTH - 1 downto 0) := (others => '0');
+    signal re           : std_logic := '0';
     signal rvalid       : std_logic;
     signal rdata        : std_logic_vector(WIDTH - 1 downto 0);
     signal empty        : std_logic;
@@ -21,13 +23,13 @@ architecture behavior of fifo_tb is
     signal full         : std_logic;
     signal full_next    : std_logic;
     signal fill_count   : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
-    signal clk          : std_logic;
-    signal rst          : std_logic;
+    signal clk          : std_logic := '0';
+    signal rst          : std_logic := '1';
     signal fault        : std_logic;
 
 begin
 
-    DUT : entity work.fifo
+    DUT : entity work.BRAM_FIFO
         generic map (
             DEPTH => DEPTH,
             WIDTH => WIDTH
@@ -49,11 +51,6 @@ begin
         );
 
     clk <= not clk after clk_period / 2;
-
-    rst     <= '1';
-    we      <= '0';
-    wdata   <= (others => '0');
-    re      <= '0';
 
     PROC_SEQUENCER : process
     begin
