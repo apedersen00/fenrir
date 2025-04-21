@@ -141,7 +141,12 @@ begin
             output_data <= output_data_var;
             spike_events <= spike_events_var;
             event_happened_flag <= event_happened;
-            
+        else 
+            -- set all signals to weak state when not enabled
+            output_data <= (others => 'W');
+            spike_events <= (others => 'W');
+            event_happened_flag <= 'W';
+
         end if;
     end process;
 end architecture behavioral;

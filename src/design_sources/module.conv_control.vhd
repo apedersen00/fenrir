@@ -22,7 +22,7 @@ PACKAGE conv_control_t IS
     CONSTANT TIME_SCALING_FACTOR     :integer:= 200;
     -- PLaceholder for params
     CONSTANT PARAM_NEURON_RESET      :integer:= 0;
-    CONSTANT PARAM_NEURON_THRESHOLD  :integer:= 2;
+    CONSTANT PARAM_NEURON_THRESHOLD  :integer:= 14;
     CONSTANT PARAM_LEAKAGE           :integer:= 0;
 
     CONSTANT RAW_EVENT_X_WIDTH       :integer:= 4 ;
@@ -221,10 +221,12 @@ begin
         ram_enb <= '0';
         ram_wea <= "0";
         ram_web <= "0";
-        ram_addra <= (others => '0');
-        ram_addrb <= (others => '0');
-        ram_dina <= (others => '0');
-        
+        ram_addra <= (others => 'W');
+        ram_addrb <= (others => 'W');
+        ram_dina <= (others => 'W');
+        kernels_for_conv_unit <= (others => 'W');
+        dx <= 0;
+        dy <= 0;
         read_from_fifo <= '0';
         enable_conv_unit <= '0';
 
@@ -249,9 +251,7 @@ begin
         WHEN IDLE =>
             IF data_ready = '1' then
                 read_from_fifo <= '1';
-                dy <= -1;
-                dx <= -1;
-                counter <= 0;
+                
                 state <= PROCESS_EVENT_START;
 
             END IF;
@@ -259,13 +259,14 @@ begin
             ram_web <= "0";
             ram_ena <= '0';
             ram_enb <= '0';
-            ram_addra <= (others => '0');
-            ram_addrb <= (others => '0');
+            ram_addra <= (others => 'W');
+            ram_addrb <= (others => 'W');
+            
 
         WHEN PROCESS_EVENT_START => 
-            ram_ena <= '1';
-            ram_enb <= '1';
-            
+            dy <= -1;
+            dx <= -1;
+            counter <= 0;
             read_from_fifo <= '0';
             
             state <= PROCESS_EVENT;
@@ -275,16 +276,21 @@ begin
             STATE <= next_state;
 
         WHEN PROCESS_EVENT =>
+            ram_ena <= '1';
 
             if counter < KERNEL_SIZE then
                 ram_addra <= std_logic_vector(
                         to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
                 );
+            else 
+                ram_ena <= '0';
+                ram_addra <= (others => 'W');
             end if;
             
             ram_addrb <= ram_addra;
 
-            if counter > 0 then
+            if counter > 0 and counter < KERNEL_SIZE then
+                ram_enb <= '1';
                 ram_web <= "1";
                 kernels_for_conv_unit <= kernels(counter-1);
                 enable_conv_unit <= '1';
@@ -292,21 +298,36 @@ begin
             
             -- update counters
             
-            if counter = KERNEL_SIZE THEN
-
+            if counter = (KERNEL_SIZE + 1) THEN
+                dx <= 0;
+                dy <= 0;
+                ram_enb <= '0';
+                counter <= 0;
+                kernels_for_conv_unit <= (others => 'W');
+                enable_conv_unit <= '0';
                 state <= idle;
-
+            
             else
+                if dx = 1 and dy = 1 then
 
-                if dx = 1 then
+                    dx <= 0;
+                    dy <= 0;
+                
+                elsif dx = 1 then
+
                     dx <= -1;
                     dy <= dy + 1;
+
                 else 
+
                     dx <= dx + 1;
+
                 end if;
 
             counter <= counter + 1;
+
             end if;
+
         WHEN UPDATE_ALL_NEURON_TIMESTAMPS =>
         WHEN INITIALIZE => 
         

@@ -49,7 +49,8 @@ begin
 
             wait for clk_period;
         end loop;
-        
+
+        INITIALIZE <= '0';        
 
         wait for CLK_PERIOD * 2;
 
@@ -59,6 +60,8 @@ begin
         FIFO_IN_DATA <= b"00100010011111";
 
         FIFO_EMPTY <= '1'; -- Simulate FIFO being empty
+        wait for CLK_PERIOD * 2;
+        FIFO_EMPTY <= '0';
 
         wait;
 
