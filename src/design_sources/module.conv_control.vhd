@@ -146,7 +146,11 @@ end entity conv_control;
     signal state : main_states_t := IDLE;
     signal next_state : main_states_t := IDLE;
     signal data_ready : std_logic;
-    signal kernels : kernels_t := (others => (others => '0'));
+    signal kernels : kernels_t := (
+        x"11", x"22", x"33",
+        x"44", x"55", x"66",
+        x"77", x"88", x"99"
+    );
     signal event : event_raw;
 
     signal dx : integer range -1 to 1;
@@ -243,9 +247,7 @@ begin
         enable_conv_unit <= '0';
 
         -- test values
-        for i in 0 to KERNEL_SIZE - 1 loop
-            kernels(i) <= std_logic_vector(to_unsigned(i, FEATURE_MAPS * KERNEL_BIT_WIDTH));
-        end loop;
+        
         neuron_reset_value <= std_logic_vector(to_unsigned(PARAM_NEURON_RESET, NEURON_RESET_WIDTH));
         neuron_threshold_value <= std_logic_vector(to_unsigned(PARAM_NEURON_THRESHOLD, NEURON_THRESHOLD_WIDTH));
         leakage_param <= std_logic_vector(to_unsigned(PARAM_LEAKAGE, LEAKAGE_PARAM_WIDTH));
@@ -293,7 +295,7 @@ begin
 
         WHEN PROCESS_EVENT =>
             ram_ena <= '1';
-            timestamp_event <= event.timestamp;
+            
             if counter < KERNEL_SIZE then
                 ram_addra <= std_logic_vector(
                         to_unsigned(event.x + dx + (event.y + dy) * IMAGE_WIDTH, NEURON_ADDRESS_WIDTH)
@@ -307,7 +309,8 @@ begin
             
             ram_addrb <= ram_addra;
 
-            if counter > 0 and counter < KERNEL_SIZE then
+            if counter > 0 and counter < (KERNEL_SIZE + 1 )then
+                timestamp_event <= event.timestamp;
                 ram_enb <= '1';
                 ram_web <= "1";
                 kernels_for_conv_unit <= kernels(counter-1);
