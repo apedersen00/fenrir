@@ -17,7 +17,7 @@
         - (reg_cfg_0):
             - <11b> [10:0]  layer_size          : number of neurons in the layer
             - <11b> [21:11] layer_offset        : neuron address layer offset
-            -  <2b> [23:22] syn_bits            : number of bits per synapse (2b, 4b, 8b, 16b)
+            -  <2b> [23:22] syn_bits            : number of bits per synapse (2b, 4b, 8b)
 
 ---------------------------------------------------------------------------------------------------
 */
@@ -29,7 +29,7 @@ use ieee.math_real.all;
 
 entity SYNAPSE_LOADER is
     generic (
-        SHOTGUN_NUM_REG : integer -- number of registers in the shotgun
+        SHOTGUN_DEPTH   : integer -- number of registers in the shotgun
         SYN_MEM_DEPTH   : integer -- depth of the synapse memory
         SYN_MEM_WIDTH   : integer -- width of the synapse memory
     );
@@ -47,21 +47,19 @@ entity SYNAPSE_LOADER is
         i_fifo_empty_next   : in std_logic;                         -- FIFO empty next flag
 
         -- pack interface
-        o_pack_out          : out std_logic_vector(31 downto 0);    -- data out to packer
-        i_pack_halt         : in std_logic;                         -- halt signal from packer
+        o_syn_weights       : out std_logic_vector((SHOTGUN_DEPTH * 8) - 1 downto 0);   -- synaptic weigh out to packer (8x8b)
+        o_nrn_indices       : out std_logic_vector((SHOTGUN_DEPTH * 10 - 1 downto 0);   -- neuron indices out to packer (8x10b)
+        i_halt              : in std_logic;                                             -- halt signal from packer
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
         i_syn_data          : in std_logic_vector(31 downto 0);     -- neuron data
 
         -- control signals
-        i_start             : in std_logic;                         -- start signal
-        o_busy              : out std_logic;                        -- busy signal
-
+        i_start             : in std_logic;
+        o_busy              : out std_logic;
         i_clk               : in std_logic;
         i_rst               : in std_logic;
-
-        o_fault             : out std_logic
     );
 end SYNAPSE_LOADER;
 
@@ -83,8 +81,8 @@ architecture Behavioral of SYNAPSE_LOADER is
     signal cfg_layer_offset     : std_logic_vector(10 downto 0);    -- neuron address layer offset
     signal cfg_syn_bits         : std_logic_vector(1 downto 0);     -- number of bits per synapse (2b, 4b, 8b, 16b)
 
-    signal event_i              : std_logic_vector(31 downto 0);    -- internal synapse register
-    signal syn_index            : integer range 0 to 1023;
+    -- counters
+    signal syn_counter          : integer range 0 to 1024 * 1024 / 2; -- synapse address counter
 
 begin
 
@@ -93,14 +91,16 @@ begin
     cfg_layer_offset    <= reg_cfg_0(21 downto 11);
     cfg_syn_bits        <= reg_cfg_0(23 downto 22);
 
-    process(i_clk, i_nrst) is
+
+    config : process(i_clk, i_nrst) is
     begin
         if rising_edge(i_clk) then
-            if i_cfg_en = '1' then
-                case i_cfg_addr is
-                    when "0000" => reg_cfg_0 <= i_cfg_val;
-                    when others => null;
-                end case;
+            if cur_state = IDLE then
+                if i_cfg_en = '1' then
+                    case i_cfg_addr is
+                        when "0000" => reg_cfg_0 <= i_cfg_val;
+                    end case;
+                end if;
             end if;
         end if;
     end process;
@@ -121,24 +121,16 @@ begin
         case present_state is
 
             when IDLE =>
-                if not i_empty then
+                if i_start then
                     next_state <= GET_EVENT;
-                else
-                    next_state <= IDLE;
                 end if;
 
             when GET_EVENT =>
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if syn_count >= unsigned(cfg_layer_size) then
-                    next_state <= GET_EVENT;
-                else
-                    next_state <= ITERATE;
-                end if;
-
-            when others =>
-                next_state <= IDLE;
+                if 
+                next_state <= GET_EVENT;
 
         end case;
     end process;
@@ -148,22 +140,25 @@ begin
         case present_state is
             
             when IDLE =>
-                o_pack_out <= (others => '0');
-                o_re       <= '0';
-                o_busy     <= '0';
-                o_syn_addr <= (others => '0');
+                o_busy          <= '0';
+                o_fifo_re       <= '0';
+                o_syn_addr      <= (others => '0');
+                o_syn_weights   <= (others => '0');
+                o_nrn_indices   <= (others => '0');
+                syn_counter     <= 0;
 
             when GET_EVENT =>
-                o_pack_out <= (others => '0');
-                o_re       <= '1';
-                o_busy     <= '1';
-                o_syn_addr <= (others => '0');
+                o_busy          <= '1';
+                o_fifo_re       <= '1';
+                o_syn_addr      <= (others => '0');
+                o_syn_weights   <= (others => '0');
+                o_nrn_indices   <= (others => '0');
+                syn_counter     <= 0;
 
             when ITERATE =>
-                o_pack_out <= (others => '0');
-                o_re       <= '0';
-                o_busy     <= '1';
-                o_syn_addr <= (others => '0');
+                o_busy          <= '1';
+                o_fifo_re       <= '1';
+                o_syn_addr      <= 
 
         end case;
     end process;
