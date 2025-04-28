@@ -29,9 +29,9 @@ use ieee.math_real.all;
 
 entity SYNAPSE_LOADER is
     generic (
-        SHOTGUN_DEPTH   : integer -- number of registers in the shotgun
-        SYN_MEM_DEPTH   : integer -- depth of the synapse memory
-        SYN_MEM_WIDTH   : integer -- width of the synapse memory
+        SHOTGUN_DEPTH   : integer; -- number of registers in the shotgun
+        SYN_MEM_DEPTH   : integer; -- depth of the synapse memory
+        SYN_MEM_WIDTH   : integer  -- width of the synapse memory
     );
     port (
         -- configuration interface
@@ -43,13 +43,9 @@ entity SYNAPSE_LOADER is
         o_fifo_re           : out std_logic;                        -- read enable
         i_fifo_rvalid       : in std_logic;                         -- read valid
         i_fifo_rdata        : in std_logic_vector(31 downto 0);     -- read data
-        i_fifo_empty        : in std_logic;                         -- FIFO empty flag
-        i_fifo_empty_next   : in std_logic;                         -- FIFO empty next flag
 
-        -- pack interface
-        o_syn_weights       : out std_logic_vector((SHOTGUN_DEPTH * 8) - 1 downto 0);   -- synaptic weigh out to packer (8x8b)
-        o_nrn_indices       : out std_logic_vector((SHOTGUN_DEPTH * 10 - 1 downto 0);   -- neuron indices out to packer (8x10b)
-        i_halt              : in std_logic;                                             -- halt signal from packer
+        -- LIF interface
+        o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
@@ -59,7 +55,7 @@ entity SYNAPSE_LOADER is
         i_start             : in std_logic;
         o_busy              : out std_logic;
         i_clk               : in std_logic;
-        i_rst               : in std_logic;
+        i_rst               : in std_logic
     );
 end SYNAPSE_LOADER;
 
@@ -82,7 +78,8 @@ architecture Behavioral of SYNAPSE_LOADER is
     signal cfg_syn_bits         : std_logic_vector(1 downto 0);     -- number of bits per synapse (2b, 4b, 8b, 16b)
 
     -- counters
-    signal syn_counter          : integer range 0 to 1024 * 1024 / 2; -- synapse address counter
+    signal syn_counter          : std_logic_vector(9 downto 0);
+    signal weights_per_addr     : integer range 0 to 16;
 
 begin
 
@@ -91,16 +88,27 @@ begin
     cfg_layer_offset    <= reg_cfg_0(21 downto 11);
     cfg_syn_bits        <= reg_cfg_0(23 downto 22);
 
+    -- determine how many weights per address
+    process(cfg_syn_bits)
+    begin
+        case cfg_syn_bits is
+            when "00"   => weights_per_addr <= 16;  -- 2 bits per synapse
+            when "01"   => weights_per_addr <= 8;   -- 4 bits per synapse
+            when "10"   => weights_per_addr <= 4;   -- 8 bits per synapse
+            when others => weights_per_addr <= 0;
+        end case;
+    end process;
 
-    config : process(i_clk, i_nrst) is
+    config : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if cur_state = IDLE then
-                if i_cfg_en = '1' then
-                    case i_cfg_addr is
-                        when "0000" => reg_cfg_0 <= i_cfg_val;
-                    end case;
-                end if;
+            if i_rst = '0' then
+                reg_cfg_0   <= (others => '0');
+            elsif i_cfg_en = '1' then
+                case i_cfg_addr is
+                    when "0000" => reg_cfg_0 <= i_cfg_val;
+                    when others => null;
+                end case;
             end if;
         end if;
     end process;
@@ -108,7 +116,7 @@ begin
     state_reg : process(i_clk) is
     begin
         if rising_edge(i_clk) then
-            if i_nrst = '0' then
+            if i_rst = '0' then
                 present_state <= IDLE;
             else
                 present_state <= next_state;
@@ -116,12 +124,12 @@ begin
         end if;
     end process;
 
-    nxt_state : process(present_state, <inputs>) is
+    nxt_state : process(present_state, i_start) is
     begin
         case present_state is
 
             when IDLE =>
-                if i_start then
+                if i_start = '1' then
                     next_state <= GET_EVENT;
                 end if;
 
@@ -129,37 +137,40 @@ begin
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if 
                 next_state <= GET_EVENT;
 
         end case;
     end process;
 
-    outputs : process(present_state, <inputs>) is
+    outputs : process(present_state, i_start) is
     begin
-        case present_state is
-            
+        -- default outputs
+        o_busy          <= '0';
+        o_fifo_re       <= '0';
+        o_syn_weight    <= (others => '0');
+        o_syn_addr      <= (others => '0');
+
+        case present_state is    
             when IDLE =>
                 o_busy          <= '0';
                 o_fifo_re       <= '0';
+                o_syn_weight    <= (others => '0');
                 o_syn_addr      <= (others => '0');
-                o_syn_weights   <= (others => '0');
-                o_nrn_indices   <= (others => '0');
-                syn_counter     <= 0;
+                syn_counter     <= (others => '0');
 
             when GET_EVENT =>
                 o_busy          <= '1';
                 o_fifo_re       <= '1';
+                o_syn_weight    <= (others => '0');
                 o_syn_addr      <= (others => '0');
-                o_syn_weights   <= (others => '0');
-                o_nrn_indices   <= (others => '0');
-                syn_counter     <= 0;
+                syn_counter     <= (others => '0');
 
             when ITERATE =>
                 o_busy          <= '1';
-                o_fifo_re       <= '1';
-                o_syn_addr      <= 
-
+                o_fifo_re       <= '0';
+                o_syn_weight    <= (others => '0');
+                o_syn_addr      <= (others => '0');
+                syn_counter     <= (others => '0');
         end case;
     end process;
 
