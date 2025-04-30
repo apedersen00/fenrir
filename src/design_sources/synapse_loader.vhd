@@ -88,6 +88,7 @@ architecture Behavioral of SYNAPSE_LOADER is
         IDLE,
         GET_EVENT,
         GET_WEIGHTS,
+        WAIT_FOR_BRAM,
         ITERATE
     );
     signal present_state        : state;
@@ -107,6 +108,7 @@ architecture Behavioral of SYNAPSE_LOADER is
     signal counter_reset        : std_logic;
     signal syn_index            : integer range 0 to 1024;
     signal syn_addr_cntr        : integer range 0 to 512;
+    signal fsm_counter          : integer range 0 to 1;
 
     -- constants
     signal weights_per_addr     : integer range 0 to 16;
@@ -233,13 +235,16 @@ begin
                 end if;
 
             when GET_EVENT =>
-                next_state <= GET_WEIGHTS;
+                next_state  <= GET_WEIGHTS;
             
             when GET_WEIGHTS =>
+                next_state  <= WAIT_FOR_BRAM;
+
+            when WAIT_FOR_BRAM =>
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if syn_index >= unsigned(cfg_layer_size) then
+                if syn_index >= unsigned(cfg_layer_size) - 1 then
                     next_state <= GET_EVENT;
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
                     next_state <= GET_WEIGHTS;
@@ -254,6 +259,7 @@ begin
 
         case present_state is    
             when IDLE =>
+                fsm_counter     <= 0;
                 o_busy          <= '0';
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
@@ -266,6 +272,12 @@ begin
                 counter_reset   <= '1';
 
             when GET_WEIGHTS =>
+                o_busy          <= '1';
+                o_fifo_re       <= '0';
+                counter_enable  <= '0';
+                counter_reset   <= '0';
+
+            when WAIT_FOR_BRAM =>
                 o_busy          <= '1';
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
