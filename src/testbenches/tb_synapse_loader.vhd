@@ -42,6 +42,12 @@ architecture behavior of synapse_loader_tb is
 
 begin
 
+    -- MNIST TEST
+    -- 32x32 Input -> 10 output
+    -- 32x32 = 1024 input neurons
+    -- 1024x10 = 10240 synapses
+    -- 10240/8 = 1280 addresses
+
     INPUT_FIFO : entity work.BRAM_FIFO
         generic map (
             DEPTH => DEPTH,
@@ -65,8 +71,7 @@ begin
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
         generic map (
-            SHOTGUN_DEPTH   => 8,
-            SYN_MEM_DEPTH   => 128,
+            SYN_MEM_DEPTH   => 1280,
             SYN_MEM_WIDTH   => 32
         )
         port map (
@@ -97,9 +102,38 @@ begin
         -- Reset FIFO
         fifo_rst    <= '1';
         fifo_we     <= '0';
-        fifo_re     <= '0';
         fifo_wdata  <= (others => '0');
         wait for 10 * clk_period;
+        fifo_rst    <= '0';
+        wait until rising_edge(clk);
+
+        -- start writing
+        fifo_we     <= '1';
+
+        -- fill the FIFO
+        while fifo_full_next = '0' loop
+            fifo_wdata <= std_logic_vector(unsigned(fifo_wdata) + 1);
+            wait until rising_edge(clk);
+        end loop;
+
+        -- configure synapse loader
+        fifo_we         <= '0';
+        synldr_cfg_en   <= '1';
+        synldr_cfg_addr <= "0000";
+        synldr_cfg_val  <=
+            "00000000"                              &   -- zero padding
+            std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
+            std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+            std_logic_vector(to_unsigned(128, 11));     -- neurons per layer
+        wait until rising_edge(clk);
+
+        synldr_cfg_en   <= '0';
+        synldr_start    <= '1';
+
+        for i in 0 to 100 loop
+            wait until rising_edge(clk);
+        end loop;
+
         finish;
     end process;
 

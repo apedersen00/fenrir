@@ -29,7 +29,6 @@ use ieee.math_real.all;
 
 entity SYNAPSE_LOADER is
     generic (
-        SHOTGUN_DEPTH   : integer; -- number of registers in the shotgun
         SYN_MEM_DEPTH   : integer; -- depth of the synapse memory
         SYN_MEM_WIDTH   : integer  -- width of the synapse memory
     );
@@ -64,6 +63,7 @@ architecture Behavioral of SYNAPSE_LOADER is
     type state is (
         IDLE,
         GET_EVENT,
+        GET_WEIGHTS,
         ITERATE
     );
     signal present_state        : state;
@@ -71,6 +71,7 @@ architecture Behavioral of SYNAPSE_LOADER is
 
     -- registers
     signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
+    signal reg_weights          : std_logic_vector(31 downto 0);
 
     -- configuration
     signal cfg_layer_size       : std_logic_vector(10 downto 0);    -- number of neurons in the layer
@@ -78,8 +79,17 @@ architecture Behavioral of SYNAPSE_LOADER is
     signal cfg_syn_bits         : std_logic_vector(1 downto 0);     -- number of bits per synapse (2b, 4b, 8b, 16b)
 
     -- counters
-    signal syn_counter          : std_logic_vector(9 downto 0);
+    signal counter_enable       : std_logic;
+    signal counter_reset        : std_logic;
+
+    -- constants
     signal weights_per_addr     : integer range 0 to 16;
+    signal bits_per_weight      : integer range 0 to 8;
+    signal syn_addr_iterator    : integer range 0 to 1024;
+
+    signal test_1 : std_logic_vector(31 downto 0) := x"ABABABAB";
+    signal test_2 : std_logic_vector(31 downto 0) := x"CDCDCDCD";
+    signal test_3 : std_logic_vector(31 downto 0) := x"EFEFEFEF";
 
 begin
 
@@ -92,13 +102,28 @@ begin
     process(cfg_syn_bits)
     begin
         case cfg_syn_bits is
-            when "00"   => weights_per_addr <= 16;  -- 2 bits per synapse
-            when "01"   => weights_per_addr <= 8;   -- 4 bits per synapse
-            when "10"   => weights_per_addr <= 4;   -- 8 bits per synapse
-            when others => weights_per_addr <= 0;
+            -- 2 bits per synapse
+            when "00"   =>
+                weights_per_addr <= 16;
+                bits_per_weight  <= 2;
+
+            -- 4 bits per synapse
+            when "01"   =>
+                weights_per_addr <= 8;
+                bits_per_weight  <= 4;
+
+            -- 8 bits per synapse
+            when "10"   =>
+                weights_per_addr <= 4;
+                bits_per_weight  <= 8;
+
+            when others =>
+                weights_per_addr <= 0;
+                bits_per_weight  <= 0;
         end case;
     end process;
 
+    -- configuration interface
     config : process(i_clk)
     begin
         if rising_edge(i_clk) then
@@ -113,6 +138,38 @@ begin
         end if;
     end process;
 
+    -- synapse counter
+    syn_counter : process(i_clk) is
+    begin
+        if rising_edge(i_clk) then
+            if counter_reset = '1' then
+                syn_addr_iterator <= 0;
+            elsif counter_enable = '1' then
+                syn_addr_iterator <= syn_addr_iterator + 1;
+            else
+                syn_addr_iterator <= syn_addr_iterator;
+            end if;
+        end if;
+    end process;
+
+    -- output multiplexer
+    output_mux : process(i_clk) is
+        variable word_index : integer;
+    begin
+        if rising_edge(i_clk) then
+            if weights_per_addr /= 0 then
+                -- wrap around syn_addr_iterator so we always extract one of the weights per address
+                word_index      := syn_addr_iterator mod weights_per_addr;
+                o_syn_weight    <= (others => '0');
+                o_syn_weight(bits_per_weight - 1 downto 0) <=
+                    reg_weights((word_index + 1) * bits_per_weight - 1 downto word_index * bits_per_weight);
+            else
+                o_syn_weight    <= (others => '0');
+            end if;
+        end if;
+    end process;
+
+    -- FSM state register process
     state_reg : process(i_clk) is
     begin
         if rising_edge(i_clk) then
@@ -124,7 +181,8 @@ begin
         end if;
     end process;
 
-    nxt_state : process(present_state, i_start) is
+    -- FSM next state process
+    nxt_state : process(present_state, i_start, syn_addr_iterator) is
     begin
         case present_state is
 
@@ -134,43 +192,64 @@ begin
                 end if;
 
             when GET_EVENT =>
+                next_state <= GET_WEIGHTS;
+            
+            when GET_WEIGHTS =>
                 next_state <= ITERATE;
 
             when ITERATE =>
-                next_state <= GET_EVENT;
+                if syn_addr_iterator >= unsigned(cfg_layer_size) then
+                    next_state <= GET_EVENT;
+                elsif (syn_addr_iterator /= 0) and ((syn_addr_iterator + 1) mod weights_per_addr = 0) then
+                    next_state <= GET_WEIGHTS;
+                end if;
 
         end case;
     end process;
 
+    -- FSM output process
     outputs : process(present_state, i_start) is
+        variable test_var : integer;
     begin
-        -- default outputs
-        o_busy          <= '0';
-        o_fifo_re       <= '0';
-        o_syn_weight    <= (others => '0');
-        o_syn_addr      <= (others => '0');
 
         case present_state is    
             when IDLE =>
                 o_busy          <= '0';
                 o_fifo_re       <= '0';
-                o_syn_weight    <= (others => '0');
                 o_syn_addr      <= (others => '0');
-                syn_counter     <= (others => '0');
+                counter_enable  <= '0';
+                counter_reset   <= '1';
+                test_var := 0;
 
             when GET_EVENT =>
                 o_busy          <= '1';
                 o_fifo_re       <= '1';
-                o_syn_weight    <= (others => '0');
                 o_syn_addr      <= (others => '0');
-                syn_counter     <= (others => '0');
+                counter_enable  <= '0';
+                counter_reset   <= '1';
 
-            when ITERATE =>
+            when GET_WEIGHTS =>
                 o_busy          <= '1';
                 o_fifo_re       <= '0';
-                o_syn_weight    <= (others => '0');
-                o_syn_addr      <= (others => '0');
-                syn_counter     <= (others => '0');
+                o_syn_addr      <= (others => '0'); 
+                counter_enable  <= '0';
+                counter_reset   <= '0';
+                if test_var = 0 then
+                    reg_weights <= test_1;
+                    test_var := test_var + 1;
+                elsif test_var = 1 then
+                    reg_weights <= test_2;
+                    test_var := test_var + 1;
+                else
+                    reg_weights <= test_3;
+                end if;
+
+            when ITERATE    =>
+                o_busy          <= '1';
+                o_fifo_re       <= '0';
+                o_syn_addr      <= (others => '0'); 
+                counter_enable  <= '1';
+                counter_reset   <= '0';
         end case;
     end process;
 
