@@ -37,6 +37,9 @@ architecture behavior of synapse_loader_tb is
     signal synldr_rst       : std_logic;
     signal synldr_fault     : std_logic;
 
+    signal synmem_addr      : std_logic_vector(10 downto 0);
+    signal synmem_dout      : std_logic_vector(31 downto 0);
+
     signal syn_addr         : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
     signal syn_data         : std_logic_vector(WIDTH - 1 downto 0);
 
@@ -69,6 +72,21 @@ begin
             o_fault             => fifo_fault
         );
 
+    SYN_MEMORY : entity work.bram_mem
+    generic map (
+        DEPTH       => 1280,
+        WIDTH       => 32,
+        WIDTH_ADDR  => 11,
+        FILENAME    => "data/syn_init.data"
+    )
+    port map (
+        we      => '0',
+        addr    => synmem_addr,
+        din     => (others => '0'),
+        dout    => synmem_dout,
+        clk     => clk
+    );
+
     SYN_LOADER : entity work.SYNAPSE_LOADER
         generic map (
             SYN_MEM_DEPTH   => 1280,
@@ -85,8 +103,8 @@ begin
 
             o_syn_weight    => synldr_weight,
 
-            o_syn_addr      => open,
-            i_syn_data      => (others => '0'),
+            o_syn_addr      => synmem_addr,
+            i_syn_data      => synmem_dout,
 
             i_start         => synldr_start,
             o_busy          => synldr_busy,
@@ -124,7 +142,7 @@ begin
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(128, 11));     -- neurons per layer
+            std_logic_vector(to_unsigned(10, 11));     -- neurons per layer
         wait until rising_edge(clk);
 
         synldr_cfg_en   <= '0';
