@@ -41,6 +41,7 @@ use ieee.math_real.all;
 --      i_fifo_rvalid   =>
 --      i_fifo_rdata    =>
 --      o_syn_weight    =>
+--      o_syn_valid     =>
 --      o_syn_addr      =>
 --      i_syn_data      =>
 --      i_start         =>
@@ -67,6 +68,7 @@ entity SYNAPSE_LOADER is
 
         -- LIF interface
         o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
+        o_syn_valid         : out std_logic;                        -- valid weight on ouptut
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
@@ -109,10 +111,6 @@ architecture Behavioral of SYNAPSE_LOADER is
     -- constants
     signal weights_per_addr     : integer range 0 to 16;
     signal bits_per_weight      : integer range 0 to 8;
-
-    signal test_1 : std_logic_vector(31 downto 0) := x"ABABABAB";
-    signal test_2 : std_logic_vector(31 downto 0) := x"CDCDCDCD";
-    signal test_3 : std_logic_vector(31 downto 0) := x"EFEFEFEF";
 
 begin
 
@@ -194,12 +192,20 @@ begin
         if rising_edge(i_clk) then
             if weights_per_addr /= 0 then
                 -- wrap around syn_index so we always extract one of the weights per address
-                v_word_index      := syn_index mod weights_per_addr;
+                v_word_index    := syn_index mod weights_per_addr;
                 o_syn_weight    <= (others => '0');
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
                     i_syn_data((v_word_index + 1) * bits_per_weight - 1 downto v_word_index * bits_per_weight);
+
+                if present_state = ITERATE then
+                    o_syn_valid <= '1';
+                else
+                    o_syn_valid <= '0';
+                end if;
+
             else
                 o_syn_weight    <= (others => '0');
+                o_syn_valid     <= '0';
             end if;
         end if;
     end process;
@@ -244,7 +250,6 @@ begin
 
     -- FSM output process
     outputs : process(present_state, i_start)
-        variable test_var : integer;
     begin
 
         case present_state is    
@@ -253,7 +258,6 @@ begin
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
-                test_var := 0;
 
             when GET_EVENT =>
                 o_busy          <= '1';
@@ -266,15 +270,6 @@ begin
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
-                if test_var = 0 then
-                    reg_weights <= test_1;
-                    test_var := test_var + 1;
-                elsif test_var = 1 then
-                    reg_weights <= test_2;
-                    test_var := test_var + 1;
-                else
-                    reg_weights <= test_3;
-                end if;
 
             when ITERATE    =>
                 o_busy          <= '1';

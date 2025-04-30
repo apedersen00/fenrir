@@ -102,6 +102,7 @@ begin
             i_fifo_rdata    => fifo_rdata,
 
             o_syn_weight    => synldr_weight,
+            o_syn_valid     => open,
 
             o_syn_addr      => synmem_addr,
             i_syn_data      => synmem_dout,
