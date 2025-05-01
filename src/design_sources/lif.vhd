@@ -11,6 +11,13 @@
         - A. Cherencq, Aarhus University
 
 ---------------------------------------------------------------------------------------------------
+
+    Configuration Registers:
+        - (reg_cfg_0):
+            - <12b> [11:0]  threshold       : common spike threshold
+            - <12b> [23:12] beta (leakage)  : common neuron leakage per timestep
+
+---------------------------------------------------------------------------------------------------
 */
 
 library ieee;
@@ -18,59 +25,100 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-entity lif_block is
+--  Instantiation Template:
+--  INST_NAME : entity work.LIF_NEURON
+--  port map (
+--      i_cfg_en            =>
+--      i_cfg_addr          =>
+--      i_cfg_val           =>
+--      i_syn_valid         =>
+--      i_nrn_valid         =>
+--      i_syn_weight        =>
+--      i_nrn_state         =>
+--      i_nrn_index         =>
+--      i_timestep          =>
+--      o_nrn_state_next    =>
+--      o_event_fifo_out    =>
+--      o_event_fifo_we     =>
+--      i_clk               =>
+--  );
+
+entity LIF_NEURON is
     port (
-        i_syn_weight    : in std_logic_vector(7 downto 0);
-        i_nrn_state     : in std_logic_vector(11 downto 0);
+        -- configuration interface
+        i_cfg_en        : in std_logic;                             -- enable configuration
+        i_cfg_addr      : in std_logic_vector(3 downto 0);          -- register to configure
+        i_cfg_val       : in std_logic_vector(31 downto 0);         -- value to configure
 
-        i_timestep      : in std_logic;
-        o_spike         : out std_logic;
+        -- inputs
+        i_syn_valid     : in std_logic;                             -- synapse weight valid
+        i_nrn_valid     : in std_logic;                             -- neuron state valid
+        i_syn_weight    : in std_logic_vector(7 downto 0);          -- synapse weight
+        i_nrn_state     : in std_logic_vector(11 downto 0);         -- neuron state
+        i_nrn_index     : in std_logic_vector(15 downto 0);         -- address of neuron
+        i_timestep      : in std_logic;                             -- timestep enable
 
-        o_fault         : out std_logic
+        -- outputs
+        o_nrn_state_next    : out std_logic_vector(11 downto 0);    -- next neuron state
+        o_event_fifo_out    : out std_logic_vector(15 downto 0);    -- spike out event
+        o_event_fifo_we     : out std_logic;                        -- enable write to output fifo
+
+        -- misc
+        i_clk           : in std_logic;
     );
-end lif_block;
+end LIF_NEURON;
 
-architecture Behavioral of lif_neuron is
-    signal shadow_syn_weight_reg    : std_logic_vector(7 downto 0);
-    signal shadow_nrn_state_reg     : std_logic_vector(11 downto 0);
+architecture Behavioral of LIF_NEURON is
+    -- registers
+    signal reg_cfg_0        : std_logic_vector(31 downto 0);    -- configuration register 0
 
-    signal syn_weight_reg           : std_logic_vector(7 downto 0);
-    signal nrn_state_reg            : std_logic_vector(11 downto 0);
+    -- configuration
+    signal cfg_threshold    : std_logic_vector(11 downto 0);
+    signal cfg_beta         : std_logic_vector(11 downto 0);
+
 begin
-    event_leak <= syn_event and time_ref;
-    event_syn  <= syn_event and (not time_ref);
 
-    spike_out  <= '0' when state_core_next_i(11) = '1' else
-                  '1' when state_core_next_i >= param_thr else '0';
+    -- configuration decoding
+    cfg_threshold   <= reg_cfg_0(11 downto 0);
+    cfg_beta        <= reg_cfg_0(23 downto 12);
 
-    state_core_next <= (others => '0') when spike_out = '1' else state_core_next_i;
-
-    syn_weight_ext <= "11111111" & syn_weight when syn_weight(3) = '1' else
-                      "00000000" & syn_weight;
-
-    process (state_core, event_leak, event_syn, state_leakp, state_leakn, state_syn)
+    -- configuration interface
+    config : process(i_clk)
     begin
-        if event_leak = '1' then
-            if state_core(11) = '1' then
-                state_core_next_i <= state_leakp;
-            else
-                state_core_next_i <= state_leakn;
+        if rising_edge(i_clk) then
+            if i_rst = '0' then
+                reg_cfg_0   <= (others => '0');
+            elsif i_cfg_en = '1' then
+                case i_cfg_addr is
+                    when "0000" => reg_cfg_0 <= i_cfg_val;
+                    when others => null;
+                end case;
             end if;
-        elsif event_syn = '1' then
-            state_core_next_i <= state_syn;
-        else
-            state_core_next_i <= state_core;
         end if;
     end process;
 
-    state_leakn_ovfl <= state_core - ("00000" & param_leak_str);
-    state_leakn      <= (others => '0') when state_leakn_ovfl(11) = '1' else state_leakn_ovfl;
-    state_leakp_ovfl <= state_core + ("00000" & param_leak_str);
-    state_leakp      <= (others => '0') when state_leakp_ovfl(11) = '0' else state_leakp_ovfl;
-    state_syn_ovfl   <= state_core + syn_weight_ext;
+    nxt_state : process(i_clk)
+        variable v_next_state : integer 0 to 65536;
+    begin
+        if rising_edge(i_clk) then
+            if i_syn_valid = '1' and i_nrn_valid = '1' then
+                v_next_state := to_integer(unsigned(i_syn_weight)) + to_integer(unsigned(i_nrn_state));
 
-    state_syn <= "100000000000" when (state_syn_ovfl(11) = '0' and state_core(11) = '1' and syn_weight_ext(11) = '1') else
-                 "011111111111" when (state_syn_ovfl(11) = '1' and state_core(11) = '0' and syn_weight_ext(11) = '0') else
-                 state_syn_ovfl;
+                if i_timestep = '1' then
+                    v_next_state := v_next_state - to_integer(unsigned(cfg_beta));
+                end if;
+
+                if v_next_state >= to_integer(unsigned(cfg_threshold)) then
+                    o_event_fifo_out <= i_nrn_index;
+                    o_event_fifo_we  <= '1';
+                else
+                    o_event_fifo_out <= (others => '0');
+                    o_event_fifo_we  <= '0';
+                end if;
+
+                o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));
+            end if;
+        end if;
+    end process;
 
 end Behavioral;
