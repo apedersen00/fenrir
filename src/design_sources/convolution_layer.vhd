@@ -13,14 +13,16 @@ entity convolution_layer is
         NeuronResetPotentialWidth    : integer := 10;
         NeuronThresholdPotentialWidth: integer := 10;
         NeuronTimestampWidth         : integer := 32;
-        KernelWeightWidth            : integer := 8
+        KernelWeightWidth            : integer := 8;
+        AmountOfFeatureMaps          : integer := 4;
+        KernelSizeOneAxis            : integer := 3
     );
     port(
         -- Control signals from outside the module
         clk                     : in  std_logic;
         reset_i                   : in  std_logic;
         config_command_i        : in  std_logic_vector(1 downto 0);
-        config_data_i           : in  std_logic_vector(31 downto 0);
+        config_data_io           : inout  std_logic_vector(31 downto 0);
 
         -- Input FIFO Interface
         event_data_i            : in  std_logic_vector(InputXCoordinateWidth + InputYCoordinateWidth + InputTimeStampWidth - 1 downto 0);
@@ -48,7 +50,31 @@ architecture behavioral of convolution_layer is
 
     signal state : states_e := IDLE;
 
+    -- 3D array for the kernel weights: access (x,y,z) for one kernel weight
+    type kernel_weights_t is array (
+        0 to KernelSizeOneAxis - 1,
+        0 to KernelsizeOneAxis - 1,
+        0 to AmountOfFeatureMaps - 1) of std_logic_vector(KernelWeightWidth - 1 downto 0);
+    -- Initialize the kernel weights to zero
+    signal kernel_weights : kernel_weights_t := (others => (others => (others => (others => '0'))));
+
 begin
+
+    config_command_exe : process(clk, reset_i, config_command)
+    begin
+
+        IF reset_i = '1' AND rising_edge(clk) then
+        CASE config_command is
+            WHEN NO_COMMAND => 
+            -- Do nothing, wait for a command
+            WHEN SET_KERNEL_WEIGHT =>
+            WHEN SET_RESET_POTENTIAL =>
+            WHEN SET_THRESHOLD_POTENTIAL => 
+        END CASE;
+        END if;
+
+
+    end process config_command_exe;
 
     command_decoder: process(clk, reset_i)
     begin
