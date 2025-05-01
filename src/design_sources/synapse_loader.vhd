@@ -96,7 +96,6 @@ architecture Behavioral of SYNAPSE_LOADER is
 
     -- registers
     signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
-    signal reg_weights          : std_logic_vector(31 downto 0);
 
     -- configuration
     signal cfg_layer_size       : std_logic_vector(10 downto 0);    -- number of neurons in the layer
@@ -106,9 +105,10 @@ architecture Behavioral of SYNAPSE_LOADER is
     -- counters
     signal counter_enable       : std_logic;
     signal counter_reset        : std_logic;
+    -- maximum value should be maximum number of neurons in layer
     signal syn_index            : integer range 0 to 1024;
+    -- maximum value should be max number of neurons in layer / min number of weights per address
     signal syn_addr_cntr        : integer range 0 to 512;
-    signal fsm_counter          : integer range 0 to 1;
 
     -- constants
     signal weights_per_addr     : integer range 0 to 16;
@@ -259,7 +259,6 @@ begin
 
         case present_state is    
             when IDLE =>
-                fsm_counter     <= 0;
                 o_busy          <= '0';
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
