@@ -61,6 +61,12 @@ architecture behavioral of convolution_layer is
 begin
 
     config_command_exe : process(clk, reset_i, config_command)
+
+        variable kernel_x : integer := 0;
+        variable kernel_y : integer := 0;
+        variable kernel_z : integer := 0;
+        variable kernel_weight : std_logic_vector(KernelWeightWidth - 1 downto 0) := (others => '0');
+
     begin
 
         IF reset_i = '1' AND rising_edge(clk) then
@@ -68,6 +74,23 @@ begin
             WHEN NO_COMMAND => 
             -- Do nothing, wait for a command
             WHEN SET_KERNEL_WEIGHT =>
+                -- First 3 * 4 bits are used for the kernel position (x,y,z)
+                -- next bits are for the kernel weight
+                kernel_x := to_integer(unsigned(config_data_io(31 downto 28)));
+                kernel_y := to_integer(unsigned(config_data_io(27 downto 24)));
+                kernel_z := to_integer(unsigned(config_data_io(23 downto 20)));
+                --resize the remaining bits to the kernel weight size
+                kernel_weight := resize(unsigned(config_data_io(19 downto 0)), KernelWeightWidth);
+                -- Assign the kernel weight to the kernel weights array
+                kernel_weights(kernel_x, kernel_y, kernel_z) <= kernel_weight;
+
+                -- DEBUG
+                report "Kernel weight set: " 
+                & integer'image(kernel_x) 
+                & ", " & integer'image(kernel_y) 
+                & ", " & integer'image(kernel_z) 
+                & " = " & std_logic_vector'image(kernel_weight);
+                
             WHEN SET_RESET_POTENTIAL =>
             WHEN SET_THRESHOLD_POTENTIAL => 
         END CASE;
