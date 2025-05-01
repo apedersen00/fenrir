@@ -22,8 +22,8 @@
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.std_logic_arith.all;
-use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 --  Instantiation Template:
 --  INST_NAME : entity work.LIF_NEURON
@@ -41,6 +41,7 @@ use ieee.std_logic_unsigned.all;
 --      o_event_fifo_out    =>
 --      o_event_fifo_we     =>
 --      i_clk               =>
+--      i_rst               =>
 --  );
 
 entity LIF_NEURON is
@@ -65,6 +66,7 @@ entity LIF_NEURON is
 
         -- misc
         i_clk           : in std_logic;
+        i_rst           : in std_logic;
     );
 end LIF_NEURON;
 
@@ -86,7 +88,7 @@ begin
     config : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_rst = '0' then
+            if i_rst = '1' then
                 reg_cfg_0   <= (others => '0');
             elsif i_cfg_en = '1' then
                 case i_cfg_addr is
@@ -98,7 +100,7 @@ begin
     end process;
 
     nxt_state : process(i_clk)
-        variable v_next_state : integer 0 to 65536;
+        variable v_next_state : integer range 0 to 65536;
     begin
         if rising_edge(i_clk) then
             if i_syn_valid = '1' and i_nrn_valid = '1' then
@@ -109,14 +111,15 @@ begin
                 end if;
 
                 if v_next_state >= to_integer(unsigned(cfg_threshold)) then
+                    o_nrn_state_next <= (others => '0');
                     o_event_fifo_out <= i_nrn_index;
                     o_event_fifo_we  <= '1';
                 else
+                    o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));
                     o_event_fifo_out <= (others => '0');
                     o_event_fifo_we  <= '0';
                 end if;
 
-                o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));
             end if;
         end if;
     end process;
