@@ -118,6 +118,9 @@ begin
     PROC_SEQUENCER : process
     begin
 
+        -- Reset Synapse Loader
+        synldr_rst  <= '1';
+
         -- Reset FIFO
         fifo_rst    <= '1';
         fifo_we     <= '0';
@@ -125,6 +128,7 @@ begin
         wait for 10 * clk_period;
         fifo_rst    <= '0';
         wait until rising_edge(clk);
+        synldr_rst  <= '0';
 
         -- start writing
         fifo_we     <= '1';

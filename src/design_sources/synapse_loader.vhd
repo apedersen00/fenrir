@@ -159,7 +159,7 @@ begin
     config : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_rst = '0' then
+            if i_rst = '1' then
                 reg_cfg_0   <= (others => '0');
             elsif i_cfg_en = '1' then
                 case i_cfg_addr is
@@ -216,7 +216,7 @@ begin
     state_reg : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_rst = '0' then
+            if i_rst = '1' then
                 present_state <= IDLE;
             else
                 present_state <= next_state;
