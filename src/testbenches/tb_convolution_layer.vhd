@@ -28,6 +28,34 @@ architecture testbench of tb_convolution_layer is
         wait for n * CLK_PERIOD;
     end procedure waitf;
 
+    procedure test_control_signals(
+        signal reset_o : inout std_logic;
+        signal config_command_o : inout std_logic_vector(1 downto 0);
+        signal config_data_io : inout std_logic_vector(31 downto 0)
+    ) is
+    begin
+        -- Test all the control signals
+        reset_o <= '1';
+        -- NO_COMMAND
+        config_command_o <= "00"; 
+        config_data_io <= (others => '0');
+        waitf(1);
+        -- SET_KERNEL_WEIGHT
+        config_command_o <= "01";
+        config_data_io <= (others => '1');
+        waitf(1);
+        -- SET_RESET_POTENTIAL
+        config_command_o <= "10";
+        config_data_io <= (others => '0');
+        waitf(1);
+        -- SET_THRESHOLD_POTENTIAL
+        config_command_o <= "11";
+        config_data_io <= (others => '1');
+        waitf(1);
+        reset_o <= '0';
+        waitf(1);
+    end procedure test_control_signals;
+
 begin
 
     conv_unit: entity work.convolution_layer
@@ -58,17 +86,19 @@ begin
     -- Clock generation process
     clk <= not clk after CLK_PERIOD / 2;
 
-    -- test all control signals
-    command_encoder : process
+    test_control_main : process
     begin
-    IF test_number = 0 THEN
+        -- Test number 1: test control signals
+        test_number <= 1;
+        test_control_signals(
+            reset_o => reset_o,
+            config_command_o => config_command_o,
+            config_data_io => config_data_io
+        );
 
-        reset_o <= '1';
-        waitf(2);
-        reset_o <= '0';
-        waitf(2);
+        -- Add more tests here as needed
 
-    END IF;
-    end process command_encoder;
+        wait;
+    end process test_control_main;
 
 end architecture testbench;

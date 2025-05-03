@@ -96,13 +96,18 @@ begin
     begin
 
         IF reset_i = '1' THEN
-        CASE config_command_i is
+        -- Set the state to config
+        state <= CONFIG;
+        -- this should be on the clock edge
+        IF rising_edge(clk) THEN
+            CASE config_command_i is
             WHEN "00" => config_command <= NO_COMMAND;
             WHEN "01" => config_command <= SET_KERNEL_WEIGHT;
             WHEN "10" => config_command <= SET_RESET_POTENTIAL;
             WHEN "11" => config_command <= SET_THRESHOLD_POTENTIAL;
             WHEN OTHERS => config_command <= NO_COMMAND;
-        END CASE;
+            END CASE;
+        END IF;
         END IF;
 
     end process command_decoder;
