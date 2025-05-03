@@ -9,9 +9,14 @@ architecture testbench of tb_convolution_layer is
 
     CONSTANT CLK_PERIOD          : time    := 10 ns;
 
-    CONSTANT XCoordinateWidth    : integer := 8;
-    CONSTANT YCoordinateWidth    : integer := 8;
-    CONSTANT TimeStampWidth      : integer := 32;
+    CONSTANT X_COORDINATE_WIDTH       : integer := 6;
+    CONSTANT Y_COORDINATE_WIDTH       : integer := 6;
+    CONSTANT TIME_STAMP_WIDTH         : integer := 24;
+    CONSTANT IMAGE_WIDTH              : integer := 40;
+    CONSTANT IMAGE_HEIGHT             : integer := 30;
+    CONSTANT KERNEL_WEIGHT_WIDTH      : integer := 4;
+    CONSTANT AMOUNT_OF_FEATURE_MAPS   : integer := 4;
+    CONSTANT KERNEL_SIZE_ONE_AXIS     : integer := 3;
 
     signal clk                   : std_logic := '1';
     signal reset_o               : std_logic := '0';
@@ -20,8 +25,6 @@ architecture testbench of tb_convolution_layer is
     signal event_data_o          : std_logic_vector(XCoordinateWidth + YCoordinateWidth + TimeStampWidth - 1 downto 0) := (others => '0');
     signal event_fifo_empty_no   : std_logic := '1';
     signal event_fifo_read_i     : std_logic;
-
-    signal test_number          : integer := 0;
 
     procedure waitf(n : in integer) is
     begin
@@ -60,18 +63,18 @@ begin
 
     conv_unit: entity work.convolution_layer
         generic map (
-            ImageWidth                   => 32, 
-            ImageHeight                  => 32,
-            InputXCoordinateWidth        => XCoordinateWidth,
-            InputYCoordinateWidth        => YCoordinateWidth,
-            InputTimeStampWidth          => TimeStampWidth,
+            ImageWidth                   => IMAGE_WIDTH, 
+            ImageHeight                  => IMAGE_HEIGHT,
+            InputXCoordinateWidth        => X_COORDINATE_WIDTH,
+            InputYCoordinateWidth        => Y_COORDINATE_WIDTH,
+            InputTimeStampWidth          => TIME_STAMP_WIDTH,
+            KernelWeightWidth            => KERNEL_WEIGHT_WIDTH,
+            AmountOfFeatureMaps          => AMOUNT_OF_FEATURE_MAPS,
+            KernelSizeOneAxis            => KERNEL_SIZE_ONE_AXIS,
             NeuronMembranePotentialWidth => 10,
             NeuronResetPotentialWidth    => 10,
             NeuronThresholdPotentialWidth=> 10,
-            NeuronTimestampWidth         => 32,
-            KernelWeightWidth            => 8,
-            AmountOfFeatureMaps          => 4,
-            KernelSizeOneAxis            => 3
+            NeuronTimestampWidth         => 32
         )
         port map (
             clk                     => clk,
@@ -89,7 +92,6 @@ begin
     test_control_main : process
     begin
         -- Test number 1: test control signals
-        test_number <= 1;
         test_control_signals(
             reset_o => reset_o,
             config_command_o => config_command_o,
