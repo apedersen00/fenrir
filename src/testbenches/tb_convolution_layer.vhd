@@ -24,7 +24,7 @@ architecture testbench of tb_convolution_layer is
     signal clk                                : std_logic := '1';
     signal reset_o                            : std_logic := '0';
     signal config_command_o                   : std_logic_vector(1 downto 0) := (others => '0');
-    signal config_data_io                     : std_logic_vector(31 downto 0) := (others => '0');
+    signal config_data_o                      : std_logic_vector(31 downto 0) := (others => '0');
     signal event_data_o                       : std_logic_vector(X_COORDINATE_WIDTH + Y_COORDINATE_WIDTH + TIME_STAMP_WIDTH - 1 downto 0) := (others => '0');
     signal event_fifo_empty_no                : std_logic := '1';
     signal event_fifo_read_i                  : std_logic;
@@ -37,26 +37,26 @@ architecture testbench of tb_convolution_layer is
     procedure test_control_signals(
         signal reset_o : inout std_logic;
         signal config_command_o : inout std_logic_vector(1 downto 0);
-        signal config_data_io : inout std_logic_vector(31 downto 0)
+        signal config_data_o : inout std_logic_vector(31 downto 0)
     ) is
     begin
         -- Test all the control signals
         reset_o <= '1';
         -- NO_COMMAND
         config_command_o <= "00"; 
-        config_data_io <= (others => '0');
+        config_data_o <= (others => '0');
         waitf(1);
         -- SET_KERNEL_WEIGHT
         config_command_o <= "01";
-        config_data_io <= (others => '1');
+        config_data_o <= (others => '1');
         waitf(1);
         -- SET_RESET_POTENTIAL
         config_command_o <= "10";
-        config_data_io <= (others => '0');
+        config_data_o <= (others => '0');
         waitf(1);
         -- SET_THRESHOLD_POTENTIAL
         config_command_o <= "11";
-        config_data_io <= (others => '1');
+        config_data_o <= (others => '1');
         waitf(1);
         reset_o <= '0';
         waitf(1);
@@ -83,8 +83,8 @@ begin
             clk                     => clk,
             reset_i                 => reset_o,
             config_command_i        => config_command_o,
-            config_data_io          => config_data_io,
-            event_data_i           => event_data_o,
+            config_data_i           => config_data_o,
+            event_data_i            => event_data_o,
             event_fifo_empty_ni     => event_fifo_empty_no,
             event_fifo_read_o       => event_fifo_read_i
         );
@@ -98,7 +98,7 @@ begin
         test_control_signals(
             reset_o => reset_o,
             config_command_o => config_command_o,
-            config_data_io => config_data_io
+            config_data_o => config_data_o
         );
 
         -- Add more tests here as needed

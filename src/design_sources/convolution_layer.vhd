@@ -103,5 +103,15 @@ begin
 
     end process command_decoder;
 
+    event_listener : process(clk, reset_i, event_fifo_empty_ni)
+    begin
+    IF reset_i = '0' AND rising_edge(clk) then
+
+        IF event_fifo_empty_ni = '0' THEN event_fifo_read_o <= '1';
+        ELSE event_fifo_read_o <= '0';
+        END IF;
+
+    END IF;
+    end process event_listener; 
 
 end architecture behavioral;
