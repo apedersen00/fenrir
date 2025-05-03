@@ -75,16 +75,16 @@ begin
                 kernel_y := to_integer(unsigned(config_data_io(27 downto 24)));
                 kernel_z := to_integer(unsigned(config_data_io(23 downto 20)));
                 --resize the remaining bits to the kernel weight size
-                kernel_weight := resize(unsigned(config_data_io(19 downto 0)), KernelWeightWidth);
+                kernel_weight := std_logic_vector(resize(unsigned(config_data_io(19 downto 0)), KernelWeightWidth));
                 -- Assign the kernel weight to the kernel weights array
                 kernel_weights(kernel_x, kernel_y, kernel_z) <= kernel_weight;
 
                 -- DEBUG
-                report "Kernel weight set: " 
-                & integer'image(kernel_x) 
-                & ", " & integer'image(kernel_y) 
-                & ", " & integer'image(kernel_z) 
-                & " = " & std_logic_vector'image(kernel_weight);
+                --report "Kernel weight set: " 
+                --& integer'image(kernel_x) 
+               -- & ", " & integer'image(kernel_y) 
+                --& ", " & integer'image(kernel_z) 
+                --& " = " & to_string(kernel_weight);
                 
             WHEN SET_RESET_POTENTIAL =>
             WHEN SET_THRESHOLD_POTENTIAL => 
