@@ -7,7 +7,7 @@ end entity tb_convolution_layer;
 
 architecture testbench of tb_convolution_layer is
 
-    CONSTANT CLK_PERIOD          : time    := 10 ns;
+    CONSTANT CLK_PERIOD                       : time    := 10 ns;
 
     CONSTANT X_COORDINATE_WIDTH               : integer := 6;
     CONSTANT Y_COORDINATE_WIDTH               : integer := 6;
@@ -21,13 +21,13 @@ architecture testbench of tb_convolution_layer is
     CONSTANT NEURON_RESET_POTENTIAL_WIDTH     : integer := 10;
     CONSTANT NEURON_THRESHOLD_POTENTIAL_WIDTH : integer := 10;
     
-    signal clk                   : std_logic := '1';
-    signal reset_o               : std_logic := '0';
-    signal config_command_o      : std_logic_vector(1 downto 0) := (others => '0');
-    signal config_data_io        : std_logic_vector(31 downto 0) := (others => '0');
-    signal event_data_o          : std_logic_vector(XCoordinateWidth + YCoordinateWidth + TimeStampWidth - 1 downto 0) := (others => '0');
-    signal event_fifo_empty_no   : std_logic := '1';
-    signal event_fifo_read_i     : std_logic;
+    signal clk                                : std_logic := '1';
+    signal reset_o                            : std_logic := '0';
+    signal config_command_o                   : std_logic_vector(1 downto 0) := (others => '0');
+    signal config_data_io                     : std_logic_vector(31 downto 0) := (others => '0');
+    signal event_data_o                       : std_logic_vector(X_COORDINATE_WIDTH + Y_COORDINATE_WIDTH + TIME_STAMP_WIDTH - 1 downto 0) := (others => '0');
+    signal event_fifo_empty_no                : std_logic := '1';
+    signal event_fifo_read_i                  : std_logic;
 
     procedure waitf(n : in integer) is
     begin
@@ -74,9 +74,9 @@ begin
             KernelWeightWidth            => KERNEL_WEIGHT_WIDTH,
             AmountOfFeatureMaps          => AMOUNT_OF_FEATURE_MAPS,
             KernelSizeOneAxis            => KERNEL_SIZE_ONE_AXIS,
-            NeuronMembranePotentialWidth => 10,
-            NeuronResetPotentialWidth    => 10,
-            NeuronThresholdPotentialWidth=> 10,
+            NeuronMembranePotentialWidth => NEURON_MEMBRANE_POTENTIAL_WIDTH,
+            NeuronResetPotentialWidth    => NEURON_RESET_POTENTIAL_WIDTH,
+            NeuronThresholdPotentialWidth=> NEURON_THRESHOLD_POTENTIAL_WIDTH,
             NeuronTimestampWidth         => TIME_STAMP_WIDTH
         )
         port map (

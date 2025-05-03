@@ -19,15 +19,15 @@ entity convolution_layer is
     );
     port(
         -- Control signals from outside the module
-        clk                     : in  std_logic;
-        reset_i                   : in  std_logic;
-        config_command_i        : in  std_logic_vector(1 downto 0);
-        config_data_io           : inout  std_logic_vector(31 downto 0);
+        clk                     : in    std_logic;
+        reset_i                 : in    std_logic;
+        config_command_i        : in    std_logic_vector(1 downto 0);
+        config_data_i           : in    std_logic_vector(31 downto 0);
 
         -- Input FIFO Interface
-        event_data_i            : in  std_logic_vector(InputXCoordinateWidth + InputYCoordinateWidth + InputTimeStampWidth - 1 downto 0);
-        event_fifo_empty_ni     : in  std_logic;
-        event_fifo_read_o       : out std_logic
+        event_data_i            : in    std_logic_vector(InputXCoordinateWidth + InputYCoordinateWidth + InputTimeStampWidth - 1 downto 0);
+        event_fifo_empty_ni     : in    std_logic;
+        event_fifo_read_o       : out   std_logic
     );
 end entity convolution_layer;
 
@@ -70,22 +70,13 @@ begin
         CASE config_command is
             WHEN NO_COMMAND => 
             WHEN SET_KERNEL_WEIGHT =>
-                -- First 3 * 4 bits are used for the kernel position (x,y,z)
-                kernel_x := to_integer(unsigned(config_data_io(31 downto 28)));
-                kernel_y := to_integer(unsigned(config_data_io(27 downto 24)));
-                kernel_z := to_integer(unsigned(config_data_io(23 downto 20)));
-                --resize the remaining bits to the kernel weight size
-                kernel_weight := std_logic_vector(resize(unsigned(config_data_io(19 downto 0)), KernelWeightWidth));
-                -- Assign the kernel weight to the kernel weights array
+                -- First 3 * 4 bits are used for the kernel position (x,y,z), rest is the kernel weight
+                kernel_x := to_integer(unsigned(config_data_i(31 downto 28)));
+                kernel_y := to_integer(unsigned(config_data_i(27 downto 24)));
+                kernel_z := to_integer(unsigned(config_data_i(23 downto 20)));
+                kernel_weight := std_logic_vector(resize(unsigned(config_data_i(19 downto 0)), KernelWeightWidth));
                 kernel_weights(kernel_x, kernel_y, kernel_z) <= kernel_weight;
 
-                -- DEBUG
-                --report "Kernel weight set: " 
-                --& integer'image(kernel_x) 
-               -- & ", " & integer'image(kernel_y) 
-                --& ", " & integer'image(kernel_z) 
-                --& " = " & to_string(kernel_weight);
-                
             WHEN SET_RESET_POTENTIAL =>
             WHEN SET_THRESHOLD_POTENTIAL => 
         END CASE;
