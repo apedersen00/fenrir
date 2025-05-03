@@ -9,15 +9,18 @@ architecture testbench of tb_convolution_layer is
 
     CONSTANT CLK_PERIOD          : time    := 10 ns;
 
-    CONSTANT X_COORDINATE_WIDTH       : integer := 6;
-    CONSTANT Y_COORDINATE_WIDTH       : integer := 6;
-    CONSTANT TIME_STAMP_WIDTH         : integer := 24;
-    CONSTANT IMAGE_WIDTH              : integer := 40;
-    CONSTANT IMAGE_HEIGHT             : integer := 30;
-    CONSTANT KERNEL_WEIGHT_WIDTH      : integer := 4;
-    CONSTANT AMOUNT_OF_FEATURE_MAPS   : integer := 4;
-    CONSTANT KERNEL_SIZE_ONE_AXIS     : integer := 3;
-
+    CONSTANT X_COORDINATE_WIDTH               : integer := 6;
+    CONSTANT Y_COORDINATE_WIDTH               : integer := 6;
+    CONSTANT TIME_STAMP_WIDTH                 : integer := 24;
+    CONSTANT IMAGE_WIDTH                      : integer := 40;
+    CONSTANT IMAGE_HEIGHT                     : integer := 30;
+    CONSTANT KERNEL_WEIGHT_WIDTH              : integer := 4;
+    CONSTANT AMOUNT_OF_FEATURE_MAPS           : integer := 4;
+    CONSTANT KERNEL_SIZE_ONE_AXIS             : integer := 3;
+    CONSTANT NEURON_MEMBRANE_POTENTIAL_WIDTH  : integer := 10;
+    CONSTANT NEURON_RESET_POTENTIAL_WIDTH     : integer := 10;
+    CONSTANT NEURON_THRESHOLD_POTENTIAL_WIDTH : integer := 10;
+    
     signal clk                   : std_logic := '1';
     signal reset_o               : std_logic := '0';
     signal config_command_o      : std_logic_vector(1 downto 0) := (others => '0');
@@ -74,7 +77,7 @@ begin
             NeuronMembranePotentialWidth => 10,
             NeuronResetPotentialWidth    => 10,
             NeuronThresholdPotentialWidth=> 10,
-            NeuronTimestampWidth         => 32
+            NeuronTimestampWidth         => TIME_STAMP_WIDTH
         )
         port map (
             clk                     => clk,
