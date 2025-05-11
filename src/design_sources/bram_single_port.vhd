@@ -58,7 +58,7 @@ architecture syn of SINGLE_PORT_BRAM is
     type ram_type is array (DEPTH - 1 downto 0) of std_logic_vector(WIDTH - 1 downto 0);
 
     impure function InitRamFromFile(RamFileName : in string) return ram_type is
-        FILE RamFile         : text is in RamFileName;
+        FILE RamFile         : text;
         variable file_status : file_open_status;
         variable RamFileLine : line;
         variable RAM         : ram_type := (others => (others => '0'));
