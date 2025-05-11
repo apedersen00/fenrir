@@ -26,8 +26,7 @@ use ieee.math_real.all;
 --  Instantiation Template:
 --  INST_NAME : entity work.NEURON_LOADER
 --  generic map (
---      SYN_MEM_DEPTH   =>
---      SYN_MEM_WIDTH   =>
+--      NRN_MEM_DEPTH   =>
 --  )
 --  port map (
 --      i_cfg_en        =>
@@ -46,8 +45,7 @@ use ieee.math_real.all;
 
 entity NEURON_LOADER is
     generic (
-        NRN_MEM_DEPTH   : integer; -- depth of the neuron memory
-        NRN_MEM_WIDTH   : integer  -- width of the neuron memory
+        NRN_MEM_DEPTH   : integer                           -- depth of the neuron memory
     );
     port (
         -- configuration interface
@@ -96,16 +94,20 @@ architecture Behavioral of NEURON_LOADER is
     signal counter_reset        : std_logic;
     signal nrn_index            : integer range 0 to 1024;
     signal nrn_addr_cntr        : integer range 0 to 512;
-    signal fsm_counter          : integer range 0 to 1;
 
     -- constants
     signal neurons_per_addr     : integer range 0 to 3;
+    signal bits_per_neuron      : integer range 0 to 12;
 
 begin
 
     -- configuration decoding
     cfg_layer_size      <= reg_cfg_0(10 downto 0);
     cfg_layer_offset    <= reg_cfg_0(21 downto 11);
+    
+    -- constants
+    neurons_per_addr    <= 3;
+    bits_per_neuron     <= 12;
 
     -- configuration interface
     config : process(i_clk)
@@ -139,6 +141,31 @@ begin
         end if;
     end process;
 
+    -- output multiplexer
+    output_mux : process(i_clk)
+        variable v_word_index : integer;
+    begin
+        if rising_edge(i_clk) then
+            if neurons_per_addr /= 0 then
+                -- wrap around nrn_index so we always extract one of the neurons
+                v_word_index    := nrn_index mod neurons_per_addr;
+                o_nrn_state     <= (others => '0');
+                o_nrn_state(bits_per_neuron - 1 downto 0) <=
+                    i_nrn_data((v_word_index + 1) * bits_per_neuron - 1 downto v_word_index * bits_per_neuron);
+
+                if present_state = ITERATE then
+                    o_nrn_valid <= '1';
+                else
+                    o_nrn_valid <= '0';
+                end if;
+
+            else
+                o_nrn_state     <= (others => '0');
+                o_nrn_valid     <= '0';
+            end if;
+        end if;
+    end process;
+
     -- FSM state register process
     state_reg : process(i_clk)
     begin
@@ -152,7 +179,7 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(present_state, i_start, syn_index)
+    nxt_state : process(present_state, i_start, nrn_index)
     begin
         case present_state is
 
@@ -162,25 +189,44 @@ begin
                 end if;
 
             when GET_NEURONS =>
-                next_state  <= GET_WEIGHTS;
+                next_state  <= WAIT_FOR_BRAM;
 
             when WAIT_FOR_BRAM =>
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if syn_index >= unsigned(cfg_layer_size) - 1 then
-                    next_state <= GET_EVENT;
-                elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
-                    next_state <= GET_WEIGHTS;
+                if nrn_index >= unsigned(cfg_layer_size) - 1 then
+                    next_state <= IDLE;
+                elsif (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
+                    next_state <= GET_NEURONS;
                 end if;
 
         end case;
     end process;
 
-    outputs: process(present_state, <inputs>) is
+    outputs: process(present_state, i_start)
     begin
-        case present_state is
-            -- insert output logic here
+
+        case present_state is    
+            when IDLE =>
+                o_busy          <= '0';
+                counter_enable  <= '0';
+                counter_reset   <= '1';
+
+            when GET_NEURONS =>
+                o_busy          <= '1';
+                counter_enable  <= '0';
+                counter_reset   <= '1';
+
+            when WAIT_FOR_BRAM =>
+                o_busy          <= '1';
+                counter_enable  <= '0';
+                counter_reset   <= '0';
+
+            when ITERATE    =>
+                o_busy          <= '1';
+                counter_enable  <= '1';
+                counter_reset   <= '0';
         end case;
     end process;
 

@@ -50,6 +50,17 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal synldr_rst       : std_logic;
     signal synldr_fault     : std_logic;
 
+    signal nrnldr_cfg_en    : std_logic;
+    signal nrnldr_cfg_addr  : std_logic_vector(3 downto 0);
+    signal nrnldr_cfg_val   : std_logic_vector(31 downto 0);
+    signal nrnldr_re        : std_logic;
+    signal nrnldr_data      : std_logic_vector(35 downto 0);
+    signal nrnldr_state     : std_logic_vector(11 downto 0);
+    signal nrnldr_valid     : std_logic;
+    signal nrnldr_start     : std_logic;
+    signal nrnldr_busy      : std_logic;
+    signal nrnldr_rst       : std_logic;
+
     signal synmem_addr      : std_logic_vector(10 downto 0);
     signal synmem_dout      : std_logic_vector(31 downto 0);
 
@@ -101,38 +112,59 @@ begin
 
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
-        generic map (
-            SYN_MEM_DEPTH   => 1280,
-            SYN_MEM_WIDTH   => 32
-        )
-        port map (
-            i_cfg_en        => synldr_cfg_en,
-            i_cfg_addr      => synldr_cfg_addr,
-            i_cfg_val       => synldr_cfg_val,
+    generic map (
+        SYN_MEM_DEPTH   => 1280,
+        SYN_MEM_WIDTH   => 32
+    )
+    port map (
+        i_cfg_en        => synldr_cfg_en,
+        i_cfg_addr      => synldr_cfg_addr,
+        i_cfg_val       => synldr_cfg_val,
 
-            o_fifo_re       => fifo_re,
-            i_fifo_rvalid   => fifo_rvalid,
-            i_fifo_rdata    => fifo_rdata,
+        o_fifo_re       => fifo_re,
+        i_fifo_rvalid   => fifo_rvalid,
+        i_fifo_rdata    => fifo_rdata,
 
-            o_syn_weight    => synldr_weight,
-            o_syn_valid     => open,
+        o_syn_weight    => synldr_weight,
+        o_syn_valid     => open,
 
-            o_syn_addr      => synmem_addr,
-            i_syn_data      => synmem_dout,
+        o_syn_addr      => synmem_addr,
+        i_syn_data      => synmem_dout,
 
-            i_start         => synldr_start,
-            o_busy          => synldr_busy,
-            i_clk           => clk,
-            i_rst           => synldr_rst
-        );
+        i_start         => synldr_start,
+        o_busy          => synldr_busy,
+        i_clk           => clk,
+        i_rst           => synldr_rst
+    );
+
+    NRN_LOADER : entity work.NEURON_LOADER
+    generic map (
+        NRN_MEM_DEPTH   => 10
+    )
+    port map (
+        i_cfg_en        => nrnldr_cfg_en,
+        i_cfg_addr      => nrnldr_cfg_addr,
+        i_cfg_val       => nrnldr_cfg_val,
+        o_nrn_re        => nrnldr_re,
+        o_nrn_addr      => open,
+        i_nrn_data      => nrnldr_data,
+        o_nrn_state     => nrnldr_state,
+        o_nrn_valid     => nrnldr_valid,
+        i_start         => nrnldr_start,
+        o_busy          => nrnldr_busy,
+        i_clk           => clk,
+        i_rst           => nrnldr_rst
+    );
+
 
     clk <= not clk after clk_period / 2;
 
     PROC_SEQUENCER : process
     begin
 
-        -- Reset Synapse Loader
+        -- Reset Synapse and Neuron Loader
         synldr_rst  <= '1';
+        nrnldr_rst  <= '1';
 
         -- Reset FIFO
         fifo_rst    <= '1';
@@ -142,6 +174,7 @@ begin
         fifo_rst    <= '0';
         wait until rising_edge(clk);
         synldr_rst  <= '0';
+        nrnldr_rst  <= '0';
 
         -- start writing
         fifo_we     <= '1';
@@ -160,11 +193,25 @@ begin
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(16, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+        wait until rising_edge(clk);
+        synldr_cfg_en   <= '0';
         wait until rising_edge(clk);
 
-        synldr_cfg_en   <= '0';
+        -- configure neuron loader
+        nrnldr_cfg_en   <= '1';
+        nrnldr_cfg_addr <= "0000";
+        nrnldr_cfg_val  <=
+            "0000000000"                            &   -- zero padding
+            std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+        wait until rising_edge(clk);
+        nrnldr_cfg_en   <= '0';
+        wait until rising_edge(clk);
+
+        -- start processing events
         synldr_start    <= '1';
+        nrnldr_start    <= '1';
 
         for i in 0 to 100 loop
             wait until rising_edge(clk);
