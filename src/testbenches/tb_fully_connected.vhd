@@ -28,6 +28,7 @@ architecture behavior of TB_FULLY_CONNECTED is
 
     signal clk              : std_logic := '0';
 
+    -- input event fifo
     signal fifo_we          : std_logic;
     signal fifo_wdata       : std_logic_vector(WIDTH - 1 downto 0);
     signal fifo_re          : std_logic;
@@ -41,6 +42,7 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal fifo_rst         : std_logic;
     signal fifo_fault       : std_logic;
 
+    -- synapse loader
     signal synldr_cfg_en    : std_logic;
     signal synldr_cfg_addr  : std_logic_vector(3 downto 0);
     signal synldr_cfg_val   : std_logic_vector(31 downto 0);
@@ -50,6 +52,7 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal synldr_rst       : std_logic;
     signal synldr_fault     : std_logic;
 
+    -- neuron loader
     signal nrnldr_cfg_en    : std_logic;
     signal nrnldr_cfg_addr  : std_logic_vector(3 downto 0);
     signal nrnldr_cfg_val   : std_logic_vector(31 downto 0);
@@ -61,8 +64,13 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal nrnldr_busy      : std_logic;
     signal nrnldr_rst       : std_logic;
 
+    -- synapse memory
     signal synmem_addr      : std_logic_vector(10 downto 0);
     signal synmem_dout      : std_logic_vector(31 downto 0);
+
+    -- neuron memory
+    signal nrnmem_addr      : std_logic_vector(1 downto 0);
+    signal nrnmem_dout      : std_logic_vector(35 downto 0);
 
     signal syn_addr         : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
     signal syn_data         : std_logic_vector(WIDTH - 1 downto 0);
@@ -110,6 +118,21 @@ begin
         i_clk       => clk
     );
 
+    NRN_MEMORY : entity work.DUAL_PORT_BRAM
+    generic map (
+        DEPTH       => 4,
+        WIDTH       => 36,
+        FILENAME    => "data/nrn_init.data"
+    )
+    port map (
+        i_we        => '0',
+        i_waddr     => (others => '0'),
+        i_wdata     => (others => '0'),
+        i_re        => '1',
+        i_raddr     => nrnmem_addr,
+        o_rdata     => nrnldr_data,
+        i_clk       => clk
+    );
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
     generic map (

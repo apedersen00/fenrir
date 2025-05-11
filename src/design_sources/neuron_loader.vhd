@@ -109,6 +109,13 @@ begin
     neurons_per_addr    <= 3;
     bits_per_neuron     <= 12;
 
+    addr_decoding : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            o_nrn_addr <= std_logic_vector(to_unsigned(nrn_addr_cntr, o_nrn_addr'length));
+        end if;
+    end process;
+
     -- configuration interface
     config : process(i_clk)
     begin
@@ -212,21 +219,25 @@ begin
                 o_busy          <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
+                o_nrn_re        <= '0';
 
             when GET_NEURONS =>
                 o_busy          <= '1';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
+                o_nrn_re        <= '1';
 
             when WAIT_FOR_BRAM =>
                 o_busy          <= '1';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
+                o_nrn_re        <= '0';
 
             when ITERATE    =>
                 o_busy          <= '1';
                 counter_enable  <= '1';
                 counter_reset   <= '0';
+                o_nrn_re        <= '0';
         end case;
     end process;
 
