@@ -1,13 +1,26 @@
+---------------------------------------------------------------------------------------------------
+--  Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+--
+--  File: tb_fully_connected.vhd
+--  Description: Testbench for the fully-connected part of FENRIR.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
+---------------------------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 use std.env.finish;
 
-entity synapse_loader_tb is
-end synapse_loader_tb;
+entity TB_FULLY_CONNECTED is
+end TB_FULLY_CONNECTED;
 
-architecture behavior of synapse_loader_tb is
+architecture behavior of TB_FULLY_CONNECTED is
 
     constant clk_period : time := 10 ns;
     constant DEPTH      : integer := 128;
@@ -72,20 +85,20 @@ begin
             o_fault             => fifo_fault
         );
 
-    SYN_MEMORY : entity work.bram_mem
+    SYN_MEMORY : entity work.SINGLE_PORT_BRAM
     generic map (
         DEPTH       => 1280,
         WIDTH       => 32,
-        WIDTH_ADDR  => 11,
         FILENAME    => "data/syn_init.data"
     )
     port map (
-        we      => '0',
-        addr    => synmem_addr,
-        din     => (others => '0'),
-        dout    => synmem_dout,
-        clk     => clk
+        i_we        => '0',
+        i_addr      => synmem_addr,
+        i_data      => (others => '0'),
+        o_data      => synmem_dout,
+        i_clk       => clk
     );
+
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
         generic map (
@@ -147,7 +160,7 @@ begin
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(10, 11));     -- neurons per layer
+            std_logic_vector(to_unsigned(16, 11));      -- neurons per layer
         wait until rising_edge(clk);
 
         synldr_cfg_en   <= '0';

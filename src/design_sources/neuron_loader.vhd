@@ -69,7 +69,7 @@ entity NEURON_LOADER is
         o_busy      : out std_logic;                        -- busy signal
 
         i_clk       : in std_logic;
-        i_rst       : in std_logic;
+        i_rst       : in std_logic
     );
 end NEURON_LOADER;
 
@@ -134,7 +134,7 @@ begin
                 nrn_addr_cntr   <= (nrn_index + 1) / neurons_per_addr;
             else
                 nrn_index       <= nrn_index;
-                syn_addr_cntr   <= syn_addr_cntr;
+                nrn_addr_cntr   <= nrn_addr_cntr;
             end if;
         end if;
     end process;

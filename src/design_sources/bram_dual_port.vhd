@@ -33,7 +33,7 @@ entity DUAL_PORT_BRAM is
         o_rdata : out std_logic_vector(WIDTH - 1 downto 0);                         -- read data
 
         -- auxiliary
-        i_clk   : in std_logic;
+        i_clk   : in std_logic
     );
 end DUAL_PORT_BRAM;
 

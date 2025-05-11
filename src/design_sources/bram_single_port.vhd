@@ -4,6 +4,7 @@
 --
 --  File: dual_port_bram.vhd
 --  Description: Single-port BRAM with one clock.
+--  VHDL Version: VHDL-2008
 --
 --  Author(s):
 --      - A. Pedersen, Aarhus University
@@ -47,7 +48,7 @@ entity SINGLE_PORT_BRAM is
         o_data  : out std_logic_vector(WIDTH - 1 downto 0);                         -- data out
 
         -- auxiliary
-        i_clk   : in std_logic;
+        i_clk   : in std_logic
     );
 end SINGLE_PORT_BRAM;
 
