@@ -224,7 +224,7 @@ begin
             when GET_NEURONS =>
                 o_busy          <= '1';
                 counter_enable  <= '0';
-                counter_reset   <= '1';
+                counter_reset   <= '0';
                 o_nrn_re        <= '1';
 
             when WAIT_FOR_BRAM =>

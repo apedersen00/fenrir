@@ -162,14 +162,14 @@ begin
 
     NRN_LOADER : entity work.NEURON_LOADER
     generic map (
-        NRN_MEM_DEPTH   => 10
+        NRN_MEM_DEPTH   => 4
     )
     port map (
         i_cfg_en        => nrnldr_cfg_en,
         i_cfg_addr      => nrnldr_cfg_addr,
         i_cfg_val       => nrnldr_cfg_val,
         o_nrn_re        => nrnldr_re,
-        o_nrn_addr      => open,
+        o_nrn_addr      => nrnmem_addr,
         i_nrn_data      => nrnldr_data,
         o_nrn_state     => nrnldr_state,
         o_nrn_valid     => nrnldr_valid,
