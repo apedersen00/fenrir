@@ -64,6 +64,22 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal nrnldr_busy      : std_logic;
     signal nrnldr_rst       : std_logic;
 
+    -- lif
+    signal lif_cfg_en            : std_logic;
+    signal lif_cfg_addr          : std_logic_vector(3 downto 0);
+    signal lif_cfg_val           : std_logic_vector(31 downto 0);
+    signal lif_nrn_valid         : std_logic;
+    signal lif_nrn_state         : std_logic_vector(11 downto 0);
+    signal lif_syn_valid         : std_logic;
+    signal lif_syn_weight        : std_logic_vector(3 downto 0);
+    signal lif_nrn_index         : std_logic_vector(15 downto 0);
+    signal lif_timestep          : std_logic;
+    signal lif_nrn_state_next    : std_logic_vector(11 downto 0);
+    signal lif_event_fifo_out    : std_logic_vector(15 downto 0);
+    signal lif_event_fifo_we     : std_logic;
+    signal lif_continue          : std_logic;
+    signal lif_rst               : std_logic;
+
     -- synapse memory
     signal synmem_addr      : std_logic_vector(10 downto 0);
     signal synmem_dout      : std_logic_vector(31 downto 0);
@@ -149,12 +165,13 @@ begin
         i_fifo_rdata    => fifo_rdata,
 
         o_syn_weight    => synldr_weight,
-        o_syn_valid     => open,
+        o_syn_valid     => lif_syn_valid,
 
         o_syn_addr      => synmem_addr,
         i_syn_data      => synmem_dout,
 
         i_start         => synldr_start,
+        i_continue      => lif_continue,
         o_busy          => synldr_busy,
         i_clk           => clk,
         i_rst           => synldr_rst
@@ -172,13 +189,32 @@ begin
         o_nrn_addr      => nrnmem_addr,
         i_nrn_data      => nrnldr_data,
         o_nrn_state     => nrnldr_state,
-        o_nrn_valid     => nrnldr_valid,
+        o_nrn_valid     => lif_nrn_valid,
         i_start         => nrnldr_start,
+        i_continue      => lif_continue,
         o_busy          => nrnldr_busy,
         i_clk           => clk,
         i_rst           => nrnldr_rst
     );
 
+    LIF : entity work.LIF_NEURON
+    port map (
+        i_cfg_en            => lif_cfg_en,
+        i_cfg_addr          => lif_cfg_addr,
+        i_cfg_val           => lif_cfg_val,
+        i_nrn_valid         => lif_nrn_valid,
+        i_nrn_state         => lif_nrn_state,
+        i_syn_valid         => lif_syn_valid,
+        i_syn_weight        => lif_syn_weight,
+        i_nrn_index         => lif_nrn_index,
+        i_timestep          => lif_timestep,
+        o_nrn_state_next    => lif_nrn_state_next,
+        o_event_fifo_out    => lif_event_fifo_out,
+        o_event_fifo_we     => lif_event_fifo_we,
+        o_continue          => lif_continue,
+        i_clk               => clk,
+        i_rst               => lif_rst
+    );
 
     clk <= not clk after clk_period / 2;
 

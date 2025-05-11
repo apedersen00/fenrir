@@ -29,15 +29,16 @@ use ieee.math_real.all;
 --      i_cfg_en            =>
 --      i_cfg_addr          =>
 --      i_cfg_val           =>
---      i_syn_valid         =>
 --      i_nrn_valid         =>
---      i_syn_weight        =>
 --      i_nrn_state         =>
+--      i_syn_valid         =>
+--      i_syn_weight        =>
 --      i_nrn_index         =>
 --      i_timestep          =>
 --      o_nrn_state_next    =>
 --      o_event_fifo_out    =>
 --      o_event_fifo_we     =>
+--      o_continue          =>
 --      i_clk               =>
 --      i_rst               =>
 --  );
@@ -49,22 +50,27 @@ entity LIF_NEURON is
         i_cfg_addr      : in std_logic_vector(3 downto 0);          -- register to configure
         i_cfg_val       : in std_logic_vector(31 downto 0);         -- value to configure
 
-        -- inputs
-        i_syn_valid     : in std_logic;                             -- synapse weight valid
+        -- neuron interface
         i_nrn_valid     : in std_logic;                             -- neuron state valid
-        i_syn_weight    : in std_logic_vector(7 downto 0);          -- synapse weight
         i_nrn_state     : in std_logic_vector(11 downto 0);         -- neuron state
+
+        -- synapse interface
+        i_syn_valid     : in std_logic;                             -- synapse weight valid
+        i_syn_weight    : in std_logic_vector(3 downto 0);          -- synapse weight
         i_nrn_index     : in std_logic_vector(15 downto 0);         -- address of neuron
+
+        -- control
         i_timestep      : in std_logic;                             -- timestep enable
 
         -- outputs
         o_nrn_state_next    : out std_logic_vector(11 downto 0);    -- next neuron state
         o_event_fifo_out    : out std_logic_vector(15 downto 0);    -- spike out event
         o_event_fifo_we     : out std_logic;                        -- enable write to output fifo
+        o_continue          : out std_logic;                        -- continue iteration
 
         -- misc
         i_clk           : in std_logic;
-        i_rst           : in std_logic;
+        i_rst           : in std_logic
     );
 end LIF_NEURON;
 
@@ -81,6 +87,16 @@ begin
     -- configuration decoding
     cfg_threshold   <= reg_cfg_0(11 downto 0);
     cfg_beta        <= reg_cfg_0(23 downto 12);
+
+    -- continue iteration when valid input is received
+    -- continue_iter : process(i_clk)
+    -- begin
+    --     if rising_edge(i_clk) then
+    --         o_continue <= i_nrn_valid and i_syn_valid;
+    --     end if;
+    -- end process;
+
+    o_continue <= i_nrn_valid and i_syn_valid;
 
     -- configuration interface
     config : process(i_clk)

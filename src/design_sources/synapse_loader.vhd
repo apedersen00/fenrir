@@ -43,6 +43,7 @@ use ieee.math_real.all;
 --      o_syn_addr      =>
 --      i_syn_data      =>
 --      i_start         =>
+--      i_continue      =>
 --      o_busy          =>
 --      i_clk           =>
 --      i_rst           =>
@@ -74,6 +75,7 @@ entity SYNAPSE_LOADER is
 
         -- control signals
         i_start             : in std_logic;
+        i_continue          : in std_logic;
         o_busy              : out std_logic;
         i_clk               : in std_logic;
         i_rst               : in std_logic
@@ -252,7 +254,7 @@ begin
     end process;
 
     -- FSM output process
-    outputs : process(present_state, i_start)
+    outputs : process(i_clk)
     begin
 
         case present_state is    
@@ -283,7 +285,7 @@ begin
             when ITERATE    =>
                 o_busy          <= '1';
                 o_fifo_re       <= '0';
-                counter_enable  <= '1';
+                counter_enable  <= '1' when i_continue = '1' else '0';
                 counter_reset   <= '0';
         end case;
     end process;
