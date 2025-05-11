@@ -8,3 +8,4 @@
 **/design_sources/data
 
 # Ignore the Vivado project directory
+vivado/
