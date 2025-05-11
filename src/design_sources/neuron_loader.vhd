@@ -18,6 +18,11 @@
 --
 ---------------------------------------------------------------------------------------------------
 
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use ieee.math_real.all;
+
 --  Instantiation Template:
 --  INST_NAME : entity work.NEURON_LOADER
 --  generic map (
@@ -38,10 +43,6 @@
 --      i_clk           =>
 --      i_rst           =>
 --  );
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 
 entity NEURON_LOADER is
     generic (
