@@ -1,26 +1,24 @@
-/*
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
+--  Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
-
-    File: synapse_loader.vhd
-    Description: FSM for loading the LIF logic with synapses. Address decoding for the
-                 synapse memory.
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
+--
+--  File: synapse_loader.vhd
+--  Description: FSM for loading the LIF logic with synapses. Address decoding for the
+--               synapse memory.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
 ---------------------------------------------------------------------------------------------------
-
-    Configuration Registers:
-        - (reg_cfg_0):
-            - <11b> [10:0]  layer_size          : number of neurons in the layer
-            - <11b> [21:11] layer_offset        : neuron address layer offset
-            -  <2b> [23:22] syn_bits            : number of bits per synapse (2b, 4b, 8b)
-
+--
+--  Configuration Registers:
+--      - (reg_cfg_0):
+--          - <11b> [10:0]  layer_size          : number of neurons in the layer
+--          - <11b> [21:11] layer_offset        : neuron address layer offset
+--          -  <2b> [23:22] syn_bits            : number of bits per synapse (2b, 4b, 8b)
+--
 ---------------------------------------------------------------------------------------------------
-*/
 
 library ieee;
 use ieee.std_logic_1164.all;

@@ -1,24 +1,22 @@
-/*
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
+--  Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
-
-    File: neuron_loader.vhd
-    Description: FSM for loading the LIF logic with neurons.
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
+--
+--  File: neuron_loader.vhd
+--  Description: FSM for loading the LIF logic with neurons.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
 ---------------------------------------------------------------------------------------------------
-
-    Configuration Registers:
-        - (reg_cfg_0):
-            - <11b> [10:0]  layer_size          : number of neurons in the layer
-            - <11b> [21:11] layer_offset        : neuron address layer offset
-
+--
+--  Configuration Registers:
+--      - (reg_cfg_0):
+--          - <11b> [10:0]  layer_size          : number of neurons in the layer
+--          - <11b> [21:11] layer_offset        : neuron address layer offset
+--
 ---------------------------------------------------------------------------------------------------
-*/
 
 --  Instantiation Template:
 --  INST_NAME : entity work.NEURON_LOADER

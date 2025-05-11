@@ -1,20 +1,19 @@
-/*
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
+--  Aarhus University (AU, Denmark)
+---------------------------------------------------------------------------------------------------
+--
+--  File: fifo.vhd
+--  Description: Ring-buffer style first-in-first-out (FIFO) utilizing dual-port BRAM.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
+--  Reference(s):
+--      - https://vhdlwhiz.com/ring-buffer-fifo/
+--
 ---------------------------------------------------------------------------------------------------
 
-    File: fifo.vhd
-    Description: Ring-buffer style first-in-first-out (FIFO) utilizing dual-port BRAM.
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
-    Reference(s):
-        - https://vhdlwhiz.com/ring-buffer-fifo/
-
----------------------------------------------------------------------------------------------------
-*/
 
 library ieee;
 use ieee.std_logic_1164.all;

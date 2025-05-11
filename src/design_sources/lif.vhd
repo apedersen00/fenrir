@@ -1,24 +1,22 @@
-/*
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
+--  Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
-
-    File: lif.vhd
-    Description:
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
+--
+--  File: lif.vhd
+--  Description:
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
 ---------------------------------------------------------------------------------------------------
-
-    Configuration Registers:
-        - (reg_cfg_0):
-            - <12b> [11:0]  threshold       : common spike threshold
-            - <12b> [23:12] beta (leakage)  : common neuron leakage per timestep
-
+--
+--  Configuration Registers:
+--      - (reg_cfg_0):
+--          - <12b> [11:0]  threshold       : common spike threshold
+--          - <12b> [23:12] beta (leakage)  : common neuron leakage per timestep
+--
 ---------------------------------------------------------------------------------------------------
-*/
 
 library ieee;
 use ieee.std_logic_1164.all;
