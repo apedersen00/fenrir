@@ -1,17 +1,15 @@
-/*
+----------------------------------------------------------------------------------------------------
+--  Aarhus University (AU, Denmark)
+----------------------------------------------------------------------------------------------------
+--
+--  File: dual_port_bram.vhd
+--  Description: Dual-port BRAM with one clock.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
----------------------------------------------------------------------------------------------------
-
-    File: dual_port_bram.vhd
-    Description: Dual-port BRAM with one clock.
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
----------------------------------------------------------------------------------------------------
-*/
 
 library ieee;
 use ieee.std_logic_1164.all;

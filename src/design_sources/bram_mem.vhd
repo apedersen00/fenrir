@@ -1,30 +1,28 @@
-/*
 ---------------------------------------------------------------------------------------------------
-    Aarhus University (AU, Denmark)
+--  Aarhus University (AU, Denmark)
 ---------------------------------------------------------------------------------------------------
-
-    File: bram_mem.vhd
-    Description: General purpose, parametric BRAM memory module.
-
-    Author(s):
-        - A. Pedersen, Aarhus University
-        - A. Cherencq, Aarhus University
-
+--
+--  File: bram_mem.vhd
+--  Description: General purpose, parametric BRAM memory module.
+--
+--  Author(s):
+--      - A. Pedersen, Aarhus University
+--      - A. Cherencq, Aarhus University
+--
 ---------------------------------------------------------------------------------------------------
-
-    Functionality:
-        - The module implements a generic, parametric BRAM memory module.
-
-    Parameters:
-        - G_DEBUG: Debug flag to enable debug output.
-        - G_DEBUG_COUNTER_INIT: Initial value for the debug counter.
-        - DEPTH: Depth of the memory.
-        - WIDTH: Data width in bits.
-        - WIDTH_ADDR: Address width in bits.
-        - FILENAME: Path to a file containing initial memory values.
-
+--
+--  Functionality:
+--      - The module implements a generic, parametric BRAM memory module.
+--
+--  Parameters:
+--      - G_DEBUG: Debug flag to enable debug output.
+--      - G_DEBUG_COUNTER_INIT: Initial value for the debug counter.
+--      - DEPTH: Depth of the memory.
+--      - WIDTH: Data width in bits.
+--      - WIDTH_ADDR: Address width in bits.
+--      - FILENAME: Path to a file containing initial memory values.
+--
 ---------------------------------------------------------------------------------------------------
-*/
 
 library ieee;
 use ieee.std_logic_1164.all;
