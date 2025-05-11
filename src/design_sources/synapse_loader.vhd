@@ -4,7 +4,7 @@
 ---------------------------------------------------------------------------------------------------
 
     File: synapse_loader.vhd
-    Description: FSM for loading the *synaptic shotgun* with synapses. Address decoding for the
+    Description: FSM for loading the LIF logic with synapses. Address decoding for the
                  synapse memory.
 
     Author(s):
