@@ -38,6 +38,7 @@ use ieee.math_real.all;
 --      o_nrn_state         =>
 --      o_nrn_valid         =>
 --      o_nrn_valid_next    =>
+--      o_nrn_valid_last    =>
 --      i_start             =>
 --      i_continue          =>
 --      o_busy              =>
@@ -64,11 +65,13 @@ entity NEURON_LOADER is
         o_nrn_state         : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
         o_nrn_valid         : out std_logic;                        -- output valid
         o_nrn_valid_next    : out std_logic;                        -- next output is valid
+        o_nrn_valid_last    : out std_logic;
 
         -- control signals
         i_start     : in std_logic;                         -- start signal
         i_continue  : in std_logic;                         -- continue iteration
         o_busy      : out std_logic;                        -- busy signal
+        i_goto_idle : in std_logic;
 
         i_clk       : in std_logic;
         i_rst       : in std_logic
@@ -166,7 +169,13 @@ begin
 
                 if (present_state = ITERATE) then
                     o_nrn_valid <= '1';
+                else
+                    o_nrn_valid <= '0';
+                end if;
 
+                if (present_state = WAIT_FOR_BRAM) then
+                    o_nrn_valid_next <= '1';
+                elsif (present_state = ITERATE) then
                     if (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
                         o_nrn_valid_next <= '0';
                     elsif (nrn_index /= 0) and ((nrn_index + 1) >= unsigned(cfg_layer_size)) then
@@ -174,10 +183,16 @@ begin
                     else
                         o_nrn_valid_next <= '1';
                     end if;
+                end if;
 
+                if (present_state = ITERATE) then
+                    if (nrn_index /= 0) and (nrn_index + 1 >= unsigned(cfg_layer_size)) then
+                        o_nrn_valid_last <= '1';
+                    else
+                        o_nrn_valid_last <= '0';
+                    end if;
                 else
-                    o_nrn_valid         <= '0';
-                    o_nrn_valid_next    <= '0';
+                    o_nrn_valid_last <= '0';
                 end if;
 
             else
@@ -201,7 +216,7 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(present_state, i_start, nrn_index)
+    nxt_state : process(i_clk)
     begin
         case present_state is
 
@@ -217,7 +232,7 @@ begin
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if nrn_index >= unsigned(cfg_layer_size) - 1 then
+                if (i_goto_idle = '1') then
                     next_state <= IDLE;
                 elsif (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
                     next_state <= GET_NEURONS;

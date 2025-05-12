@@ -43,34 +43,37 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal fifo_fault       : std_logic;
 
     -- synapse loader
-    signal synldr_cfg_en    : std_logic;
-    signal synldr_cfg_addr  : std_logic_vector(3 downto 0);
-    signal synldr_cfg_val   : std_logic_vector(31 downto 0);
-    signal synldr_weight    : std_logic_vector(7 downto 0);
-    signal synldr_start     : std_logic;
-    signal synldr_busy      : std_logic;
-    signal synldr_rst       : std_logic;
-    signal synldr_fault     : std_logic;
+    signal synldr_cfg_en        : std_logic;
+    signal synldr_cfg_addr      : std_logic_vector(3 downto 0);
+    signal synldr_cfg_val       : std_logic_vector(31 downto 0);
+    signal synldr_weight        : std_logic_vector(7 downto 0);
+    signal synldr_valid         : std_logic;
+    signal synldr_valid_next    : std_logic;
+    signal synldr_valid_last    : std_logic;
+    signal synldr_start         : std_logic;
+    signal synldr_busy          : std_logic;
+    signal synldr_rst           : std_logic;
+    signal synldr_fault         : std_logic;
 
     -- neuron loader
-    signal nrnldr_cfg_en    : std_logic;
-    signal nrnldr_cfg_addr  : std_logic_vector(3 downto 0);
-    signal nrnldr_cfg_val   : std_logic_vector(31 downto 0);
-    signal nrnldr_re        : std_logic;
-    signal nrnldr_data      : std_logic_vector(35 downto 0);
-    signal nrnldr_state     : std_logic_vector(11 downto 0);
-    signal nrnldr_valid     : std_logic;
-    signal nrnldr_start     : std_logic;
-    signal nrnldr_busy      : std_logic;
-    signal nrnldr_rst       : std_logic;
+    signal nrnldr_cfg_en        : std_logic;
+    signal nrnldr_cfg_addr      : std_logic_vector(3 downto 0);
+    signal nrnldr_cfg_val       : std_logic_vector(31 downto 0);
+    signal nrnldr_re            : std_logic;
+    signal nrnldr_data          : std_logic_vector(35 downto 0);
+    signal nrnldr_state         : std_logic_vector(11 downto 0);
+    signal nrnldr_valid         : std_logic;
+    signal nrnldr_valid_next    : std_logic;
+    signal nnrldr_valid_last    : std_logic;
+    signal nrnldr_start         : std_logic;
+    signal nrnldr_busy          : std_logic;
+    signal nrnldr_rst           : std_logic;
 
     -- lif
     signal lif_cfg_en            : std_logic;
     signal lif_cfg_addr          : std_logic_vector(3 downto 0);
     signal lif_cfg_val           : std_logic_vector(31 downto 0);
-    signal lif_nrn_valid         : std_logic;
     signal lif_nrn_state         : std_logic_vector(11 downto 0);
-    signal lif_syn_valid         : std_logic;
     signal lif_syn_weight        : std_logic_vector(3 downto 0);
     signal lif_nrn_index         : std_logic_vector(15 downto 0);
     signal lif_timestep          : std_logic;
@@ -79,6 +82,7 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal lif_event_fifo_we     : std_logic;
     signal lif_continue          : std_logic;
     signal lif_rst               : std_logic;
+    signal goto_idle             : std_logic;
 
     -- synapse memory
     signal synmem_addr      : std_logic_vector(10 downto 0);
@@ -156,25 +160,28 @@ begin
         SYN_MEM_WIDTH   => 32
     )
     port map (
-        i_cfg_en        => synldr_cfg_en,
-        i_cfg_addr      => synldr_cfg_addr,
-        i_cfg_val       => synldr_cfg_val,
+        i_cfg_en            => synldr_cfg_en,
+        i_cfg_addr          => synldr_cfg_addr,
+        i_cfg_val           => synldr_cfg_val,
 
-        o_fifo_re       => fifo_re,
-        i_fifo_rvalid   => fifo_rvalid,
-        i_fifo_rdata    => fifo_rdata,
+        o_fifo_re           => fifo_re,
+        i_fifo_rvalid       => fifo_rvalid,
+        i_fifo_rdata        => fifo_rdata,
 
-        o_syn_weight    => synldr_weight,
-        o_syn_valid     => lif_syn_valid,
+        o_syn_weight        => synldr_weight,
+        o_syn_valid         => synldr_valid,
+        o_syn_valid_next    => synldr_valid_next,
+        o_syn_valid_last    => synldr_valid_last,
 
-        o_syn_addr      => synmem_addr,
-        i_syn_data      => synmem_dout,
+        o_syn_addr          => synmem_addr,
+        i_syn_data          => synmem_dout,
 
-        i_start         => synldr_start,
-        i_continue      => lif_continue,
-        o_busy          => synldr_busy,
-        i_clk           => clk,
-        i_rst           => synldr_rst
+        i_start             => synldr_start,
+        i_continue          => lif_continue,
+        o_busy              => synldr_busy,
+        i_goto_idle         => goto_idle,
+        i_clk               => clk,
+        i_rst               => synldr_rst
     );
 
     NRN_LOADER : entity work.NEURON_LOADER
@@ -182,19 +189,22 @@ begin
         NRN_MEM_DEPTH   => 4
     )
     port map (
-        i_cfg_en        => nrnldr_cfg_en,
-        i_cfg_addr      => nrnldr_cfg_addr,
-        i_cfg_val       => nrnldr_cfg_val,
-        o_nrn_re        => nrnldr_re,
-        o_nrn_addr      => nrnmem_addr,
-        i_nrn_data      => nrnldr_data,
-        o_nrn_state     => nrnldr_state,
-        o_nrn_valid     => lif_nrn_valid,
-        i_start         => nrnldr_start,
-        i_continue      => lif_continue,
-        o_busy          => nrnldr_busy,
-        i_clk           => clk,
-        i_rst           => nrnldr_rst
+        i_cfg_en            => nrnldr_cfg_en,
+        i_cfg_addr          => nrnldr_cfg_addr,
+        i_cfg_val           => nrnldr_cfg_val,
+        o_nrn_re            => nrnldr_re,
+        o_nrn_addr          => nrnmem_addr,
+        i_nrn_data          => nrnldr_data,
+        o_nrn_state         => nrnldr_state,
+        o_nrn_valid         => nrnldr_valid,
+        o_nrn_valid_next    => nrnldr_valid_next,
+        o_nrn_valid_last    => nnrldr_valid_last,
+        i_start             => nrnldr_start,
+        i_continue          => lif_continue,
+        o_busy              => nrnldr_busy,
+        i_goto_idle         => goto_idle,
+        i_clk               => clk,
+        i_rst               => nrnldr_rst
     );
 
     LIF : entity work.LIF_NEURON
@@ -202,16 +212,21 @@ begin
         i_cfg_en            => lif_cfg_en,
         i_cfg_addr          => lif_cfg_addr,
         i_cfg_val           => lif_cfg_val,
-        i_nrn_valid         => lif_nrn_valid,
-        i_nrn_state         => lif_nrn_state,
-        i_syn_valid         => lif_syn_valid,
-        i_syn_weight        => lif_syn_weight,
+        i_nrn_valid         => nrnldr_valid,
+        i_nrn_valid_next    => nrnldr_valid_next,
+        i_nrn_valid_last    => nnrldr_valid_last,
+        i_nrn_state         => nrnldr_state,
+        i_syn_valid         => synldr_valid,
+        i_syn_valid_next    => synldr_valid_next,
+        i_syn_valid_last    => synldr_valid_last,
+        i_syn_weight        => synldr_weight,
         i_nrn_index         => lif_nrn_index,
         i_timestep          => lif_timestep,
         o_nrn_state_next    => lif_nrn_state_next,
         o_event_fifo_out    => lif_event_fifo_out,
         o_event_fifo_we     => lif_event_fifo_we,
         o_continue          => lif_continue,
+        o_goto_idle         => goto_idle,
         i_clk               => clk,
         i_rst               => lif_rst
     );
@@ -274,6 +289,8 @@ begin
 
         for i in 0 to 100 loop
             wait until rising_edge(clk);
+            synldr_start    <= '0';
+            nrnldr_start    <= '0';
         end loop;
 
         finish;

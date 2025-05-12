@@ -41,6 +41,8 @@ use ieee.math_real.all;
 --      o_syn_weight        =>
 --      o_syn_valid         =>
 --      o_syn_valid_next    =>
+--      o_syn_valid_last    =>
+--      i_syn_goto_idle     =>
 --      o_syn_addr          =>
 --      i_syn_data          =>
 --      i_start             =>
@@ -70,6 +72,8 @@ entity SYNAPSE_LOADER is
         o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
         o_syn_valid         : out std_logic;                        -- valid weight on ouptut
         o_syn_valid_next    : out std_logic;                        -- next weight valid on output
+        o_syn_valid_last    : out std_logic;
+        i_goto_idle     : in std_logic;
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
@@ -203,7 +207,13 @@ begin
 
                 if (present_state = ITERATE) then
                     o_syn_valid <= '1';
+                else
+                    o_syn_valid <= '0';
+                end if;
 
+                if (present_state = WAIT_FOR_BRAM) then
+                    o_syn_valid_next <= '1';
+                elsif (present_state = ITERATE) then
                     if (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
                         o_syn_valid_next <= '0';
                     elsif (syn_index /= 0) and ((syn_index + 1) >= unsigned(cfg_layer_size)) then
@@ -211,16 +221,23 @@ begin
                     else
                         o_syn_valid_next <= '1';
                     end if;
+                end if;
 
+                if (present_state = ITERATE) then
+                    if (syn_index /= 0) and (syn_index + 1 >= unsigned(cfg_layer_size)) then
+                        o_syn_valid_last <= '1';
+                    else
+                        o_syn_valid_last <= '0';
+                    end if;
                 else
-                    o_syn_valid         <= '0';
-                    o_syn_valid_next    <= '0';
+                    o_syn_valid_last <= '0';
                 end if;
 
             else
                 o_syn_weight        <= (others => '0');
                 o_syn_valid         <= '0';
                 o_syn_valid_next    <= '0';
+                o_syn_valid_last    <= '0';
             end if;
         end if;
     end process;
@@ -238,7 +255,7 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(present_state, i_start, syn_index)
+    nxt_state : process(i_clk)
     begin
         case present_state is
 
@@ -257,7 +274,7 @@ begin
                 next_state <= ITERATE;
 
             when ITERATE =>
-                if syn_index >= unsigned(cfg_layer_size) - 1 then
+                if (i_goto_idle = '1') then
                     next_state <= IDLE;
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
                     next_state <= GET_WEIGHTS;

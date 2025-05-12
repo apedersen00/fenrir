@@ -30,8 +30,10 @@ use ieee.math_real.all;
 --      i_cfg_addr          =>
 --      i_cfg_val           =>
 --      i_nrn_valid         =>
+--      i_nrn_valid_next    =>
 --      i_nrn_state         =>
 --      i_syn_valid         =>
+--      i_syn_valid_next    =>
 --      i_syn_weight        =>
 --      i_nrn_index         =>
 --      i_timestep          =>
@@ -51,13 +53,17 @@ entity LIF_NEURON is
         i_cfg_val       : in std_logic_vector(31 downto 0);         -- value to configure
 
         -- neuron interface
-        i_nrn_valid     : in std_logic;                             -- neuron state valid
-        i_nrn_state     : in std_logic_vector(11 downto 0);         -- neuron state
+        i_nrn_valid         : in std_logic;                             -- neuron state valid
+        i_nrn_valid_next    : in std_logic;
+        i_nrn_valid_last    : in std_logic;
+        i_nrn_state         : in std_logic_vector(11 downto 0);         -- neuron state
 
         -- synapse interface
-        i_syn_valid     : in std_logic;                             -- synapse weight valid
-        i_syn_weight    : in std_logic_vector(3 downto 0);          -- synapse weight
-        i_nrn_index     : in std_logic_vector(15 downto 0);         -- address of neuron
+        i_syn_valid         : in std_logic;                             -- synapse weight valid
+        i_syn_valid_next    : in std_logic;
+        i_syn_valid_last    : in std_logic;
+        i_syn_weight        : in std_logic_vector(7 downto 0);          -- synapse weight
+        i_nrn_index         : in std_logic_vector(15 downto 0);         -- address of neuron
 
         -- control
         i_timestep      : in std_logic;                             -- timestep enable
@@ -67,6 +73,7 @@ entity LIF_NEURON is
         o_event_fifo_out    : out std_logic_vector(15 downto 0);    -- spike out event
         o_event_fifo_we     : out std_logic;                        -- enable write to output fifo
         o_continue          : out std_logic;                        -- continue iteration
+        o_goto_idle         : out std_logic;
 
         -- misc
         i_clk           : in std_logic;
@@ -82,6 +89,9 @@ architecture Behavioral of LIF_NEURON is
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
 
+    signal syn_reg : std_logic_vector(7 downto 0);
+    signal nrn_reg : std_logic_vector(11 downto 0);
+
 begin
 
     -- configuration decoding
@@ -92,11 +102,22 @@ begin
     -- continue_iter : process(i_clk)
     -- begin
     --     if rising_edge(i_clk) then
-    --         o_continue <= i_nrn_valid and i_syn_valid;
+    --         o_continue <= i_nrn_valid_next and i_syn_valid_next;
     --     end if;
     -- end process;
 
-    o_continue <= i_nrn_valid and i_syn_valid;
+    o_continue  <= i_nrn_valid_next and i_syn_valid_next;
+    o_goto_idle <= i_nrn_valid_last and i_syn_valid_last;
+
+    reg_load : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            if (i_syn_valid = '1' and i_nrn_valid = '1') then
+                 syn_reg <= i_syn_weight;
+                 nrn_reg <= i_nrn_state;
+            end if;
+        end if;
+    end process;
 
     -- configuration interface
     config : process(i_clk)
