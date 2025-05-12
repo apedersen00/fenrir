@@ -29,19 +29,20 @@ use ieee.math_real.all;
 --      NRN_MEM_DEPTH   =>
 --  )
 --  port map (
---      i_cfg_en        =>
---      i_cfg_addr      =>
---      i_cfg_val       =>
---      o_nrn_re        =>
---      o_nrn_addr      =>
---      i_nrn_data      =>
---      o_nrn_state     =>
---      o_nrn_valid     =>
---      i_start         =>
---      i_continue      =>
---      o_busy          =>
---      i_clk           =>
---      i_rst           =>
+--      i_cfg_en            =>
+--      i_cfg_addr          =>
+--      i_cfg_val           =>
+--      o_nrn_re            =>
+--      o_nrn_addr          =>
+--      i_nrn_data          =>
+--      o_nrn_state         =>
+--      o_nrn_valid         =>
+--      o_nrn_valid_next    =>
+--      i_start             =>
+--      i_continue          =>
+--      o_busy              =>
+--      i_clk               =>
+--      i_rst               =>
 --  );
 
 entity NEURON_LOADER is
@@ -60,8 +61,9 @@ entity NEURON_LOADER is
         i_nrn_data  : in std_logic_vector(35 downto 0);     -- neuron memory data in (3x12b)
 
         -- output
-        o_nrn_state : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
-        o_nrn_valid : out std_logic;                        -- output valid
+        o_nrn_state         : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
+        o_nrn_valid         : out std_logic;                        -- output valid
+        o_nrn_valid_next    : out std_logic;                        -- next output is valid
 
         -- control signals
         i_start     : in std_logic;                         -- start signal
@@ -162,15 +164,26 @@ begin
                 o_nrn_state(bits_per_neuron - 1 downto 0) <=
                     i_nrn_data((v_word_index + 1) * bits_per_neuron - 1 downto v_word_index * bits_per_neuron);
 
-                if present_state = ITERATE then
+                if (present_state = ITERATE) then
                     o_nrn_valid <= '1';
+
+                    if (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
+                        o_nrn_valid_next <= '0';
+                    elsif (nrn_index /= 0) and ((nrn_index + 1) >= unsigned(cfg_layer_size)) then
+                        o_nrn_valid_next <= '0';
+                    else
+                        o_nrn_valid_next <= '1';
+                    end if;
+
                 else
-                    o_nrn_valid <= '0';
+                    o_nrn_valid         <= '0';
+                    o_nrn_valid_next    <= '0';
                 end if;
 
             else
-                o_nrn_state     <= (others => '0');
-                o_nrn_valid     <= '0';
+                o_nrn_state         <= (others => '0');
+                o_nrn_valid         <= '0';
+                o_nrn_valid_next    <= '0';
             end if;
         end if;
     end process;

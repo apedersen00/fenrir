@@ -32,21 +32,22 @@ use ieee.math_real.all;
 --      SYN_MEM_WIDTH   =>
 --  )
 --  port map (
---      i_cfg_en        =>
---      i_cfg_addr      =>
---      i_cfg_val       =>
---      o_fifo_re       =>
---      i_fifo_rvalid   =>
---      i_fifo_rdata    =>
---      o_syn_weight    =>
---      o_syn_valid     =>
---      o_syn_addr      =>
---      i_syn_data      =>
---      i_start         =>
---      i_continue      =>
---      o_busy          =>
---      i_clk           =>
---      i_rst           =>
+--      i_cfg_en            =>
+--      i_cfg_addr          =>
+--      i_cfg_val           =>
+--      o_fifo_re           =>
+--      i_fifo_rvalid       =>
+--      i_fifo_rdata        =>
+--      o_syn_weight        =>
+--      o_syn_valid         =>
+--      o_syn_valid_next    =>
+--      o_syn_addr          =>
+--      i_syn_data          =>
+--      i_start             =>
+--      i_continue          =>
+--      o_busy              =>
+--      i_clk               =>
+--      i_rst               =>
 --  );
 
 entity SYNAPSE_LOADER is
@@ -68,6 +69,7 @@ entity SYNAPSE_LOADER is
         -- LIF interface
         o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
         o_syn_valid         : out std_logic;                        -- valid weight on ouptut
+        o_syn_valid_next    : out std_logic;                        -- next weight valid on output
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
@@ -199,15 +201,26 @@ begin
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
                     i_syn_data((v_word_index + 1) * bits_per_weight - 1 downto v_word_index * bits_per_weight);
 
-                if present_state = ITERATE then
+                if (present_state = ITERATE) then
                     o_syn_valid <= '1';
+
+                    if (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
+                        o_syn_valid_next <= '0';
+                    elsif (syn_index /= 0) and ((syn_index + 1) >= unsigned(cfg_layer_size)) then
+                        o_syn_valid_next <= '0';
+                    else
+                        o_syn_valid_next <= '1';
+                    end if;
+
                 else
-                    o_syn_valid <= '0';
+                    o_syn_valid         <= '0';
+                    o_syn_valid_next    <= '0';
                 end if;
 
             else
-                o_syn_weight    <= (others => '0');
-                o_syn_valid     <= '0';
+                o_syn_weight        <= (others => '0');
+                o_syn_valid         <= '0';
+                o_syn_valid_next    <= '0';
             end if;
         end if;
     end process;
@@ -245,7 +258,7 @@ begin
 
             when ITERATE =>
                 if syn_index >= unsigned(cfg_layer_size) - 1 then
-                    next_state <= GET_EVENT;
+                    next_state <= IDLE;
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
                     next_state <= GET_WEIGHTS;
                 end if;
