@@ -62,6 +62,7 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal nrnldr_re            : std_logic;
     signal nrnldr_data          : std_logic_vector(35 downto 0);
     signal nrnldr_state         : std_logic_vector(11 downto 0);
+    signal nrnldr_nrn_index     : std_logic_vector(11 downto 0);
     signal nrnldr_valid         : std_logic;
     signal nrnldr_valid_next    : std_logic;
     signal nnrldr_valid_last    : std_logic;
@@ -196,6 +197,7 @@ begin
         o_nrn_addr          => nrnmem_addr,
         i_nrn_data          => nrnldr_data,
         o_nrn_state         => nrnldr_state,
+        o_nrn_index         => nrnldr_nrn_index,
         o_nrn_valid         => nrnldr_valid,
         o_nrn_valid_next    => nrnldr_valid_next,
         o_nrn_valid_last    => nnrldr_valid_last,
@@ -220,7 +222,7 @@ begin
         i_syn_valid_next    => synldr_valid_next,
         i_syn_valid_last    => synldr_valid_last,
         i_syn_weight        => synldr_weight,
-        i_nrn_index         => lif_nrn_index,
+        i_nrn_index         => nrnldr_nrn_index,
         i_timestep          => lif_timestep,
         o_nrn_state_next    => lif_nrn_state_next,
         o_event_fifo_out    => lif_event_fifo_out,

@@ -4,6 +4,7 @@
 --
 --  File: lif.vhd
 --  Description:
+--  VHDL Version: VHDL-2008
 --
 --  Author(s):
 --      - A. Pedersen, Aarhus University
@@ -63,7 +64,7 @@ entity LIF_NEURON is
         i_syn_valid_next    : in std_logic;
         i_syn_valid_last    : in std_logic;
         i_syn_weight        : in std_logic_vector(7 downto 0);          -- synapse weight
-        i_nrn_index         : in std_logic_vector(15 downto 0);         -- address of neuron
+        i_nrn_index         : in std_logic_vector(11 downto 0);         -- address of neuron
 
         -- control
         i_timestep      : in std_logic;                             -- timestep enable
@@ -89,35 +90,15 @@ architecture Behavioral of LIF_NEURON is
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
 
-    signal syn_reg : std_logic_vector(7 downto 0);
-    signal nrn_reg : std_logic_vector(11 downto 0);
-
 begin
 
     -- configuration decoding
     cfg_threshold   <= reg_cfg_0(11 downto 0);
     cfg_beta        <= reg_cfg_0(23 downto 12);
 
-    -- continue iteration when valid input is received
-    -- continue_iter : process(i_clk)
-    -- begin
-    --     if rising_edge(i_clk) then
-    --         o_continue <= i_nrn_valid_next and i_syn_valid_next;
-    --     end if;
-    -- end process;
-
+    -- lockstep the neuron and synapse loader
     o_continue  <= i_nrn_valid_next and i_syn_valid_next;
     o_goto_idle <= i_nrn_valid_last and i_syn_valid_last;
-
-    reg_load : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if (i_syn_valid = '1' and i_nrn_valid = '1') then
-                 syn_reg <= i_syn_weight;
-                 nrn_reg <= i_nrn_state;
-            end if;
-        end if;
-    end process;
 
     -- configuration interface
     config : process(i_clk)
@@ -147,7 +128,8 @@ begin
 
                 if v_next_state >= to_integer(unsigned(cfg_threshold)) then
                     o_nrn_state_next <= (others => '0');
-                    o_event_fifo_out <= i_nrn_index;
+                    o_event_fifo_out <= std_logic_vector(to_unsigned(0, 16)) when unsigned(i_nrn_index) = 0 else
+                                        "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(i_nrn_index)) - 1, 12));
                     o_event_fifo_we  <= '1';
                 else
                     o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));
@@ -155,6 +137,8 @@ begin
                     o_event_fifo_we  <= '0';
                 end if;
 
+            else
+                o_event_fifo_we <= '0';
             end if;
         end if;
     end process;

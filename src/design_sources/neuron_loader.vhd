@@ -36,6 +36,7 @@ use ieee.math_real.all;
 --      o_nrn_addr          =>
 --      i_nrn_data          =>
 --      o_nrn_state         =>
+--      o_nrn_index         =>
 --      o_nrn_valid         =>
 --      o_nrn_valid_next    =>
 --      o_nrn_valid_last    =>
@@ -63,6 +64,7 @@ entity NEURON_LOADER is
 
         -- output
         o_nrn_state         : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
+        o_nrn_index         : out std_logic_vector(11 downto 0);    -- index of outputtet neuron
         o_nrn_valid         : out std_logic;                        -- output valid
         o_nrn_valid_next    : out std_logic;                        -- next output is valid
         o_nrn_valid_last    : out std_logic;
@@ -115,6 +117,8 @@ begin
     -- constants
     neurons_per_addr    <= 3;
     bits_per_neuron     <= 12;
+
+    o_nrn_index         <= std_logic_vector(to_unsigned(nrn_index, o_nrn_index'length));
 
     addr_decoding : process(i_clk)
     begin

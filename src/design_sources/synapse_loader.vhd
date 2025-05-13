@@ -205,12 +205,14 @@ begin
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
                     i_syn_data((v_word_index + 1) * bits_per_weight - 1 downto v_word_index * bits_per_weight);
 
+                -- generate valid signal
                 if (present_state = ITERATE) then
                     o_syn_valid <= '1';
                 else
                     o_syn_valid <= '0';
                 end if;
 
+                -- generate valid next signal
                 if (present_state = WAIT_FOR_BRAM) then
                     o_syn_valid_next <= '1';
                 elsif (present_state = ITERATE) then
@@ -223,6 +225,7 @@ begin
                     end if;
                 end if;
 
+                -- generate valid last signal
                 if (present_state = ITERATE) then
                     if (syn_index /= 0) and (syn_index + 1 >= unsigned(cfg_layer_size)) then
                         o_syn_valid_last <= '1';
