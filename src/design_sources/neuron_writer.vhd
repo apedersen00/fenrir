@@ -117,14 +117,42 @@ begin
         end if;
     end process;
 
-    pack_reg : process(i_clk)
+    -- put valid next neuron states into registers and pack into 36-bit vector
+    write_reg : process(i_clk)
     begin
         if rising_edge(i_clk) then
+            if i_rst = '1' then
+
+                reg_nrn_state_0 <= (others => '0');
+                reg_nrn_state_1 <= (others => '0');
+                reg_nrn_state_2 <= (others => '0');
+                reg_nrn_valid_0 <= '0';
+                reg_nrn_valid_1 <= '0';
+                reg_nrn_valid_2 <= '0';
+
+            elsif i_valid = '1' then
+
+                if reg_nrn_valid_0 = '0' then
+                    reg_nrn_state_0 <= i_nrn_state;
+                    reg_nrn_valid_0 <= '1';
+                elsif reg_nrn_valid_1 = '0' then
+                    reg_nrn_state_1 <= i_nrn_state;
+                    reg_nrn_valid_1 <= '1';
+                elsif reg_nrn_valid_2 = '0' then
+                    reg_nrn_state_2 <= i_nrn_state;
+                    reg_nrn_valid_2 <= '1';
+                else
+                    -- overflow :(
+                    o_fault <= '1';
+                end if;
+
+            end if;
 
             if reg_nrn_valid_0 = '1' and
                reg_nrn_valid_1 = '1' and
                reg_nrn_valid_2 = '1' then
 
+                o_nrn_we <= '1';
                 nrn_data <= reg_nrn_state_0 &
                             reg_nrn_state_1 &
                             reg_nrn_state_2;
@@ -132,28 +160,11 @@ begin
                 reg_nrn_valid_0 <= '0';
                 reg_nrn_valid_1 <= '0';
                 reg_nrn_valid_2 <= '0';
+            else
+                o_nrn_we <= '0';
+                nrn_data <= (others => '0');
             end if;
 
-        end if;
-    end process;
-
-    write_reg : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_valid = '1' then
-
-                if reg_nrn_valid_0 = '1' then
-                    reg_nrn_state_0 <= i_nrn_state;
-                elsif reg_nrn_valid_1 = '1' then
-                    reg_nrn_state_1 <= i_nrn_state;
-                elsif reg_nrn_valid_2 = '1' then
-                    reg_nrn_state_2 <= i_nrn_state;
-                else
-                    -- overflow :(
-                    o_fault <= '1';
-                end if;
-
-            end if;
         end if;
     end process;
 

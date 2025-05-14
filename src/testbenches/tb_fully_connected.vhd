@@ -272,6 +272,7 @@ begin
         -- Reset Synapse and Neuron Loader
         synldr_rst  <= '1';
         nrnldr_rst  <= '1';
+        nrnwrt_rst  <= '1';
 
         -- Reset FIFO
         fifo_rst    <= '1';
@@ -282,6 +283,7 @@ begin
         wait until rising_edge(clk);
         synldr_rst  <= '0';
         nrnldr_rst  <= '0';
+        nrnwrt_rst  <= '0';
 
         -- start writing
         fifo_we     <= '1';
