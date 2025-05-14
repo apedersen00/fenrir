@@ -42,6 +42,20 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal fifo_rst         : std_logic;
     signal fifo_fault       : std_logic;
 
+    -- output event fifo
+    signal out_fifo_we          : std_logic;
+    signal out_fifo_wdata       : std_logic_vector(16 - 1 downto 0);
+    signal out_fifo_re          : std_logic;
+    signal out_fifo_rvalid      : std_logic;
+    signal out_fifo_rdata       : std_logic_vector(16 - 1 downto 0);
+    signal out_fifo_empty       : std_logic;
+    signal out_fifo_empty_next  : std_logic;
+    signal out_fifo_full        : std_logic;
+    signal out_fifo_full_next   : std_logic;
+    signal out_fifo_fill_count  : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
+    signal out_fifo_rst         : std_logic;
+    signal out_fifo_fault       : std_logic;
+
     -- synapse loader
     signal synldr_cfg_en        : std_logic;
     signal synldr_cfg_addr      : std_logic_vector(3 downto 0);
@@ -134,6 +148,27 @@ begin
             i_clk               => clk,
             i_rst               => fifo_rst,
             o_fault             => fifo_fault
+        );
+
+    OUTPUT_FIFO : entity work.BRAM_FIFO
+        generic map (
+            DEPTH => DEPTH,
+            WIDTH => 16
+        )
+        port map (
+            i_we                => out_fifo_we,
+            i_wdata             => out_fifo_wdata,
+            i_re                => '0',
+            o_rvalid            => open,
+            o_rdata             => open,
+            o_empty             => open,
+            o_empty_next        => open,
+            o_full              => open,
+            o_full_next         => open,
+            o_fill_count        => open,
+            i_clk               => clk,
+            i_rst               => out_fifo_rst,
+            o_fault             => out_fifo_fault
         );
 
     SYN_MEMORY : entity work.SINGLE_PORT_BRAM
@@ -236,8 +271,8 @@ begin
         i_nrn_index         => nrnldr_nrn_index,
         i_timestep          => lif_timestep,
         o_nrn_state_next    => lif_nrn_state_next,
-        o_event_fifo_out    => lif_event_fifo_out,
-        o_event_fifo_we     => lif_event_fifo_we,
+        o_event_fifo_out    => out_fifo_wdata,
+        o_event_fifo_we     => out_fifo_we,
         o_output_valid      => lif_out_valid,
         o_continue          => lif_continue,
         o_goto_idle         => goto_idle,
@@ -274,12 +309,14 @@ begin
         nrnldr_rst  <= '1';
         nrnwrt_rst  <= '1';
 
-        -- Reset FIFO
+        -- Reset FIFOs
         fifo_rst    <= '1';
         fifo_we     <= '0';
         fifo_wdata  <= (others => '0');
+        out_fifo_rst    <= '1';
         wait for 10 * clk_period;
         fifo_rst    <= '0';
+        out_fifo_rst    <= '0';
         wait until rising_edge(clk);
         synldr_rst  <= '0';
         nrnldr_rst  <= '0';
