@@ -4,7 +4,9 @@ use ieee.numeric_std.all;
 
 entity Reverse_Convolution_Layer is 
 generic(
-    AerBusWidth                        : integer := 32
+    AerBusWidth                         : integer := 32;
+    CoordinateWidth                     : integer := 6;
+    TimeStampWidth                      : integer := 20
 );
 port(
     -- Standard control signals
@@ -29,8 +31,9 @@ architecture behavioral of Reverse_Convolution_Layer is
         PROCESS_EVENT
     );
     signal chip_state, chip_next_state, chip_last_state : main_states_e := IDLE;
-    
-    signal aer_fifo_read_req : std_logic := '0';
+
+    signal aer_x, aer_y     : integer range 0 to 2**CoordinateWidth - 1;
+    signal aer_time_stamp   : integer range 0 to 2**TimeStampWidth - 1;
 begin
 
     state_register_update : process(clk)
@@ -57,17 +60,12 @@ begin
 
     state_machine_controller : process(all)
     begin
-
         chip_next_state <= chip_state;
-
         if enable_i = '0' then
-
             if chip_state /= RESET then
                 chip_next_state <= PAUSE;
             end if;
-
         else
-
             case chip_state is
                 when RESET =>
                     chip_next_state <= IDLE;               
@@ -96,4 +94,19 @@ begin
         end if;
     end process input_fifo_control;
 
+    set_read_event_register : process(chip_state, aer_fifo_bus_i, reset_i)
+    begin
+        if reset_i = '1' then
+            aer_x <= 0;
+            aer_y <= 0;
+            aer_time_stamp <= 0;
+        elsif chip_state = READ_FIFO then
+            -- read the bus and set values on internal signals
+            -- the bus is in the format: [x_coordinate, y_coordinate, time_stamp], width is defined by the generic
+            -- For a bus organized as [x][y][timestamp] from right to left
+            aer_x <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - 1 downto AerBusWidth - CoordinateWidth)));
+            aer_y <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - CoordinateWidth - 1 downto AerBusWidth - 2*CoordinateWidth)));
+            aer_time_stamp <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - 2*CoordinateWidth - 1 downto AerBusWidth - 2*CoordinateWidth - TimeStampWidth)));
+        end if;
+    end process set_read_event_register;
 end behavioral;

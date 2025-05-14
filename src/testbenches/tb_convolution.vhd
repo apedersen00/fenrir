@@ -7,17 +7,19 @@ end entity tb_conv;
 
 architecture testbench of tb_conv is
 
-    CONSTANT CLK_PERIOD     : time                       := 10 ns;
-    CONSTANT AER_BUS_WIDTH  : integer                    := 32;
+    CONSTANT CLK_PERIOD        : time    := 10 ns;
+    CONSTANT AER_BUS_WIDTH     : integer := 32;
+    CONSTANT COORD_WIDTH       : integer := 6;
+    CONSTANT TIME_STAMP_WIDTH  : integer := 20;
 
-    signal clk              : std_logic                  := '1';
-    signal reset_o          : std_logic                  := '0';
-    signal enable_o         : std_logic                  := '0';
+    signal clk                 : std_logic := '1';
+    signal reset_o             : std_logic := '0';
+    signal enable_o            : std_logic := '0';
 
     -- fifo signals
-    signal aer_fifo_bus_o   : std_logic_vector(AER_BUS_WIDTH - 1 downto 0) := (others => '0');
-    signal aer_empty_o      : std_logic := '1';
-    signal aer_fifo_read_i  : std_logic;
+    signal aer_fifo_bus_o      : std_logic_vector(AER_BUS_WIDTH - 1 downto 0) := (others => '0');
+    signal aer_empty_o         : std_logic := '1';
+    signal aer_fifo_read_i     : std_logic;
 
     
 
@@ -26,7 +28,9 @@ begin
     -- UUT
     uut : entity work.Reverse_Convolution_Layer
         generic map(
-            AerBusWidth => AER_BUS_WIDTH
+            AerBusWidth => AER_BUS_WIDTH,
+            CoordinateWidth => COORD_WIDTH,
+            TimeStampWidth => TIME_STAMP_WIDTH
         )
         port map(
             clk                => clk,
@@ -50,6 +54,10 @@ begin
             end loop;
         end procedure;
 
+    variable x : integer := 10;
+    variable y : integer := 20;
+    variable time_stamp : integer := 100;
+
     begin
         -- Reset the system
         reset_o <= '1';
@@ -72,6 +80,14 @@ begin
         -- simulate fifo not empty
         aer_empty_o <= '0';
 
+        wait until aer_fifo_read_i = '1';
+        waitf(1);
+        aer_fifo_bus_o <= std_logic_vector(
+                to_unsigned(x, COORD_WIDTH)) 
+                & std_logic_vector(to_unsigned(y, COORD_WIDTH)) 
+                & std_logic_vector(to_unsigned(time_stamp, TIME_STAMP_WIDTH));
+        aer_empty_o <= '1';
+        waitf(1);
 
         wait;
 
