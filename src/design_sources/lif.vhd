@@ -90,6 +90,11 @@ architecture Behavioral of LIF_NEURON is
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
 
+    signal syn_reg          : std_logic_vector(7 downto 0);
+    signal nrn_reg          : std_logic_vector(11 downto 0);
+    signal idx_reg          : std_logic_vector(11 downto 0);
+    signal reg_valid        : std_logic;
+
 begin
 
     -- configuration decoding
@@ -99,6 +104,23 @@ begin
     -- lockstep the neuron and synapse loader
     o_continue  <= i_nrn_valid_next and i_syn_valid_next;
     o_goto_idle <= i_nrn_valid_last and i_syn_valid_last;
+
+    input_reg : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            if i_nrn_valid and i_syn_valid then
+                syn_reg     <= i_syn_weight;
+                nrn_reg     <= i_nrn_state;
+                idx_reg     <= i_nrn_index;
+                reg_valid   <= '1';
+            else
+                syn_reg     <= (others => '0');
+                nrn_reg     <= (others => '0');
+                idx_reg     <= (others => '0');
+                reg_valid   <= '0';
+            end if;
+        end if;
+    end process;
 
     -- configuration interface
     config : process(i_clk)
@@ -119,8 +141,8 @@ begin
         variable v_next_state : integer range 0 to 65536;
     begin
         if rising_edge(i_clk) then
-            if i_syn_valid = '1' and i_nrn_valid = '1' then
-                v_next_state := to_integer(unsigned(i_syn_weight)) + to_integer(unsigned(i_nrn_state));
+            if reg_valid = '1' then
+                v_next_state := to_integer(unsigned(syn_reg)) + to_integer(unsigned(nrn_reg));
 
                 if i_timestep = '1' then
                     v_next_state := v_next_state - to_integer(unsigned(cfg_beta));
@@ -128,8 +150,8 @@ begin
 
                 if v_next_state >= to_integer(unsigned(cfg_threshold)) then
                     o_nrn_state_next <= (others => '0');
-                    o_event_fifo_out <= std_logic_vector(to_unsigned(0, 16)) when unsigned(i_nrn_index) = 0 else
-                                        "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(i_nrn_index)) - 1, 12));
+                    o_event_fifo_out <= std_logic_vector(to_unsigned(0, 16)) when unsigned(idx_reg) = 0 else
+                                        "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
                     o_event_fifo_we  <= '1';
                 else
                     o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));

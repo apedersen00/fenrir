@@ -118,7 +118,14 @@ begin
     neurons_per_addr    <= 3;
     bits_per_neuron     <= 12;
 
-    o_nrn_index         <= std_logic_vector(to_unsigned(nrn_index, o_nrn_index'length));
+    nrn_index_out : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            o_nrn_index <= std_logic_vector(to_unsigned(nrn_index, o_nrn_index'length));
+        end if;
+    end process;
+
+    -- o_nrn_index         <= (others => '0') when nrn_index = 0 else std_logic_vector(to_unsigned(nrn_index - 1, o_nrn_index'length));
 
     addr_decoding : process(i_clk)
     begin
