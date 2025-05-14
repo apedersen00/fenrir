@@ -193,6 +193,41 @@ begin
         end if;
     end process;
 
+    -- state signal generation
+    state_sig : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+
+            o_syn_valid <= '1' when present_state = ITERATE else '0';
+
+            -- if fetching in BRAM the next immediate value is always valid
+            if (present_state = WAIT_FOR_BRAM) then
+                o_syn_valid_next <= '1';
+            elsif (present_state = ITERATE) then
+                if (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
+                    o_syn_valid_next <= '0';
+                elsif (syn_index /= 0) and ((syn_index + 1) >= unsigned(cfg_layer_size)) then
+                    o_syn_valid_next <= '0';
+                else
+                    o_syn_valid_next <= '1';
+                end if;
+            else
+                o_syn_valid_next <= '0';
+            end if;
+
+            if (present_state = ITERATE) then
+                if (syn_index /= 0) and (syn_index + 1 >= unsigned(cfg_layer_size)) then
+                    o_syn_valid_last <= '1';
+                else
+                    o_syn_valid_last <= '0';
+                end if;
+            else
+                o_syn_valid_last <= '0';
+            end if;
+
+        end if;
+    end process;
+
     -- output multiplexer
     output_mux : process(i_clk)
         variable v_word_index : integer;
@@ -204,43 +239,8 @@ begin
                 o_syn_weight    <= (others => '0');
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
                     i_syn_data((v_word_index + 1) * bits_per_weight - 1 downto v_word_index * bits_per_weight);
-
-                -- generate valid signal
-                if (present_state = ITERATE) then
-                    o_syn_valid <= '1';
-                else
-                    o_syn_valid <= '0';
-                end if;
-
-                -- generate valid next signal
-                if (present_state = WAIT_FOR_BRAM) then
-                    o_syn_valid_next <= '1';
-                elsif (present_state = ITERATE) then
-                    if (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
-                        o_syn_valid_next <= '0';
-                    elsif (syn_index /= 0) and ((syn_index + 1) >= unsigned(cfg_layer_size)) then
-                        o_syn_valid_next <= '0';
-                    else
-                        o_syn_valid_next <= '1';
-                    end if;
-                end if;
-
-                -- generate valid last signal
-                if (present_state = ITERATE) then
-                    if (syn_index /= 0) and (syn_index + 1 >= unsigned(cfg_layer_size)) then
-                        o_syn_valid_last <= '1';
-                    else
-                        o_syn_valid_last <= '0';
-                    end if;
-                else
-                    o_syn_valid_last <= '0';
-                end if;
-
             else
                 o_syn_weight        <= (others => '0');
-                o_syn_valid         <= '0';
-                o_syn_valid_next    <= '0';
-                o_syn_valid_last    <= '0';
             end if;
         end if;
     end process;

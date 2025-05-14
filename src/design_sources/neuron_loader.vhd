@@ -159,6 +159,43 @@ begin
         end if;
     end process;
 
+    -- state signal generation
+    state_sig : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+
+            o_nrn_valid <= '1' when present_state = ITERATE else '0';
+
+            -- if fetching in BRAM the next immediate value is always valid
+            if (present_state = WAIT_FOR_BRAM) then
+                o_nrn_valid_next <= '1';
+            elsif (present_state = ITERATE) then
+                -- if the next neuron is the last in current fetch
+                if (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
+                    o_nrn_valid_next <= '0';
+                -- if the next neuron is the last in layer
+                elsif (nrn_index /= 0) and ((nrn_index + 1) >= unsigned(cfg_layer_size)) then
+                    o_nrn_valid_next <= '0';
+                else
+                    o_nrn_valid_next <= '1';
+                end if;
+            else
+                o_nrn_valid_next <= '0';
+            end if;
+
+            if (present_state = ITERATE) then
+                if (nrn_index /= 0) and (nrn_index + 1 >= unsigned(cfg_layer_size)) then
+                    o_nrn_valid_last <= '1';
+                else
+                    o_nrn_valid_last <= '0';
+                end if;
+            else
+                o_nrn_valid_last <= '0';
+            end if;
+
+        end if;
+    end process;
+
     -- output multiplexer
     output_mux : process(i_clk)
         variable v_word_index : integer;
@@ -170,39 +207,8 @@ begin
                 o_nrn_state     <= (others => '0');
                 o_nrn_state(bits_per_neuron - 1 downto 0) <=
                     i_nrn_data((v_word_index + 1) * bits_per_neuron - 1 downto v_word_index * bits_per_neuron);
-
-                if (present_state = ITERATE) then
-                    o_nrn_valid <= '1';
-                else
-                    o_nrn_valid <= '0';
-                end if;
-
-                if (present_state = WAIT_FOR_BRAM) then
-                    o_nrn_valid_next <= '1';
-                elsif (present_state = ITERATE) then
-                    if (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
-                        o_nrn_valid_next <= '0';
-                    elsif (nrn_index /= 0) and ((nrn_index + 1) >= unsigned(cfg_layer_size)) then
-                        o_nrn_valid_next <= '0';
-                    else
-                        o_nrn_valid_next <= '1';
-                    end if;
-                end if;
-
-                if (present_state = ITERATE) then
-                    if (nrn_index /= 0) and (nrn_index + 1 >= unsigned(cfg_layer_size)) then
-                        o_nrn_valid_last <= '1';
-                    else
-                        o_nrn_valid_last <= '0';
-                    end if;
-                else
-                    o_nrn_valid_last <= '0';
-                end if;
-
             else
-                o_nrn_state         <= (others => '0');
-                o_nrn_valid         <= '0';
-                o_nrn_valid_next    <= '0';
+                o_nrn_state     <= (others => '0');
             end if;
         end if;
     end process;
