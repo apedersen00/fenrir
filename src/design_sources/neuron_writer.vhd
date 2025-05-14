@@ -90,9 +90,10 @@ architecture Behavioral of NEURON_WRITER is
     signal reg_nrn_state_1      : std_logic_vector(11 downto 0);
     signal reg_nrn_state_2      : std_logic_vector(11 downto 0);
 
+    signal nrn_we               : std_logic;
     signal nrn_data             : std_logic_vector(35 downto 0);    -- packed vector of neuron data for output
 
-    signal counter              : integer range 0 to 10;
+    signal nrn_addr_cntr        : integer range 0 to 512;
 
 begin
 
@@ -100,7 +101,18 @@ begin
     cfg_layer_size      <= reg_cfg_0(10 downto 0);
     cfg_layer_offset    <= reg_cfg_0(21 downto 11);
 
+    o_nrn_we            <= nrn_we;
+    o_nrn_addr          <= std_logic_vector(to_unsigned(nrn_addr_cntr, o_nrn_addr'length));
     o_nrn_data          <= nrn_data;
+
+    addr_incr : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            if nrn_we = '1' then
+                nrn_addr_cntr <= nrn_addr_cntr + 1;
+            end if;
+        end if;
+    end process;
 
     -- configuration interface
     config : process(i_clk)
@@ -152,7 +164,7 @@ begin
                reg_nrn_valid_1 = '1' and
                reg_nrn_valid_2 = '1' then
 
-                o_nrn_we <= '1';
+                nrn_we <= '1';
                 nrn_data <= reg_nrn_state_0 &
                             reg_nrn_state_1 &
                             reg_nrn_state_2;
@@ -161,7 +173,7 @@ begin
                 reg_nrn_valid_1 <= '0';
                 reg_nrn_valid_2 <= '0';
             else
-                o_nrn_we <= '0';
+                nrn_we <= '0';
                 nrn_data <= (others => '0');
             end if;
 
