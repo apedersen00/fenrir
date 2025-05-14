@@ -285,6 +285,17 @@ begin
         nrnldr_cfg_en   <= '0';
         wait until rising_edge(clk);
 
+        -- configure lif
+        lif_cfg_en      <= '1';
+        lif_cfg_addr    <= "0000";
+        lif_cfg_val     <=
+            "00000000"                              &   -- zero padding
+            std_logic_vector(to_unsigned(1, 12))    &   -- beta
+            std_logic_vector(to_unsigned(10, 12));      -- threshold
+        wait until rising_edge(clk);
+        lif_cfg_en   <= '0';
+        wait until rising_edge(clk);
+
         -- start processing events
         synldr_start    <= '1';
         nrnldr_start    <= '1';
