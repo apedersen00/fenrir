@@ -377,23 +377,29 @@ begin
         nrnwrt_cfg_en   <= '0';
         wait until rising_edge(clk);
 
-        -- start processing events
-        synldr_start    <= '1';
-        nrnldr_start    <= '1';
+        for i in 0 to 2 loop
 
-        for i in 0 to 100 loop
+            -- start processing events
+            synldr_start    <= '1';
+            nrnldr_start    <= '1';
             wait until rising_edge(clk);
             synldr_start    <= '0';
             nrnldr_start    <= '0';
+
+            wait until rising_edge(clk) and synldr_busy = '1';
+
+            while synldr_busy = '1' loop
+                wait until rising_edge(clk);
+            end loop;
+
+            for i in 0 to 10 loop
+                wait until rising_edge(clk);
+            end loop;
+
         end loop;
 
-        synldr_start    <= '1';
-        nrnldr_start    <= '1';
-
-        for i in 0 to 100 loop
+        for i in 0 to 10 loop
             wait until rising_edge(clk);
-            synldr_start    <= '0';
-            nrnldr_start    <= '0';
         end loop;
 
         finish;
