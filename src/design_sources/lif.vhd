@@ -138,7 +138,10 @@ begin
                 end if;
 
             else
-                o_event_fifo_we <= '0';
+                o_event_fifo_we     <= '0';
+                o_nrn_state_next    <= (others => '0');
+                o_event_fifo_out    <= (others => '0');
+                o_event_fifo_we     <= '0';
             end if;
         end if;
     end process;
