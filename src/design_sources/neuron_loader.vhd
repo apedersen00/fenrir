@@ -171,7 +171,7 @@ begin
     begin
         if rising_edge(i_clk) then
 
-            o_nrn_valid <= '1' when present_state = ITERATE else '0';
+            o_nrn_valid <= ('1' and not i_goto_idle) when present_state = ITERATE else '0';
 
             -- if fetching in BRAM the next immediate value is always valid
             if (present_state = WAIT_FOR_BRAM) then
