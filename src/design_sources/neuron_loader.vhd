@@ -4,6 +4,7 @@
 --
 --  File: neuron_loader.vhd
 --  Description: FSM for loading the LIF logic with neurons.
+--  VHDL Version: VHDL-2008
 --
 --  Author(s):
 --      - A. Pedersen, Aarhus University

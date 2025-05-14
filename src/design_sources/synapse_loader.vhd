@@ -5,6 +5,7 @@
 --  File: synapse_loader.vhd
 --  Description: FSM for loading the LIF logic with synapses. Address decoding for the
 --               synapse memory.
+--  VHDL Version: VHDL-2008
 --
 --  Author(s):
 --      - A. Pedersen, Aarhus University
