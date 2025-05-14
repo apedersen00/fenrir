@@ -187,9 +187,9 @@ begin
                reg_nrn_valid_2 = '1' then
 
                 nrn_we <= '1';
-                nrn_data <= reg_nrn_state_0 &
+                nrn_data <= reg_nrn_state_2 &
                             reg_nrn_state_1 &
-                            reg_nrn_state_2;
+                            reg_nrn_state_0;
 
                 reg_nrn_valid_0 <= '0';
                 reg_nrn_valid_1 <= '0';

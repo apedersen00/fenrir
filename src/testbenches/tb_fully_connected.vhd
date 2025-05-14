@@ -387,6 +387,15 @@ begin
             nrnldr_start    <= '0';
         end loop;
 
+        synldr_start    <= '1';
+        nrnldr_start    <= '1';
+
+        for i in 0 to 100 loop
+            wait until rising_edge(clk);
+            synldr_start    <= '0';
+            nrnldr_start    <= '0';
+        end loop;
+
         finish;
     end process;
 
