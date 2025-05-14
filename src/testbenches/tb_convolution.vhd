@@ -30,7 +30,11 @@ begin
         generic map(
             AerBusWidth => AER_BUS_WIDTH,
             CoordinateWidth => COORD_WIDTH,
-            TimeStampWidth => TIME_STAMP_WIDTH
+            TimeStampWidth => TIME_STAMP_WIDTH,
+            KernelSizeOneAxis => 5,
+            ImageWidth => 64,
+            ImageHeight => 64,
+            MemoryAddressWidth => 11
         )
         port map(
             clk                => clk,

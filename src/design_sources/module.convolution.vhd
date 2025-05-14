@@ -6,7 +6,11 @@ entity Reverse_Convolution_Layer is
 generic(
     AerBusWidth                         : integer := 32;
     CoordinateWidth                     : integer := 6;
-    TimeStampWidth                      : integer := 20
+    TimeStampWidth                      : integer := 20;
+    KernelSizeOneAxis                   : integer := 5;
+    ImageWidth                          : integer := 64;
+    ImageHeight                         : integer := 64;
+    MemoryAddressWidth                  : integer := 11
 );
 port(
     -- Standard control signals
@@ -30,10 +34,25 @@ architecture behavioral of Reverse_Convolution_Layer is
         READ_FIFO,
         PROCESS_EVENT
     );
-    signal chip_state, chip_next_state, chip_last_state : main_states_e := IDLE;
 
-    signal aer_x, aer_y     : integer range 0 to 2**CoordinateWidth - 1;
+    signal chip_state, chip_next_state, chip_last_state : main_states_e := IDLE;
     signal aer_time_stamp   : integer range 0 to 2**TimeStampWidth - 1;
+
+    type coordinate_t is record
+        x : integer range 0 to ImageWidth - 1;
+        y : integer range 0 to ImageHeight - 1;
+    end record;
+    type pixels_to_update_t is array(0 to (KernelSizeOneAxis**2) - 1) of coordinate_t;
+    signal pixels_to_update : pixels_to_update_t := (others => (x => 0, y => 0));
+    signal addresses_to_process : integer range 0 to (KernelSizeOneAxis**2) - 1 := 0;
+
+    function convert_coordinate_to_address(coord: coordinate_t) return std_logic_vector is
+    begin
+        return std_logic_vector(
+            to_unsigned(coord.x + coord.y * ImageWidth, MemoryAddressWidth)
+        );
+    end function;
+
 begin
 
     state_register_update : process(clk)
@@ -76,6 +95,8 @@ begin
                 when READ_FIFO =>
                     chip_next_state <= PROCESS_EVENT;
                 WHEN PROCESS_EVENT =>
+                    -- temporary just move to next state idle
+                    chip_next_state <= IDLE;
                 when PAUSE =>
                     chip_next_state <= chip_last_state;
                 when others =>
@@ -94,19 +115,50 @@ begin
         end if;
     end process input_fifo_control;
 
-    set_read_event_register : process(chip_state, aer_fifo_bus_i, reset_i)
+    set_read_event_register : process(clk)
+        variable aer_x : integer range 0 to 2**CoordinateWidth - 1 := 0;
+        variable aer_y : integer range 0 to 2**CoordinateWidth - 1 := 0;
+        variable idx_counter : integer range 0 to (KernelSizeOneAxis**2) - 1 := 0;
+        variable kernel_x, kernel_y : integer := 0;
     begin
+    if rising_edge(clk) then
+
         if reset_i = '1' then
-            aer_x <= 0;
-            aer_y <= 0;
             aer_time_stamp <= 0;
+            aer_x := 0;
+            aer_y := 0;
+            pixels_to_update <= (others => (x => 0, y => 0));
+            addresses_to_process <= 0;
         elsif chip_state = READ_FIFO then
-            -- read the bus and set values on internal signals
-            -- the bus is in the format: [x_coordinate, y_coordinate, time_stamp], width is defined by the generic
-            -- For a bus organized as [x][y][timestamp] from right to left
-            aer_x <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - 1 downto AerBusWidth - CoordinateWidth)));
-            aer_y <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - CoordinateWidth - 1 downto AerBusWidth - 2*CoordinateWidth)));
+            -- Read aer bus
+            aer_x := to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - 1 downto AerBusWidth - CoordinateWidth)));
+            aer_y := to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - CoordinateWidth - 1 downto AerBusWidth - 2*CoordinateWidth)));
             aer_time_stamp <= to_integer(unsigned(aer_fifo_bus_i(AerBusWidth - 2*CoordinateWidth - 1 downto AerBusWidth - 2*CoordinateWidth - TimeStampWidth)));
+            -- reset the previous values
+            pixels_to_update <= (others => (x => 0, y => 0));
+            addresses_to_process <= 0;
+
+            for x in -(KernelSizeOneAxis-1)/2 to (KernelSizeOneAxis-1)/2 loop
+                for y in -(KernelSizeOneAxis-1)/2 to (KernelSizeOneAxis-1)/2 loop
+
+                    kernel_x := aer_x + x;
+                    kernel_y := aer_y + y;
+
+                    if (kernel_x >= 0 and kernel_x < ImageWidth and
+                        kernel_y >= 0 and kernel_y < ImageHeight) 
+                    then
+                        pixels_to_update(idx_counter) <= 
+                            (
+                                x => kernel_x, 
+                                y => kernel_y
+                            );
+                        idx_counter := idx_counter + 1;
+                    end if;
+
+                end loop;
+            end loop;
+            addresses_to_process <= idx_counter;
         end if;
+    end if;
     end process set_read_event_register;
 end behavioral;
