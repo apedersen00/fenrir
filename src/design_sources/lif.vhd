@@ -71,7 +71,7 @@ entity LIF_NEURON is
         i_nrn_index         : in std_logic_vector(11 downto 0);         -- address of neuron
 
         -- control
-        i_timestep      : in std_logic;                             -- timestep enable
+        i_timestep          : in std_logic;                             -- timestep enable
 
         -- outputs
         o_nrn_state_next    : out std_logic_vector(11 downto 0);    -- next neuron state

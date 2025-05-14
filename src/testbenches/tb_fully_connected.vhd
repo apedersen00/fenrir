@@ -329,6 +329,17 @@ begin
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
 
+        -- configure neuron writer
+        nrnwrt_cfg_en      <= '1';
+        nrnwrt_cfg_addr    <= "0000";
+        nrnwrt_cfg_val     <=
+            "0000000000"                            &   -- zero padding
+            std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+        wait until rising_edge(clk);
+        nrnwrt_cfg_en   <= '0';
+        wait until rising_edge(clk);
+
         -- start processing events
         synldr_start    <= '1';
         nrnldr_start    <= '1';

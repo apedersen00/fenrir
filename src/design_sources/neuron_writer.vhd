@@ -38,6 +38,7 @@ use ieee.math_real.all;
 --      o_nrn_data  =>
 --      i_nrn_state =>
 --      i_valid     =>
+--      i_last      =>
 --      i_nrn_data  =>
 --      i_clk       =>
 --      i_rst       =>
@@ -93,6 +94,7 @@ architecture Behavioral of NEURON_WRITER is
     signal nrn_we               : std_logic;
     signal nrn_data             : std_logic_vector(35 downto 0);    -- packed vector of neuron data for output
 
+    signal nrn_index            : integer range 0 to 1024;
     signal nrn_addr_cntr        : integer range 0 to 512;
 
 begin
@@ -135,6 +137,7 @@ begin
         if rising_edge(i_clk) then
             if i_rst = '1' then
 
+                nrn_index       <= -1;
                 reg_nrn_state_0 <= (others => '0');
                 reg_nrn_state_1 <= (others => '0');
                 reg_nrn_state_2 <= (others => '0');
@@ -143,6 +146,8 @@ begin
                 reg_nrn_valid_2 <= '0';
 
             elsif i_valid = '1' then
+
+                nrn_index <= nrn_index + 1;
 
                 if reg_nrn_valid_0 = '0' then
                     reg_nrn_state_0 <= i_nrn_state;
@@ -156,6 +161,23 @@ begin
                 else
                     -- overflow :(
                     o_fault <= '1';
+                end if;
+
+            elsif (nrn_index + 1 >= unsigned(cfg_layer_size)) and (unsigned(cfg_layer_size) /= 0) then
+
+                nrn_index <= 0;
+
+                if reg_nrn_valid_0 = '0' then
+                    reg_nrn_state_0 <= i_nrn_data(35 downto 24);
+                    reg_nrn_valid_0 <= '1';
+                end if;
+                if reg_nrn_valid_1 = '0' then
+                    reg_nrn_state_1 <= i_nrn_data(23 downto 12);
+                    reg_nrn_valid_1 <= '1';
+                end if;
+                if reg_nrn_valid_2 = '0' then
+                    reg_nrn_state_2 <= i_nrn_data(11 downto 0);
+                    reg_nrn_valid_2 <= '1';
                 end if;
 
             end if;
@@ -179,6 +201,5 @@ begin
 
         end if;
     end process;
-
 
 end Behavioral;
