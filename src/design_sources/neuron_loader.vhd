@@ -279,13 +279,13 @@ begin
                 o_busy          <= '1';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
-                o_nrn_re        <= '0';
+                o_nrn_re        <= '1';
 
             when ITERATE    =>
                 o_busy          <= '1';
                 counter_enable  <= '1' when i_continue = '1' else '0';
                 counter_reset   <= '0';
-                o_nrn_re        <= '0';
+                o_nrn_re        <= '1';
         end case;
     end process;
 

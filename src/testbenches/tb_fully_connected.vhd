@@ -149,7 +149,7 @@ begin
         i_we        => '0',
         i_waddr     => (others => '0'),
         i_wdata     => (others => '0'),
-        i_re        => '1',
+        i_re        => nrnldr_re,
         i_raddr     => nrnmem_addr,
         o_rdata     => nrnldr_data,
         i_clk       => clk
