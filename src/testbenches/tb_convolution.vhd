@@ -58,9 +58,16 @@ begin
             end loop;
         end procedure;
 
-    variable x : integer := 10;
-    variable y : integer := 20;
-    variable time_stamp : integer := 100;
+        function set_bus(
+            x: integer;
+            y: integer;
+            time_stamp: integer
+        ) return std_logic_vector is
+        begin
+            return std_logic_vector(to_unsigned(x, COORD_WIDTH)) 
+                    & std_logic_vector(to_unsigned(y, COORD_WIDTH)) 
+                    & std_logic_vector(to_unsigned(time_stamp, TIME_STAMP_WIDTH));
+        end function;
 
     begin
         -- Reset the system
@@ -86,13 +93,14 @@ begin
 
         wait until aer_fifo_read_i = '1';
         waitf(1);
-        aer_fifo_bus_o <= std_logic_vector(
-                to_unsigned(x, COORD_WIDTH)) 
-                & std_logic_vector(to_unsigned(y, COORD_WIDTH)) 
-                & std_logic_vector(to_unsigned(time_stamp, TIME_STAMP_WIDTH));
+        aer_fifo_bus_o <= set_bus(10,20,100);
         aer_empty_o <= '1';
+        waitf(10);
+        aer_empty_o <= '0';
+        wait until aer_fifo_read_i = '1';
         waitf(1);
-
+        aer_fifo_bus_o <= set_bus(1,20,200);
+        aer_empty_o <= '1';
         wait;
 
     end process stimulus;

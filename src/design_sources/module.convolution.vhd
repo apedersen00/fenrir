@@ -137,7 +137,7 @@ begin
             -- reset the previous values
             pixels_to_update <= (others => (x => 0, y => 0));
             addresses_to_process <= 0;
-
+            idx_counter := 0;
             for x in -(KernelSizeOneAxis-1)/2 to (KernelSizeOneAxis-1)/2 loop
                 for y in -(KernelSizeOneAxis-1)/2 to (KernelSizeOneAxis-1)/2 loop
 
