@@ -165,7 +165,7 @@ begin
 
             elsif (nrn_index + 1 >= unsigned(cfg_layer_size)) and (unsigned(cfg_layer_size) /= 0) then
 
-                nrn_index <= 0;
+                nrn_index <= -1;
 
                 if reg_nrn_valid_0 = '0' then
                     reg_nrn_state_0 <= i_nrn_data(35 downto 24);
