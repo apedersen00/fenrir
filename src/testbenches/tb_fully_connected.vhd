@@ -84,6 +84,17 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal lif_continue          : std_logic;
     signal lif_rst               : std_logic;
     signal goto_idle             : std_logic;
+    signal lif_out_valid         : std_logic;
+
+    -- neuron writer
+    signal nrnwrt_cfg_en        : std_logic;
+    signal nrnwrt_cfg_addr      : std_logic_vector(3 downto 0);
+    signal nrnwrt_cfg_val       : std_logic_vector(31 downto 0);
+    signal nrnwrt_mem_we        : std_logic;
+    signal nrnwrt_mem_addr      : std_logic_vector(1 downto 0);
+    signal nrnwrt_mem_data      : std_logic_vector(35 downto 0);
+    signal nrnwrt_rst           : std_logic;
+    signal nrnwrt_fault         : std_logic;
 
     -- synapse memory
     signal synmem_addr      : std_logic_vector(10 downto 0);
@@ -146,9 +157,9 @@ begin
         FILENAME    => "data/nrn_init.data"
     )
     port map (
-        i_we        => '0',
-        i_waddr     => (others => '0'),
-        i_wdata     => (others => '0'),
+        i_we        => nrnwrt_mem_we,
+        i_waddr     => nrnwrt_mem_addr,
+        i_wdata     => nrnwrt_mem_data,
         i_re        => nrnldr_re,
         i_raddr     => nrnmem_addr,
         o_rdata     => nrnldr_data,
@@ -227,10 +238,30 @@ begin
         o_nrn_state_next    => lif_nrn_state_next,
         o_event_fifo_out    => lif_event_fifo_out,
         o_event_fifo_we     => lif_event_fifo_we,
+        o_output_valid      => lif_out_valid,
         o_continue          => lif_continue,
         o_goto_idle         => goto_idle,
         i_clk               => clk,
         i_rst               => lif_rst
+    );
+
+    NRN_WRITER : entity work.NEURON_WRITER
+    generic map (
+        NRN_MEM_DEPTH   => 4
+    )
+    port map (
+        i_cfg_en    => nrnwrt_cfg_en,
+        i_cfg_addr  => nrnwrt_cfg_addr,
+        i_cfg_val   => nrnwrt_cfg_val,
+        o_nrn_we    => nrnwrt_mem_we,
+        o_nrn_addr  => nrnwrt_mem_addr,
+        o_nrn_data  => nrnwrt_mem_data,
+        i_nrn_state => lif_nrn_state_next,
+        i_valid     => lif_out_valid,
+        i_nrn_data  => (others => '0'),
+        i_clk       => clk,
+        i_rst       => nrnwrt_rst,
+        o_fault     => nrnwrt_fault
     );
 
     clk <= not clk after clk_period / 2;

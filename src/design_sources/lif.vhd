@@ -32,9 +32,11 @@ use ieee.math_real.all;
 --      i_cfg_val           =>
 --      i_nrn_valid         =>
 --      i_nrn_valid_next    =>
+--      i_nrn_valid_last    =>
 --      i_nrn_state         =>
 --      i_syn_valid         =>
 --      i_syn_valid_next    =>
+--      i_syn_valid_last    =>
 --      i_syn_weight        =>
 --      i_nrn_index         =>
 --      i_timestep          =>
@@ -42,6 +44,8 @@ use ieee.math_real.all;
 --      o_event_fifo_out    =>
 --      o_event_fifo_we     =>
 --      o_continue          =>
+--      o_goto_idle         =>
+--      o_output_valid      =>
 --      i_clk               =>
 --      i_rst               =>
 --  );
@@ -75,6 +79,7 @@ entity LIF_NEURON is
         o_event_fifo_we     : out std_logic;                        -- enable write to output fifo
         o_continue          : out std_logic;                        -- continue iteration
         o_goto_idle         : out std_logic;
+        o_output_valid      : out std_logic;
 
         -- misc
         i_clk           : in std_logic;
@@ -104,6 +109,13 @@ begin
     -- lockstep the neuron and synapse loader
     o_continue  <= i_nrn_valid_next and i_syn_valid_next;
     o_goto_idle <= i_nrn_valid_last and i_syn_valid_last;
+
+    out_val : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            o_output_valid <= reg_valid;
+        end if;
+    end process;
 
     input_reg : process(i_clk)
     begin
