@@ -244,10 +244,18 @@ begin
                 end if;
 
             when GET_NEURONS =>
-                next_state  <= WAIT_FOR_BRAM;
+                if (i_goto_idle = '1') then
+                    next_state <= IDLE;
+                else
+                    next_state  <= WAIT_FOR_BRAM;
+                end if;
 
             when WAIT_FOR_BRAM =>
-                next_state <= ITERATE;
+                if (i_goto_idle = '1') then
+                    next_state <= IDLE;
+                else
+                    next_state <= ITERATE;
+                end if;
 
             when ITERATE =>
                 if (i_goto_idle = '1') then
