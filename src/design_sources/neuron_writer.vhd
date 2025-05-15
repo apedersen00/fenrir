@@ -110,10 +110,8 @@ begin
     addr_incr : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if (nrn_we = '1') and (nrn_index + 1 < unsigned(cfg_layer_size)) and (unsigned(cfg_layer_size) /= 0) then
+            if (nrn_we = '1') then
                 nrn_addr_cntr <= nrn_addr_cntr + 1;
-            else
-                nrn_addr_cntr <= 0;
             end if;
         end if;
     end process;
