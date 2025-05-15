@@ -327,7 +327,7 @@ begin
 
         -- fill the FIFO
         while fifo_full_next = '0' loop
-            fifo_wdata <= std_logic_vector(unsigned(fifo_wdata) + 1);
+            fifo_wdata <= std_logic_vector(to_unsigned(0, 32));
             wait until rising_edge(clk);
         end loop;
 
@@ -339,7 +339,7 @@ begin
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
         wait until rising_edge(clk);
         synldr_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -350,7 +350,7 @@ begin
         nrnldr_cfg_val  <=
             "0000000000"                            &   -- zero padding
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
         wait until rising_edge(clk);
         nrnldr_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -361,7 +361,7 @@ begin
         lif_cfg_val     <=
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 12))    &   -- beta
-            std_logic_vector(to_unsigned(10, 12));      -- threshold
+            std_logic_vector(to_unsigned(210, 12));      -- threshold
         wait until rising_edge(clk);
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -372,12 +372,12 @@ begin
         nrnwrt_cfg_val     <=
             "0000000000"                            &   -- zero padding
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
         wait until rising_edge(clk);
         nrnwrt_cfg_en   <= '0';
         wait until rising_edge(clk);
 
-        for i in 0 to 2 loop
+        for i in 0 to 99 loop
 
             -- start processing events
             synldr_start    <= '1';
