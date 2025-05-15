@@ -94,6 +94,7 @@ architecture Behavioral of LIF_NEURON is
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
+    signal cfg_bits_per_syn : integer;
 
     signal syn_reg          : std_logic_vector(7 downto 0);
     signal nrn_reg          : std_logic_vector(11 downto 0);
@@ -105,6 +106,7 @@ begin
     -- configuration decoding
     cfg_threshold   <= reg_cfg_0(11 downto 0);
     cfg_beta        <= reg_cfg_0(23 downto 12);
+    cfg_bits_per_syn <= 4;
 
     -- lockstep the neuron and synapse loader
     o_continue  <= i_nrn_valid_next and i_syn_valid_next;
@@ -150,11 +152,11 @@ begin
     end process;
 
     nxt_state : process(i_clk)
-        variable v_next_state : integer range 0 to 65536;
+        variable v_next_state : integer range -65536 to 65536;
     begin
         if rising_edge(i_clk) then
             if reg_valid = '1' then
-                v_next_state := to_integer(unsigned(syn_reg)) + to_integer(unsigned(nrn_reg));
+                v_next_state := to_integer(signed(syn_reg(cfg_bits_per_syn - 1 downto 0))) + to_integer(signed(nrn_reg));
 
                 if i_timestep = '1' then
                     v_next_state := v_next_state - to_integer(unsigned(cfg_beta));
@@ -166,7 +168,7 @@ begin
                                         "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
                     o_event_fifo_we  <= '1';
                 else
-                    o_nrn_state_next <= std_logic_vector(to_unsigned(v_next_state, o_nrn_state_next'length));
+                    o_nrn_state_next <= std_logic_vector(to_signed(v_next_state, o_nrn_state_next'length));
                     o_event_fifo_out <= (others => '0');
                     o_event_fifo_we  <= '0';
                 end if;
