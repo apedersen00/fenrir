@@ -94,7 +94,7 @@ architecture Behavioral of NEURON_WRITER is
     signal nrn_we               : std_logic;
     signal nrn_data             : std_logic_vector(35 downto 0);    -- packed vector of neuron data for output
 
-    signal nrn_index            : integer range 0 to 1024;
+    signal nrn_index            : integer range -1 to 1024;
     signal nrn_addr_cntr        : integer range 0 to 512;
 
 begin
