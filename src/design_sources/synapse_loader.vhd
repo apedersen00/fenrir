@@ -78,7 +78,7 @@ entity SYNAPSE_LOADER is
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
-        i_syn_data          : in std_logic_vector(31 downto 0);     -- neuron data
+        i_syn_data          : in std_logic_vector(39 downto 0);     -- neuron data
 
         -- control signals
         i_start             : in std_logic;
@@ -133,7 +133,7 @@ begin
         -- TODO: Fix the number of bits used for syn_addr_cntr
         -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
-            o_syn_addr <= i_fifo_rdata(9 downto 0) & std_logic_vector(to_unsigned(syn_addr_cntr, 1));
+            o_syn_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata(9 downto 0))) + syn_addr_cntr, 10));
         end if;
     end process;
 
@@ -148,7 +148,7 @@ begin
 
             -- 4 bits per synapse
             when "01"   =>
-                weights_per_addr <= 8;
+                weights_per_addr <= 10;
                 bits_per_weight  <= 4;
 
             -- 8 bits per synapse
