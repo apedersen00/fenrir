@@ -17,6 +17,9 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 use std.env.finish;
 
+use ieee.std_logic_textio.all;
+use std.textio.all;
+
 entity TB_FULLY_CONNECTED is
 end TB_FULLY_CONNECTED;
 
@@ -120,6 +123,9 @@ architecture behavior of TB_FULLY_CONNECTED is
 
     signal syn_addr         : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
     signal syn_data         : std_logic_vector(WIDTH - 1 downto 0);
+
+    -- testbench
+    signal event_number     : integer range 0 to 1024;
 
 begin
 
@@ -301,6 +307,34 @@ begin
 
     clk <= not clk after clk_period / 2;
 
+    MEMREC_WRITE_PROCESS : process(clk)
+        file result : text open write_mode is ("mem_rec.csv");
+        variable lo : line;
+    begin
+        if rising_edge(clk) then
+            if nrnwrt_mem_we = '1' then
+                write(lo, nrnwrt_mem_addr);
+                write(lo, ',');
+                write(lo, nrnwrt_mem_data);
+                writeline(result, lo);
+            end if;
+        end if;
+    end process;
+
+    SPKREC_WRITE_PROCESS : process(clk)
+        file result : text open write_mode is ("spk_rec.csv");
+        variable lo : line;
+    begin
+        if rising_edge(clk) then
+            if out_fifo_we = '1' then
+                write(lo, event_number);
+                write(lo, ',');
+                write(lo, out_fifo_wdata);
+                writeline(result, lo);
+            end if;
+        end if;
+    end process;
+
     PROC_SEQUENCER : process
     begin
 
@@ -308,6 +342,7 @@ begin
         synldr_rst  <= '1';
         nrnldr_rst  <= '1';
         nrnwrt_rst  <= '1';
+        event_number <= 0;
 
         -- Reset FIFOs
         fifo_rst    <= '1';
@@ -361,7 +396,7 @@ begin
         lif_cfg_val     <=
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 12))    &   -- beta
-            std_logic_vector(to_unsigned(210, 12));      -- threshold
+            std_logic_vector(to_unsigned(420, 12));      -- threshold
         wait until rising_edge(clk);
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -395,6 +430,8 @@ begin
             for i in 0 to 10 loop
                 wait until rising_edge(clk);
             end loop;
+
+            event_number <= event_number + 1;
 
         end loop;
 
