@@ -26,7 +26,7 @@ end TB_FULLY_CONNECTED;
 architecture behavior of TB_FULLY_CONNECTED is
 
     constant clk_period : time := 10 ns;
-    constant DEPTH      : integer := 128;
+    constant DEPTH      : integer := 512;
     constant WIDTH      : integer := 32;
 
     signal clk              : std_logic := '0';
@@ -114,8 +114,8 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal nrnwrt_fault         : std_logic;
 
     -- synapse memory
-    signal synmem_addr      : std_logic_vector(10 downto 0);
-    signal synmem_dout      : std_logic_vector(31 downto 0);
+    signal synmem_addr      : std_logic_vector(9 downto 0);
+    signal synmem_dout      : std_logic_vector(39 downto 0);
 
     -- neuron memory
     signal nrnmem_addr      : std_logic_vector(1 downto 0);
@@ -179,8 +179,8 @@ begin
 
     SYN_MEMORY : entity work.SINGLE_PORT_BRAM
     generic map (
-        DEPTH       => 1280,
-        WIDTH       => 32,
+        DEPTH       => 1024,
+        WIDTH       => 40,
         FILENAME    => "data/syn_init.data"
     )
     port map (
@@ -209,8 +209,8 @@ begin
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
     generic map (
-        SYN_MEM_DEPTH   => 1280,
-        SYN_MEM_WIDTH   => 32
+        SYN_MEM_DEPTH   => 1024,
+        SYN_MEM_WIDTH   => 40
     )
     port map (
         i_cfg_en            => synldr_cfg_en,
@@ -336,6 +336,12 @@ begin
     end process;
 
     PROC_SEQUENCER : process
+
+        file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/spike_data.txt";
+        variable line_buffer    : line;
+        variable bv_data : bit_vector(31 downto 0);
+        variable slv_data : std_logic_vector(31 downto 0);
+
     begin
 
         -- Reset Synapse and Neuron Loader
@@ -360,9 +366,23 @@ begin
         -- start writing
         fifo_we     <= '1';
 
+        -- dummy fill since we always skip the first ???
+        fifo_wdata  <= (others => '0');
+        wait until rising_edge(clk);
+
         -- fill the FIFO
         while fifo_full_next = '0' loop
-            fifo_wdata <= std_logic_vector(to_unsigned(0, 32));
+            if not endfile(bin_file) then
+                readline(bin_file, line_buffer);
+                read(line_buffer, bv_data);
+
+                slv_data := to_stdlogicvector(bv_data);
+
+                fifo_wdata <= slv_data;
+            else
+                exit;
+            end if;
+
             wait until rising_edge(clk);
         end loop;
 
@@ -374,7 +394,7 @@ begin
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
         wait until rising_edge(clk);
         synldr_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -385,7 +405,7 @@ begin
         nrnldr_cfg_val  <=
             "0000000000"                            &   -- zero padding
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
         wait until rising_edge(clk);
         nrnldr_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -396,7 +416,7 @@ begin
         lif_cfg_val     <=
             "00000000"                              &   -- zero padding
             std_logic_vector(to_unsigned(1, 12))    &   -- beta
-            std_logic_vector(to_unsigned(420, 12));      -- threshold
+            std_logic_vector(to_unsigned(38, 12));      -- threshold
         wait until rising_edge(clk);
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -407,12 +427,12 @@ begin
         nrnwrt_cfg_val     <=
             "0000000000"                            &   -- zero padding
             std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-            std_logic_vector(to_unsigned(3, 11));      -- neurons per layer
+            std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
         wait until rising_edge(clk);
         nrnwrt_cfg_en   <= '0';
         wait until rising_edge(clk);
 
-        for i in 0 to 99 loop
+        while fifo_empty = '0' loop
 
             -- start processing events
             synldr_start    <= '1';
