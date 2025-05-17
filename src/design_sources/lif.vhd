@@ -109,8 +109,8 @@ begin
     cfg_bits_per_syn <= 4;
 
     -- lockstep the neuron and synapse loader
-    o_continue  <= i_nrn_valid_next and i_syn_valid_next;
-    o_goto_idle <= i_nrn_valid_last and i_syn_valid_last;
+    o_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
+    o_goto_idle <= i_nrn_valid_last and (i_syn_valid_last or i_timestep);
 
     out_val : process(i_clk)
     begin
@@ -122,7 +122,7 @@ begin
     input_reg : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_nrn_valid and i_syn_valid then
+            if i_nrn_valid and (i_syn_valid or i_timestep) then
                 syn_reg     <= i_syn_weight;
                 nrn_reg     <= i_nrn_state;
                 idx_reg     <= i_nrn_index;
@@ -152,17 +152,22 @@ begin
     end process;
 
     nxt_state : process(i_clk)
-        variable v_next_state : integer range -65536 to 65536;
+        variable v_syn_weight   : integer range -2047 to 2047;
+        variable v_cur_state    : integer range -2047 to 2047;
+        variable v_next_state   : integer range -2047 to 2047;
     begin
         if rising_edge(i_clk) then
             if reg_valid = '1' then
-                v_next_state := to_integer(signed(syn_reg(cfg_bits_per_syn - 1 downto 0))) + to_integer(signed(nrn_reg));
+                v_cur_state     := to_integer(signed(nrn_reg));
+                v_syn_weight    := to_integer(signed(syn_reg(cfg_bits_per_syn - 1 downto 0)));
 
                 if i_timestep = '1' then
-                    v_next_state := v_next_state - to_integer(unsigned(cfg_beta));
+                    v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
+                else
+                    v_next_state := v_cur_state + v_syn_weight;
                 end if;
 
-                if v_next_state >= to_integer(unsigned(cfg_threshold)) then
+                if (i_timestep = '1') and (v_next_state >= to_integer(unsigned(cfg_threshold))) then
                     o_nrn_state_next <= (others => '0');
                     o_event_fifo_out <= std_logic_vector(to_unsigned(0, 16)) when unsigned(idx_reg) = 0 else
                                         "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));

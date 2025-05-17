@@ -117,6 +117,7 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal scheduler_en         : std_logic;
     signal scheduler_busy       : std_logic;
     signal scheduler_rst        : std_logic;
+    signal scheduler_timestep   : std_logic;
 
     -- synapse memory
     signal synmem_addr      : std_logic_vector(9 downto 0);
@@ -131,6 +132,7 @@ architecture behavior of TB_FULLY_CONNECTED is
 
     -- testbench
     signal event_number     : integer range 0 to 1024;
+    signal tb_timestep      : std_logic := '0';
 
 begin
 
@@ -280,7 +282,7 @@ begin
         i_syn_valid_last    => synldr_valid_last,
         i_syn_weight        => synldr_weight,
         i_nrn_index         => nrnldr_nrn_index,
-        i_timestep          => '0',
+        i_timestep          => scheduler_timestep,
         o_nrn_state_next    => lif_nrn_state_next,
         o_event_fifo_out    => out_fifo_wdata,
         o_event_fifo_we     => out_fifo_we,
@@ -313,11 +315,12 @@ begin
     SCHEDULER : entity work.SCHEDULER
     port map (
         i_enable        => scheduler_en,
-        i_timestep      => '0',
+        i_timestep      => tb_timestep,
         i_synldr_busy   => synldr_busy,
         i_nrnldr_busy   => nrnldr_busy,
         o_synldr_start  => synldr_start,
         o_nrnldr_start  => nrnldr_start,
+        o_timestep      => scheduler_timestep,
         i_fifo_in_empty => fifo_empty,
         i_fifo_out_full => out_fifo_full,
         o_busy          => scheduler_busy,
@@ -359,8 +362,10 @@ begin
 
         file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/spike_data.txt";
         variable line_buffer    : line;
-        variable bv_data : bit_vector(31 downto 0);
-        variable slv_data : std_logic_vector(31 downto 0);
+        variable bv_data        : bit_vector(31 downto 0);
+        variable slv_data       : std_logic_vector(31 downto 0);
+
+        variable tstep          : integer := 0;
 
     begin
 
@@ -458,6 +463,12 @@ begin
         while fifo_empty = '0' loop
 
             -- start processing events
+            if (event_number = 6) then
+                tb_timestep <= '1';
+            else
+                tb_timestep <= '0';
+            end if;
+
             scheduler_en    <= '1';
             wait until rising_edge(clk) and scheduler_busy = '1';
             scheduler_en    <= '0';

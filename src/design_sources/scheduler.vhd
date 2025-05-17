@@ -62,7 +62,9 @@ architecture Behavioral of SCHEDULER is
     type state is (
         IDLE,
         PROCESS_EVENT,
-        TIMESTEP
+        PROCESS_EVENT_BUSY,
+        TIMESTEP,
+        TIMESTEP_BUSY
     );
     signal present_state        : state;
     signal next_state           : state;
@@ -110,14 +112,28 @@ begin
                     next_state <= IDLE;
                 elsif   (i_synldr_busy  = '1') and
                         (i_nrnldr_busy  = '1') then
-                    next_state <= IDLE;
+                    next_state <= PROCESS_EVENT_BUSY;
                 end if;
             
+            when PROCESS_EVENT_BUSY =>
+                if      (i_rst = '1') then
+                    next_state <= IDLE;
+                elsif   (i_synldr_busy  = '0') and
+                        (i_nrnldr_busy  = '0') then
+                    next_state <= IDLE;
+                end if;
+
             when TIMESTEP =>
                 if      (i_rst = '1') then
                     next_state <= IDLE;
-                elsif   (i_synldr_busy  = '1') and
-                        (i_nrnldr_busy  = '1') then
+                elsif   (i_nrnldr_busy  = '1') then
+                    next_state <= TIMESTEP_BUSY;
+                end if;
+
+            when TIMESTEP_BUSY =>
+                if      (i_rst = '1') then
+                    next_state <= IDLE;
+                elsif   (i_nrnldr_busy  = '0') then
                     next_state <= IDLE;
                 end if;
         end case;
@@ -136,10 +152,20 @@ begin
                 o_synldr_start  <= '1';
                 o_nrnldr_start  <= '1';
 
+            when PROCESS_EVENT_BUSY =>
+                o_timestep      <= '0';
+                o_synldr_start  <= '0';
+                o_nrnldr_start  <= '0';
+
             when TIMESTEP =>
                 o_timestep      <= '1';
-                o_synldr_start  <= '1';
+                o_synldr_start  <= '0';
                 o_nrnldr_start  <= '1';
+
+            when TIMESTEP_BUSY =>
+                o_timestep      <= '1';
+                o_synldr_start  <= '0';
+                o_nrnldr_start  <= '0';
         end case;
     end process;
 
