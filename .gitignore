@@ -12,3 +12,6 @@ vivado/
 
 # Ignore dataset files
 python/data/
+
+# Drawio
+*.bkp
