@@ -113,6 +113,11 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal nrnwrt_rst           : std_logic;
     signal nrnwrt_fault         : std_logic;
 
+    -- scheduler
+    signal scheduler_en         : std_logic;
+    signal scheduler_busy       : std_logic;
+    signal scheduler_rst        : std_logic;
+
     -- synapse memory
     signal synmem_addr      : std_logic_vector(9 downto 0);
     signal synmem_dout      : std_logic_vector(39 downto 0);
@@ -169,7 +174,7 @@ begin
             o_rdata             => open,
             o_empty             => open,
             o_empty_next        => open,
-            o_full              => open,
+            o_full              => out_fifo_full,
             o_full_next         => open,
             o_fill_count        => open,
             i_clk               => clk,
@@ -305,6 +310,21 @@ begin
         o_fault     => nrnwrt_fault
     );
 
+    SCHEDULER : entity work.SCHEDULER
+    port map (
+        i_enable        => scheduler_en,
+        i_timestep      => '0',
+        i_synldr_busy   => synldr_busy,
+        i_nrnldr_busy   => nrnldr_busy,
+        o_synldr_start  => synldr_start,
+        o_nrnldr_start  => nrnldr_start,
+        i_fifo_in_empty => fifo_empty,
+        i_fifo_out_full => out_fifo_full,
+        o_busy          => scheduler_busy,
+        i_clk           => clk,
+        i_rst           => scheduler_rst
+    );
+
     clk <= not clk after clk_period / 2;
 
     MEMREC_WRITE_PROCESS : process(clk)
@@ -345,23 +365,26 @@ begin
     begin
 
         -- Reset Synapse and Neuron Loader
-        synldr_rst  <= '1';
-        nrnldr_rst  <= '1';
-        nrnwrt_rst  <= '1';
-        event_number <= 0;
+        synldr_rst      <= '1';
+        nrnldr_rst      <= '1';
+        nrnwrt_rst      <= '1';
+        scheduler_en    <= '0';
+        scheduler_rst   <= '1';
+        event_number    <= 0;
 
         -- Reset FIFOs
-        fifo_rst    <= '1';
-        fifo_we     <= '0';
-        fifo_wdata  <= (others => '0');
+        fifo_rst        <= '1';
+        fifo_we         <= '0';
+        fifo_wdata      <= (others => '0');
         out_fifo_rst    <= '1';
         wait for 10 * clk_period;
-        fifo_rst    <= '0';
+        fifo_rst        <= '0';
         out_fifo_rst    <= '0';
         wait until rising_edge(clk);
-        synldr_rst  <= '0';
-        nrnldr_rst  <= '0';
-        nrnwrt_rst  <= '0';
+        synldr_rst      <= '0';
+        nrnldr_rst      <= '0';
+        nrnwrt_rst      <= '0';
+        scheduler_rst   <= '0';
 
         -- start writing
         fifo_we     <= '1';
@@ -435,15 +458,11 @@ begin
         while fifo_empty = '0' loop
 
             -- start processing events
-            synldr_start    <= '1';
-            nrnldr_start    <= '1';
-            wait until rising_edge(clk);
-            synldr_start    <= '0';
-            nrnldr_start    <= '0';
+            scheduler_en    <= '1';
+            wait until rising_edge(clk) and scheduler_busy = '1';
+            scheduler_en    <= '0';
 
-            wait until rising_edge(clk) and synldr_busy = '1';
-
-            while synldr_busy = '1' loop
+            while scheduler_busy = '1' loop
                 wait until rising_edge(clk);
             end loop;
 
