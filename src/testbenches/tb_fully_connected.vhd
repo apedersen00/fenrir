@@ -280,7 +280,7 @@ begin
         i_syn_valid_last    => synldr_valid_last,
         i_syn_weight        => synldr_weight,
         i_nrn_index         => nrnldr_nrn_index,
-        i_timestep          => lif_timestep,
+        i_timestep          => '0',
         o_nrn_state_next    => lif_nrn_state_next,
         o_event_fifo_out    => out_fifo_wdata,
         o_event_fifo_we     => out_fifo_we,
