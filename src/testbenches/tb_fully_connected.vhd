@@ -133,6 +133,19 @@ architecture behavior of TB_FULLY_CONNECTED is
     -- testbench
     signal event_number     : integer range 0 to 1024;
     signal tb_timestep      : std_logic := '0';
+    signal tstep            : integer := 0;
+
+    type int_array is array(natural range <>) of integer;
+
+    constant timestep_events : int_array := (
+        0, 4, 12, 18, 22, 25, 26, 32, 33, 35, 41, 41, 43, 45, 46, 46, 48,
+        53, 55, 60, 63, 64, 64, 66, 67, 72, 73, 74, 77, 77, 79, 81, 82,
+        85, 87, 87, 87, 88, 88, 89, 90, 90, 93, 96, 100, 101, 103, 103,
+        104, 105, 109, 110, 111, 112, 113, 114, 115, 118, 120, 128, 128,
+        132, 132, 134, 135, 135, 135, 136, 137, 137, 138, 141, 141, 145,
+        145, 145, 149, 151, 151, 153, 156, 157, 160, 162, 169, 172, 177,
+        182, 183, 191, 199, 204, 208, 210, 211, 214, 224, 236, 242, 242
+    );
 
 begin
 
@@ -350,7 +363,7 @@ begin
     begin
         if rising_edge(clk) then
             if out_fifo_we = '1' then
-                write(lo, event_number);
+                write(lo, tstep - 1);
                 write(lo, ',');
                 write(lo, out_fifo_wdata);
                 writeline(result, lo);
@@ -364,8 +377,6 @@ begin
         variable line_buffer    : line;
         variable bv_data        : bit_vector(31 downto 0);
         variable slv_data       : std_logic_vector(31 downto 0);
-
-        variable tstep          : integer := 0;
 
     begin
 
@@ -443,8 +454,8 @@ begin
         lif_cfg_addr    <= "0000";
         lif_cfg_val     <=
             "00000000"                              &   -- zero padding
-            std_logic_vector(to_unsigned(1, 12))    &   -- beta
-            std_logic_vector(to_unsigned(38, 12));      -- threshold
+            std_logic_vector(to_unsigned(0, 12))    &   -- beta
+            std_logic_vector(to_unsigned(2, 12));      -- threshold
         wait until rising_edge(clk);
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -462,11 +473,12 @@ begin
 
         while fifo_empty = '0' loop
 
-            -- start processing events
-            if (event_number = 6) then
+            if event_number = timestep_events(tstep) then
                 tb_timestep <= '1';
+                tstep <= tstep + 1;
             else
                 tb_timestep <= '0';
+                event_number <= event_number + 1;
             end if;
 
             scheduler_en    <= '1';
@@ -480,8 +492,6 @@ begin
             for i in 0 to 10 loop
                 wait until rising_edge(clk);
             end loop;
-
-            event_number <= event_number + 1;
 
         end loop;
 

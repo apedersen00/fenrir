@@ -162,7 +162,13 @@ begin
                 v_syn_weight    := to_integer(signed(syn_reg(cfg_bits_per_syn - 1 downto 0)));
 
                 if i_timestep = '1' then
-                    v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
+                    if v_next_state > 0 then
+                        v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
+                    elsif v_next_state < 0 then
+                        v_next_state := v_cur_state + to_integer(unsigned(cfg_beta));
+                    else
+                        v_next_state := 0;
+                    end if;
                 else
                     v_next_state := v_cur_state + v_syn_weight;
                 end if;
