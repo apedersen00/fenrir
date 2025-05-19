@@ -16,6 +16,7 @@
 --      - (reg_cfg_0):
 --          - <12b> [11:0]  threshold       : common spike threshold
 --          - <12b> [23:12] beta (leakage)  : common neuron leakage per timestep
+--          - <8b>  [31:24] weight scalar   : common weight scalar
 --
 ---------------------------------------------------------------------------------------------------
 
@@ -94,6 +95,7 @@ architecture Behavioral of LIF_NEURON is
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
+    signal cfg_weight_scale : std_logic_vector(7 downto 0);
     signal cfg_bits_per_syn : integer;
 
     signal syn_reg          : std_logic_vector(7 downto 0);
@@ -104,9 +106,10 @@ architecture Behavioral of LIF_NEURON is
 begin
 
     -- configuration decoding
-    cfg_threshold   <= reg_cfg_0(11 downto 0);
-    cfg_beta        <= reg_cfg_0(23 downto 12);
-    cfg_bits_per_syn <= 4;
+    cfg_threshold       <= reg_cfg_0(11 downto 0);
+    cfg_beta            <= reg_cfg_0(23 downto 12);
+    cfg_weight_scale    <= reg_cfg_0(31 downto 24);
+    cfg_bits_per_syn    <= 4;
 
     -- lockstep the neuron and synapse loader
     o_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
@@ -154,23 +157,36 @@ begin
     nxt_state : process(i_clk)
         variable v_syn_weight   : integer range -2047 to 2047;
         variable v_cur_state    : integer range -2047 to 2047;
-        variable v_next_state   : integer range -2047 to 2047;
+        variable v_next_state   : integer range -4095 to 4095;
+        variable v_beta         : integer range 0 to 1023;
+        variable v_weight_scale : integer range 0 to 255;
     begin
         if rising_edge(i_clk) then
             if reg_valid = '1' then
+                v_weight_scale  := to_integer(unsigned(cfg_weight_scale));
+                v_beta          := to_integer(unsigned(cfg_beta));
                 v_cur_state     := to_integer(signed(nrn_reg));
                 v_syn_weight    := to_integer(signed(syn_reg(cfg_bits_per_syn - 1 downto 0)));
 
+                if v_weight_scale /= 0 then
+                    v_syn_weight := v_syn_weight * v_weight_scale;
+                end if;
+
                 if i_timestep = '1' then
-                    if v_next_state > 0 then
+                    if v_cur_state > v_beta then
                         v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
-                    elsif v_next_state < 0 then
+                    elsif v_cur_state < -v_beta then
                         v_next_state := v_cur_state + to_integer(unsigned(cfg_beta));
                     else
                         v_next_state := 0;
                     end if;
                 else
                     v_next_state := v_cur_state + v_syn_weight;
+                    if (v_next_state > 2047) then
+                        v_next_state := 2047;
+                    elsif (v_next_state < -2047) then
+                        v_next_state := -2047;
+                    end if;
                 end if;
 
                 if (i_timestep = '1') and (v_next_state >= to_integer(unsigned(cfg_threshold))) then
