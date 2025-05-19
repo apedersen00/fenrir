@@ -232,14 +232,17 @@ begin
     -- output multiplexer
     output_mux : process(i_clk)
         variable v_word_index : integer;
+        variable v_rev_index  : integer;
     begin
         if rising_edge(i_clk) then
             if weights_per_addr /= 0 then
                 -- wrap around syn_index so we always extract one of the weights per address
                 v_word_index    := syn_index mod weights_per_addr;
+                v_rev_index     := weights_per_addr - 1 - v_word_index;
+
                 o_syn_weight    <= (others => '0');
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
-                    i_syn_data((v_word_index + 1) * bits_per_weight - 1 downto v_word_index * bits_per_weight);
+                    i_syn_data((v_rev_index + 1) * bits_per_weight - 1 downto v_rev_index * bits_per_weight);
             else
                 o_syn_weight        <= (others => '0');
             end if;
