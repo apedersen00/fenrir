@@ -157,7 +157,7 @@ begin
     nxt_state : process(i_clk)
         variable v_syn_weight   : integer range -2047 to 2047;
         variable v_cur_state    : integer range -2047 to 2047;
-        variable v_next_state   : integer range -4095 to 4095;
+        variable v_next_state   : integer range -65535 to 65535;
         variable v_beta         : integer range 0 to 1023;
         variable v_weight_scale : integer range 0 to 255;
     begin
@@ -172,7 +172,7 @@ begin
                     v_syn_weight := v_syn_weight * v_weight_scale;
                 end if;
 
-                if i_timestep = '1' then
+                if (i_timestep = '1') and (v_cur_state <= to_integer(unsigned(cfg_threshold))) then
                     if v_cur_state > v_beta then
                         v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
                     elsif v_cur_state < -v_beta then
@@ -180,7 +180,7 @@ begin
                     else
                         v_next_state := 0;
                     end if;
-                else
+                elsif i_timestep = '0' then
                     v_next_state := v_cur_state + v_syn_weight;
                     if (v_next_state > 2047) then
                         v_next_state := 2047;
@@ -189,7 +189,7 @@ begin
                     end if;
                 end if;
 
-                if (i_timestep = '1') and (v_next_state >= to_integer(unsigned(cfg_threshold))) then
+                if (i_timestep = '1') and (v_cur_state >= to_integer(unsigned(cfg_threshold))) then
                     o_nrn_state_next <= (others => '0');
                     o_event_fifo_out <= std_logic_vector(to_unsigned(0, 16)) when unsigned(idx_reg) = 0 else
                                         "0000" & std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
