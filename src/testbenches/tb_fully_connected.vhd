@@ -348,7 +348,9 @@ begin
         variable lo : line;
     begin
         if rising_edge(clk) then
-            if nrnwrt_mem_we = '1' then
+            if (nrnwrt_mem_we = '1') then
+                write(lo, tstep - 1);
+                write(lo, ',');
                 write(lo, nrnwrt_mem_addr);
                 write(lo, ',');
                 write(lo, nrnwrt_mem_data);
@@ -453,9 +455,9 @@ begin
         lif_cfg_en      <= '1';
         lif_cfg_addr    <= "0000";
         lif_cfg_val     <=
-            "00000000"                              &   -- zero padding
-            std_logic_vector(to_unsigned(0, 12))    &   -- beta
-            std_logic_vector(to_unsigned(2, 12));      -- threshold
+            std_logic_vector(to_unsigned(100, 8))    &   -- weight scalar
+            std_logic_vector(to_unsigned(130, 12))    &   -- beta
+            std_logic_vector(to_unsigned(275, 12));       -- threshold
         wait until rising_edge(clk);
         lif_cfg_en   <= '0';
         wait until rising_edge(clk);
@@ -471,7 +473,7 @@ begin
         nrnwrt_cfg_en   <= '0';
         wait until rising_edge(clk);
 
-        while fifo_empty = '0' loop
+        while fifo_empty_next = '0' loop
 
             if event_number = timestep_events(tstep) then
                 tb_timestep <= '1';
