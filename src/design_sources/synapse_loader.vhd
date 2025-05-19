@@ -78,7 +78,7 @@ entity SYNAPSE_LOADER is
 
         -- synapse memory interface
         o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
-        i_syn_data          : in std_logic_vector(39 downto 0);     -- neuron data
+        i_syn_data          : in std_logic_vector(SYN_MEM_WIDTH downto 0);     -- data from memory
 
         -- control signals
         i_start             : in std_logic;
@@ -120,6 +120,7 @@ architecture Behavioral of SYNAPSE_LOADER is
     -- constants
     signal weights_per_addr     : integer range 0 to 16;
     signal bits_per_weight      : integer range 0 to 8;
+    signal addr_per_event       : integer range 0 to 16;
 
 begin
 
@@ -133,32 +134,36 @@ begin
         -- TODO: Fix the number of bits used for syn_addr_cntr
         -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
-            o_syn_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata(9 downto 0))) + syn_addr_cntr, 10));
+            o_syn_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata(9 downto 0))) * addr_per_event + syn_addr_cntr, 11));
         end if;
     end process;
 
     -- determine how many weights per address
-    cfg_decode : process(cfg_syn_bits)
+    cfg_decode : process(i_clk)
     begin
         case cfg_syn_bits is
-            -- 2 bits per synapse
+            -- default invalid
             when "00"   =>
-                weights_per_addr <= 16;
+                weights_per_addr <= 0;
                 bits_per_weight  <= 2;
+                addr_per_event   <= 1;
 
             -- 4 bits per synapse
             when "01"   =>
-                weights_per_addr <= 10;
+                weights_per_addr <= SYN_MEM_WIDTH / 4;
                 bits_per_weight  <= 4;
+                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 4);
 
             -- 8 bits per synapse
             when "10"   =>
-                weights_per_addr <= 4;
+                weights_per_addr <= SYN_MEM_WIDTH / 8;
                 bits_per_weight  <= 8;
+                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 4);
 
             when others =>
                 weights_per_addr <= 0;
                 bits_per_weight  <= 0;
+                addr_per_event   <= 1;
         end case;
     end process;
 
@@ -235,7 +240,7 @@ begin
         variable v_rev_index  : integer;
     begin
         if rising_edge(i_clk) then
-            if weights_per_addr /= 0 then
+            if (weights_per_addr /= 0) and (i_rst = '0') then
                 -- wrap around syn_index so we always extract one of the weights per address
                 v_word_index    := syn_index mod weights_per_addr;
                 v_rev_index     := weights_per_addr - 1 - v_word_index;
