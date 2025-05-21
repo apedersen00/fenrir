@@ -123,6 +123,8 @@ architecture Behavioral of SYNAPSE_LOADER is
     signal bits_per_weight      : integer range 0 to 8;
     signal addr_per_event       : integer range 0 to 16;
 
+    constant SYN_MEM_ADDR_WIDTH : integer := integer(ceil(log2(real(SYN_MEM_DEPTH))));
+
 begin
 
     -- configuration decoding
@@ -135,7 +137,7 @@ begin
         -- TODO: Fix the number of bits used for syn_addr_cntr
         -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
-            o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata)) * addr_per_event + syn_addr_cntr, 10));
+            o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata)) * addr_per_event + syn_addr_cntr, SYN_MEM_ADDR_WIDTH));
         end if;
     end process;
 

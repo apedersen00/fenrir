@@ -34,6 +34,7 @@ use std.textio.all;
 --      i_enable            =>
 --      i_in_fifo_we        =>
 --      i_in_fifo_wdata     =>
+--      o_in_fifo_empty     =>
 --      o_in_fifo_full      =>
 --      i_out_fifo_full     =>
 --      o_out_fifo_we       =>
@@ -63,6 +64,7 @@ entity FC_LAYER is
         i_enable            : in std_logic;
         i_in_fifo_we        : in std_logic;
         i_in_fifo_wdata     : in std_logic_vector(11 downto 0);
+        o_in_fifo_empty     : out std_logic;
         o_in_fifo_full      : out std_logic;
         i_out_fifo_full     : in std_logic;
         o_out_fifo_we       : out std_logic;
@@ -80,7 +82,7 @@ end FC_LAYER;
 architecture behavior of FC_LAYER is
 
     constant SYN_MEM_DEPTH  : integer := IN_SIZE * OUT_SIZE / (SYN_MEM_WIDTH / BITS_PER_SYN);
-    constant NRN_MEM_DEPTH  : integer := integer(ceil(real(OUT_SIZE) / 3.0));
+    constant NRN_MEM_DEPTH  : integer := (OUT_SIZE + 3 - 1) / 3;
 
     -- synapse loader config interface
     signal synldr_cfg_en        : std_logic;
@@ -160,6 +162,8 @@ begin
     o_nrnmem_we     <= nrnmem_we;
     o_nrnmem_waddr  <= nrnmem_waddr;
     o_nrnmem_wdata  <= nrnmem_wdata;
+
+    o_in_fifo_empty <= in_fifo_empty;
 
     config : process(i_clk)
     begin
