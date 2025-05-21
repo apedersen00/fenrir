@@ -371,7 +371,7 @@ begin
 
             wait until rising_edge(clk);
 
-            while (fc1_busy = '1' or fc2_busy = '1') loop
+            while (busy = '1') loop
                 wait until rising_edge(clk);
             end loop;
 
