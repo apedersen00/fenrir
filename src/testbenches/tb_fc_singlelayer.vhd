@@ -20,10 +20,10 @@ use std.env.finish;
 use ieee.std_logic_textio.all;
 use std.textio.all;
 
-entity TB_FULLY_CONNECTED is
-end TB_FULLY_CONNECTED;
+entity TB_FC_SINGLELAYER is
+end TB_FC_SINGLELAYER;
 
-architecture behavior of TB_FULLY_CONNECTED is
+architecture behavior of TB_FC_SINGLELAYER is
 
     constant clk_period : time := 10 ns;
     constant DEPTH      : integer := 512;
@@ -120,8 +120,8 @@ architecture behavior of TB_FULLY_CONNECTED is
     signal scheduler_timestep   : std_logic;
 
     -- synapse memory
-    signal synmem_addr      : std_logic_vector(9 downto 0);
-    signal synmem_dout      : std_logic_vector(39 downto 0);
+    signal synmem_addr      : std_logic_vector(10 downto 0);
+    signal synmem_dout      : std_logic_vector(19 downto 0);
 
     -- neuron memory
     signal nrnmem_addr      : std_logic_vector(1 downto 0);
@@ -199,8 +199,8 @@ begin
 
     SYN_MEMORY : entity work.SINGLE_PORT_BRAM
     generic map (
-        DEPTH       => 1024,
-        WIDTH       => 40,
+        DEPTH       => 2048,
+        WIDTH       => 20,
         FILENAME    => "data/syn_init.data"
     )
     port map (
@@ -229,8 +229,8 @@ begin
 
     SYN_LOADER : entity work.SYNAPSE_LOADER
     generic map (
-        SYN_MEM_DEPTH   => 1024,
-        SYN_MEM_WIDTH   => 40
+        SYN_MEM_DEPTH   => 2048,
+        SYN_MEM_WIDTH   => 20
     )
     port map (
         i_cfg_en            => synldr_cfg_en,
@@ -246,8 +246,8 @@ begin
         o_syn_valid_next    => synldr_valid_next,
         o_syn_valid_last    => synldr_valid_last,
 
-        o_syn_addr          => synmem_addr,
-        i_syn_data          => synmem_dout,
+        o_synmem_raddr          => synmem_addr,
+        i_synmem_rdata          => synmem_dout,
 
         i_start             => synldr_start,
         i_continue          => lif_continue,
