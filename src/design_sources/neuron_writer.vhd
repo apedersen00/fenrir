@@ -69,8 +69,7 @@ entity NEURON_WRITER is
 
         -- control signals
         i_clk       : in std_logic;
-        i_rst       : in std_logic;
-        o_fault     : out std_logic
+        i_rst       : in std_logic
     );
 end NEURON_WRITER;
 
@@ -158,9 +157,6 @@ begin
                 elsif reg_nrn_valid_2 = '0' then
                     reg_nrn_state_2 <= i_nrn_state;
                     reg_nrn_valid_2 <= '1';
-                else
-                    -- overflow :(
-                    o_fault <= '1';
                 end if;
 
             elsif (nrn_index + 1 >= unsigned(cfg_layer_size)) and (unsigned(cfg_layer_size) /= 0) then

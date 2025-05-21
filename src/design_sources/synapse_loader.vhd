@@ -67,7 +67,7 @@ entity SYNAPSE_LOADER is
         -- FIFO interface
         o_fifo_re           : out std_logic;                        -- read enable
         i_fifo_rvalid       : in std_logic;                         -- read valid
-        i_fifo_rdata        : in std_logic_vector(31 downto 0);     -- read data
+        i_fifo_rdata        : in std_logic_vector(11 downto 0);     -- read data
 
         -- LIF interface
         o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
@@ -77,8 +77,9 @@ entity SYNAPSE_LOADER is
         i_goto_idle     : in std_logic;
 
         -- synapse memory interface
-        o_syn_addr          : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
-        i_syn_data          : in std_logic_vector(SYN_MEM_WIDTH downto 0);     -- data from memory
+        o_synmem_re         : out std_logic;
+        o_synmem_raddr      : out std_logic_vector(integer(ceil(log2(real(SYN_MEM_DEPTH))))-1 downto 0);
+        i_synmem_rdata      : in std_logic_vector(SYN_MEM_WIDTH - 1 downto 0);     -- data from memory
 
         -- control signals
         i_start             : in std_logic;
@@ -134,7 +135,7 @@ begin
         -- TODO: Fix the number of bits used for syn_addr_cntr
         -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
-            o_syn_addr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata(9 downto 0))) * addr_per_event + syn_addr_cntr, 11));
+            o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata)) * addr_per_event + syn_addr_cntr, 10));
         end if;
     end process;
 
@@ -245,11 +246,13 @@ begin
                 v_word_index    := syn_index mod weights_per_addr;
                 v_rev_index     := weights_per_addr - 1 - v_word_index;
 
+                o_synmem_re     <= '1';
                 o_syn_weight    <= (others => '0');
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
-                    i_syn_data((v_rev_index + 1) * bits_per_weight - 1 downto v_rev_index * bits_per_weight);
+                    i_synmem_rdata((v_rev_index + 1) * bits_per_weight - 1 downto v_rev_index * bits_per_weight);
             else
-                o_syn_weight        <= (others => '0');
+                o_synmem_re     <= '0';
+                o_syn_weight    <= (others => '0');
             end if;
         end if;
     end process;

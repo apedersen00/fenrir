@@ -20,6 +20,27 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.math_real.all;
 
+--  Instantiation Template:
+--  INST_NAME : entity work.BRAM_FIFO
+--  generic map (
+--      DEPTH   =>
+--      WIDTH   =>
+--  )
+--  port map (
+--      i_we            =>
+--      i_wdata         =>
+--      i_re            =>
+--      o_rvalid        =>
+--      o_rdata         =>
+--      o_empty         =>
+--      o_empty_next    =>
+--      o_full          =>
+--      o_full_next     =>
+--      o_fill_count    =>
+--      i_clk           =>
+--      i_rst           =>
+--  );
+
 entity BRAM_FIFO is
     generic (
         DEPTH : integer;    -- FIFO depth
@@ -46,8 +67,7 @@ entity BRAM_FIFO is
 
         -- auxiliary
         i_clk           : in std_logic;
-        i_rst           : in std_logic;
-        o_fault         : out std_logic
+        i_rst           : in std_logic
     );
 end BRAM_FIFO;
 

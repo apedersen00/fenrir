@@ -222,8 +222,8 @@ begin
         o_syn_valid_next    => synldr_valid_next,
         o_syn_valid_last    => synldr_valid_last,
 
-        o_syn_addr          => synmem_addr,
-        i_syn_data          => synmem_dout,
+        o_synmem_raddr          => synmem_addr,
+        i_synmem_rdata          => synmem_dout,
 
         i_start             => synldr_start,
         i_continue          => lif_continue,
