@@ -42,6 +42,9 @@ use std.textio.all;
 --      i_rst               =>
 --      i_clk               =>
 --      o_busy              =>
+--      o_nrnmem_we         =>
+--      o_nrnmem_waddr      =>
+--      o_nrnmem_wdata      =>
 --  );
 
 entity FC_LAYER is
@@ -67,7 +70,10 @@ entity FC_LAYER is
         i_timestep          : in std_logic;
         i_rst               : in std_logic;
         i_clk               : in std_logic;
-        o_busy              : out std_logic
+        o_busy              : out std_logic;
+        o_nrnmem_we         : out std_logic;                                                                                    -- for tb only
+        o_nrnmem_waddr      : out std_logic_vector(integer(ceil(log2(real(integer(ceil(real(OUT_SIZE) / 3.0))))))-1 downto 0);  -- for tb only
+        o_nrnmem_wdata      : out std_logic_vector(35 downto 0)                                                                 -- for tb only
     );
 end FC_LAYER;
 
@@ -149,6 +155,11 @@ begin
     synmem_we       <= '0';
     synmem_waddr    <= (others => '0');
     synmem_wdata    <= (others => '0');
+
+    -- for testbench only
+    o_nrnmem_we     <= nrnmem_we;
+    o_nrnmem_waddr  <= nrnmem_waddr;
+    o_nrnmem_wdata  <= nrnmem_wdata;
 
     config : process(i_clk)
     begin

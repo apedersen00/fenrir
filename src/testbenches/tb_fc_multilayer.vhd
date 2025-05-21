@@ -25,6 +25,7 @@ end TB_FC_MULTILAYER;
 
 architecture behavior of TB_FC_MULTILAYER is
 
+    constant OUT_SIZE       : integer := 10;
     constant clk_period     : time      := 10 ns;
     signal clk              : std_logic := '0';
 
@@ -42,6 +43,11 @@ architecture behavior of TB_FC_MULTILAYER is
     signal fc1_timestep     : std_logic;
     signal rst              : std_logic;
     signal fc1_busy         : std_logic;
+
+    signal tb_tstep         : integer := 0;      -- for testbench only
+    signal tb_nrnmem_we     : std_logic;
+    signal tb_nrnmem_waddr  : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(OUT_SIZE) / 3.0))))))-1 downto 0);
+    signal tb_nrnmem_wdata  : std_logic_vector(35 downto 0);
 
 begin
 
@@ -68,7 +74,10 @@ begin
         i_timestep          => fc1_timestep,
         i_rst               => rst,
         i_clk               => clk,
-        o_busy              => fc1_busy
+        o_busy              => fc1_busy,
+        o_nrnmem_we         => tb_nrnmem_we,
+        o_nrnmem_waddr      => tb_nrnmem_waddr,
+        o_nrnmem_wdata      => tb_nrnmem_wdata
     );
 
     OUTPUT_FIFO : entity work.BRAM_FIFO
@@ -93,6 +102,36 @@ begin
 
     clk <= not clk after clk_period / 2;
 
+    SPKREC_WRITE_PROCESS : process(clk)
+        file result : text open write_mode is ("spk_rec.csv");
+        variable lo : line;
+    begin
+        if rising_edge(clk) then
+            if fc1_out_we = '1' then
+                write(lo, tb_tstep - 1);
+                write(lo, ',');
+                write(lo, fc1_out_wdata);
+                writeline(result, lo);
+            end if;
+        end if;
+    end process;
+
+    MEMREC_WRITE_PROCESS : process(clk)
+        file result : text open write_mode is ("mem_rec.csv");
+        variable lo : line;
+    begin
+        if rising_edge(clk) then
+            if (tb_nrnmem_we = '1') then
+                write(lo, tb_tstep - 1);
+                write(lo, ',');
+                write(lo, tb_nrnmem_waddr);
+                write(lo, ',');
+                write(lo, tb_nrnmem_wdata);
+                writeline(result, lo);
+            end if;
+        end if;
+    end process;
+    
     PROC_SEQUENCER : process
 
         file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/test_spike_data.txt";
@@ -164,6 +203,7 @@ begin
 
             if (slv_data(12) = '1') then
                 fc1_timestep    <= '1';
+                tb_tstep        <= tb_tstep + 1;
             else
                 fc1_in_we       <= '1';
                 fc1_in_wdata    <= slv_data(11 downto 0);
@@ -185,6 +225,8 @@ begin
             while (fc1_busy = '1') loop
                 wait until rising_edge(clk);
             end loop;
+
+            wait for 10 * clk_period;
 
             fc1_timestep    <= '0';
 
