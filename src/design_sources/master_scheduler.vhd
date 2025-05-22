@@ -78,9 +78,11 @@ architecture Behavioral of MASTER_SCHEDULER is
     -- fsm
     type state is (
         IDLE,
+        START,
         RUN,
-        WAIT_FC3_EMPTY,
+        INIT_TIMESTEP,
         WAIT_FC2_EMPTY,
+        START_TIMESTEP,
         TIMESTEP
     );
     signal present_state        : state;
@@ -125,42 +127,45 @@ begin
     begin
         case present_state is
             when IDLE =>
-                next_state <= RUN when (i_enable = '1' and i_rst = '0') else IDLE;
+                if (i_enable = '1' and i_rst = '0') then
+                    if (i_timestep = '0') then
+                        next_state <= START;
+                    else
+                        next_state <= INIT_TIMESTEP;
+                    end if;
+                end if;
 
-            when RUN =>
-                if (i_enable = '0' or i_rst = '1') then
-                    next_state <= IDLE;
-                elsif (i_enable = '1' and  i_timestep = '1') then
-                    next_state <= WAIT_FC3_EMPTY when NUM_LAYERS > 2 else WAIT_FC2_EMPTY;
-                else
+            when START =>
+                if  (fc1_busy = '1' or fc1_empty = '1') and
+                    (fc2_busy = '1' or fc2_empty = '1') then
                     next_state <= RUN;
                 end if;
 
-            when WAIT_FC3_EMPTY =>
-                if (i_enable = '0' or i_rst = '1') then
+            when RUN =>
+                if (fc1_busy = '0' and fc2_busy = '0') then
                     next_state <= IDLE;
-                elsif (fc3_empty = '1') then
+                end if;
+            
+            when INIT_TIMESTEP =>
+                if  (fc1_busy = '0')                    and
+                    (fc2_busy = '1' or fc2_empty = '1') then
                     next_state <= WAIT_FC2_EMPTY;
-                else
-                    next_state <= WAIT_FC3_EMPTY;
                 end if;
 
             when WAIT_FC2_EMPTY =>
-                if (i_enable = '0' or i_rst = '1') then
-                    next_state <= IDLE;
-                elsif (fc2_empty = '1') then
+                if (fc2_empty = '1' and fc2_busy = '0') then
+                    next_state <= START_TIMESTEP;
+                end if;
+
+            when START_TIMESTEP =>
+                if  (fc1_busy = '1' or fc1_empty = '1') and
+                    (fc2_busy = '1' or fc2_empty = '1') then
                     next_state <= TIMESTEP;
-                else
-                    next_state <= WAIT_FC2_EMPTY;
                 end if;
 
             when TIMESTEP =>
-                if (i_enable = '0' or i_rst = '1') then
+                if (fc1_busy = '0' and fc2_busy = '0') then
                     next_state <= IDLE;
-                elsif (i_timestep = '0') then
-                    next_state <= RUN;
-                else
-                    next_state <= TIMESTEP;
                 end if;
         end case;
     end process;
@@ -179,28 +184,31 @@ begin
             when IDLE =>
                 o_busy          <= '0';
 
-            when RUN =>
-                o_busy          <= fc1_busy or fc2_busy or fc3_busy;
+            when START =>
+                o_busy          <= '1';
                 o_fc1_start     <= '1';
                 o_fc2_start     <= '1';
-                o_fc3_start     <= '1';
 
-            when WAIT_FC3_EMPTY =>
-                o_busy          <= fc1_busy or fc2_busy or fc3_busy;
-                o_fc3_start     <= '1';
+            when RUN =>
+                o_busy          <= '1';
+            
+            when INIT_TIMESTEP =>
+                o_busy          <= '1';
+                o_fc2_start     <= '1';
 
             when WAIT_FC2_EMPTY =>
-                o_busy          <= fc1_busy or fc2_busy or fc3_busy;
+                o_busy          <= '1';
                 o_fc2_start     <= '1';
+                
+            when START_TIMESTEP =>
+                o_busy          <= '1';
+                o_fc1_start     <= '1';
+                o_fc1_timestep  <= '1';
+                o_fc2_start     <= '1';
+                o_fc2_timestep  <= '1';
 
             when TIMESTEP =>
-                o_busy          <= fc1_busy or fc2_busy or fc3_busy;
-                o_fc1_start     <= '1';
-                o_fc2_start     <= '1';
-                o_fc3_start     <= '1';
-                o_fc1_timestep  <= '1';
-                o_fc2_timestep  <= '1';
-                o_fc3_timestep  <= '1';
+                o_busy          <= '1';
         end case;
     end process;
 
