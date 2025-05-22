@@ -1,8 +1,29 @@
-import torch
-from snn_blocks import FeatureMapNeuronLayer, SumPooling2D
-import sys
-import io
-import contextlib
+import torch, sys, io, contextlib
+from snn_blocks import FeatureMapNeuronLayer, SumPooling2D, SurrogateSpike
+
+def test_surrogate_spike() -> bool:
+    print("Testing SurrogateSpike...")
+    x = torch.tensor([[0.8, 1.0, 1.2], [0.9, 1.1, 0.7]], requires_grad=True)
+    threshold = torch.tensor(1.0)
+
+    out = SurrogateSpike.apply(x, threshold)
+    print("Spike output:", out)
+
+    expected = (x >= threshold).float()
+    if not torch.allclose(out.detach(), expected, atol=1e-3):
+        print("SurrogateSpike output mismatch")
+        return False
+
+    loss = out.sum()
+    loss.backward()
+    print("Gradients:", x.grad)
+
+    if torch.any(x.grad.abs() < 1e-7):
+        print("Gradient vanishes")
+        return False
+
+    print("SurrogateSpike test passed.")
+    return True
 
 def test_feature_map_neuron_layer() -> bool:
     print("Testing FeatureMapNeuronLayer...")
@@ -69,6 +90,7 @@ if __name__ == "__main__":
         print("Tip: Run with -v flag for verbose output.")
 
     tests = [
+        ("test_surrogate_spike", test_surrogate_spike),
         ("test_feature_map_neuron_layer", test_feature_map_neuron_layer),
         ("test_sum_pooling_2d", test_sum_pooling_2d),
     ]

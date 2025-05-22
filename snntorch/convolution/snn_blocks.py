@@ -2,6 +2,19 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+class SurrogateSpike(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input, threshold):
+        ctx.save_for_backward(input, threshold)
+        return (input >= threshold).float()
+    
+    @staticmethod
+    def backward(ctx, grad_output):
+        input, threshold = ctx.saved_tensors
+        # Fast sigmoid surrogate: d/dx σ(x-thr) ~ 1/(1+|x-thr|)^2
+        sg_grad = 1.0 / (1.0 + torch.abs(input - threshold)) ** 2
+        return grad_output * sg_grad, None  # one grad per input
+    
 class FeatureMapNeuronLayer(nn.Module):
 
     def __init__(
@@ -36,7 +49,7 @@ class FeatureMapNeuronLayer(nn.Module):
         reset = self.reset.view(1, -1, 1, 1)
 
         membrane = membrane - decay + input
-        spikes = (membrane >= threshold).float()
+        spikes = SurrogateSpike.apply(membrane, threshold)
 
         membrane = torch.where(membrane >= threshold, reset, membrane)
         return membrane, spikes
@@ -89,7 +102,8 @@ class SumPooling2D(nn.Module):
         # Thresholding
         pooledSums = xUnfold.sum(dim=2)
         threshold = self.threshold.view(1, -1, 1)
-        spikes = (pooledSums >= threshold).float()
+        
+        spikes = SurrogateSpike.apply(pooledSums, threshold)
 
         # reshape to 2d 
         heightOut = (height - self.kernelSize) // self.stride + 1
@@ -102,3 +116,4 @@ class SumPooling2D(nn.Module):
             widthOut
         )
         return spikes2D
+
