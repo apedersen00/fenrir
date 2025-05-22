@@ -61,6 +61,8 @@ architecture behavior of TB_FC_MULTILAYER is
     signal enable           : std_logic;
     signal timestep         : std_logic;
 
+    signal tb_fc1_tstep     : std_logic;
+    signal tb_fc2_tstep     : std_logic;
     signal tb_tstep         : integer := 0;      -- for testbench only
     signal tb_nrnmem1_we    : std_logic;
     signal tb_nrnmem1_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(16) / 3.0))))))-1 downto 0);
@@ -123,6 +125,7 @@ begin
         i_rst               => rst,
         i_clk               => clk,
         o_busy              => fc1_busy,
+        o_sched_tstep       => tb_fc1_tstep,
         o_nrnmem_we         => tb_nrnmem1_we,
         o_nrnmem_waddr      => tb_nrnmem1_waddr,
         o_nrnmem_wdata      => tb_nrnmem1_wdata
@@ -153,6 +156,7 @@ begin
         i_rst               => rst,
         i_clk               => clk,
         o_busy              => fc2_busy,
+        o_sched_tstep       => tb_fc2_tstep,
         o_nrnmem_we         => tb_nrnmem2_we,
         o_nrnmem_waddr      => tb_nrnmem2_waddr,
         o_nrnmem_wdata      => tb_nrnmem2_wdata
@@ -160,7 +164,7 @@ begin
 
     OUTPUT_FIFO : entity work.BRAM_FIFO
         generic map (
-            DEPTH => 256,
+            DEPTH => 512,
             WIDTH => 12
         )
         port map (
@@ -284,9 +288,9 @@ begin
         fc1_cfg_en      <= '1';
         fc1_cfg_addr    <= "00100000";
         fc1_cfg_val     <=
-            std_logic_vector(to_unsigned(111, 8))   &   -- weight scalar
-            std_logic_vector(to_unsigned(2, 12))  &   -- beta
-            std_logic_vector(to_unsigned(369, 12));     -- threshold
+            std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
+            std_logic_vector(to_unsigned(13, 12))  &   -- beta
+            std_logic_vector(to_unsigned(371, 12));     -- threshold
         wait until rising_edge(clk);
         fc1_cfg_en      <= '0';
         wait until rising_edge(clk);
@@ -329,9 +333,9 @@ begin
         fc2_cfg_en      <= '1';
         fc2_cfg_addr    <= "00100000";
         fc2_cfg_val     <=
-            std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
-            std_logic_vector(to_unsigned(207, 12))  &   -- beta
-            std_logic_vector(to_unsigned(75, 12));     -- threshold
+            std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
+            std_logic_vector(to_unsigned(213, 12))  &   -- beta
+            std_logic_vector(to_unsigned(598, 12));     -- threshold
         wait until rising_edge(clk);
         fc2_cfg_en      <= '0';
         wait until rising_edge(clk);
@@ -356,6 +360,8 @@ begin
 
             slv_data := to_stdlogicvector(bv_data);
 
+            wait until busy = '0';
+
             if (slv_data(12) = '1') then
                 timestep        <= '1';
                 tb_tstep        <= tb_tstep + 1;
@@ -369,12 +375,13 @@ begin
             fc1_in_we       <= '0';
             fc1_in_wdata    <= (others => '0');
 
-            wait until rising_edge(clk);
+            wait until busy = '1';
 
             while (busy = '1') loop
                 wait until rising_edge(clk);
             end loop;
 
+            
             wait for 10 * clk_period;
 
             timestep        <= '0';
