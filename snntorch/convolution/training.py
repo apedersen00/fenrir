@@ -160,7 +160,12 @@ def train(
     batch_stats_all = []
     statmsg(f"Epoch {epoch} started at {time.strftime('%H:%M:%S', time.localtime(t0))}", kind="step")
 
+    batch_times = []
+
     for batch_idx, (frames, targets) in enumerate(loader):
+
+        batch_start_time = time.time()
+
         frames, targets = frames.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs = model(frames)
@@ -190,11 +195,21 @@ def train(
         running_correct += (preds == targets).sum().item()
         running_total += frames.size(0)
 
+        batch_time = time.time() - batch_start_time
+        batch_times.append(batch_time)
+        
         # print progress
         if (batch_idx + 1) % 10 == 0:
             avg_acc = running_correct / running_total
+            
+            avg_batch_time = sum(batch_times) / len(batch_times)
+            
+            #estimate remaining time
+            remaining_batches = len(loader) - (batch_idx + 1)
+            remaining_time = remaining_batches * avg_batch_time
+            remaining_time_str = time.strftime("%H:%M:%S", time.gmtime(remaining_time))
             statmsg(f"Epoch [{epoch}/{total_epochs}] Batch [{batch_idx+1}/{len(loader)}] "
-                    f"Loss: {batch_loss:.4f} Acc: {batch_acc:.4f} | Running Avg Acc: {avg_acc:.4f}", kind="step")
+                    f"Loss: {batch_loss:.4f} Acc: {batch_acc:.4f} | Running Avg Acc: {avg_acc:.4f} | Avg time/batch: {avg_batch_time:.4f} s | Est. remaining time: {remaining_time_str}", kind="step")
 
     # Save all collected batch stats for this epoch to a single file
     batch_stats_file = os.path.join(batches_dir, f"epoch_{epoch}_batches.json")
@@ -212,17 +227,19 @@ def test(model, loader, device, criterion, epoch=None, batches_dir="./stats/test
     model.eval()
     total_correct, total_samples = 0, 0
     batch_stats_all = []
-    running_loss = 0
+    running_loss = 0.0
 
-    if epoch is not None and not os.path.exists(batches_dir):
-        os.makedirs(batches_dir)
+    # Make sure directory exists if saving stats
+    if epoch is not None:
+        os.makedirs(batches_dir, exist_ok=True)
 
     with torch.no_grad():
         for batch_idx, (frames, targets) in enumerate(loader):
             frames, targets = frames.to(device), targets.to(device)
             outputs = model(frames)
-            preds = outputs.argmax(dim=1)
             loss = criterion(outputs, targets)
+            preds = outputs.argmax(dim=1)
+
             batch_loss = loss.item()
             batch_acc = (preds == targets).float().mean().item()
 
@@ -235,17 +252,17 @@ def test(model, loader, device, criterion, epoch=None, batches_dir="./stats/test
                 'batch_idx': batch_idx,
                 'batch_loss': batch_loss,
                 'batch_acc': batch_acc,
-                # Optionally include stats from the model (like conv1_stats, etc.)
+                # Optionally add more stats if you want (e.g., model.conv1_stats, etc.)
             }
             batch_stats_all.append(batch_stats)
 
             statmsg(f"Testing batch {batch_idx}: Loss: {batch_loss:.4f} Acc: {batch_acc:.4f} | Processed {total_samples} samples so far...", kind="step")
 
-    avg_loss = running_loss / total_samples
-    acc = total_correct / total_samples
+    avg_loss = running_loss / total_samples if total_samples > 0 else float('nan')
+    acc = total_correct / total_samples if total_samples > 0 else float('nan')
     statmsg(f"Test Summary: Avg Loss = {avg_loss:.4f}, Accuracy = {acc:.4f}", kind="success")
 
-    # Save test batch stats to file if epoch is provided
+    # Save stats for the epoch
     if epoch is not None:
         stats_file = os.path.join(batches_dir, f"test_batches_epoch_{epoch}.json")
         with open(stats_file, 'w') as f:
@@ -253,19 +270,67 @@ def test(model, loader, device, criterion, epoch=None, batches_dir="./stats/test
 
     return acc, avg_loss
 
+#sanity check
+# Grab a batch from train and test loaders
+train_iter = iter(trainloader)
+test_iter = iter(testloader)
+
+# Fetch a batch
+train_batch = next(train_iter)
+test_batch = next(test_iter)
+
+# Move to device
+train_frames, train_targets = train_batch[0].to(device), train_batch[1].to(device)
+test_frames, test_targets = test_batch[0].to(device), test_batch[1].to(device)
+
+# ---- Sanity check for train() ----
+statmsg("Sanity check: Running train() on a single batch...", kind="info")
+try:
+    model.train()
+    optimizer.zero_grad()
+    out = model(train_frames)
+    loss = criterion(out, train_targets)
+    loss.backward()
+    optimizer.step()
+    statmsg(f"Train single batch: output shape {out.shape} | loss {loss.item():.4f}", kind="success")
+except Exception as e:
+    statmsg(f"Train() batch test failed: {e}", kind="error")
+    raise
+
+# ---- Sanity check for test() ----
+statmsg("Sanity check: Running test() on a single batch...", kind="info")
+try:
+    model.eval()
+    with torch.no_grad():
+        out = model(test_frames)
+        loss = criterion(out, test_targets)
+        preds = out.argmax(dim=1)
+        acc = (preds == test_targets).float().mean().item()
+        statmsg(f"Test single batch: output shape {out.shape} | loss {loss.item():.4f} | acc {acc:.4f}", kind="success")
+except Exception as e:
+    statmsg(f"Test() batch test failed: {e}", kind="error")
+    raise
+
+statmsg("Sanity checks passed. Proceeding to full training loop.", kind="check")
+
+
 
 NUM_EPOCHS = 10
 statmsg(f"Training for {NUM_EPOCHS} epochs...", kind="info")
 
 train_stats = {'train_loss': [], 'train_acc': [], 'test_acc': []}
 
+
+
+
 for epoch in range(1, NUM_EPOCHS + 1):
     train_loss, train_acc = train(model, trainloader, criterion, optimizer, device, epoch, NUM_EPOCHS, batches_dir)
-    test_acc = test(model, testloader, device)
+    test_acc, test_loss = test(model, testloader, device, criterion, epoch=epoch)
 
     train_stats['train_loss'].append(train_loss)
     train_stats['train_acc'].append(train_acc)
     train_stats['test_acc'].append(test_acc)
+    train_stats['test_loss'].append(test_loss)
 
     # Save epoch summary stats
     with open(f"{stats_dir}/training_stats_epoch_{epoch}.json", "w") as f:
