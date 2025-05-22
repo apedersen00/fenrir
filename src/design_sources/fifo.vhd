@@ -126,10 +126,14 @@ begin
     begin
         if rising_edge(i_clk) then
             if i_rst = '1' then
-                head <= 0;
+                waddr <= (others => '0');
+                head  <= 0;
             else
                 if i_we = '1' and full = '0' then
                     incr(head);
+                    waddr <= std_logic_vector(to_unsigned(head + 1, waddr'length));
+                else
+                    waddr <= std_logic_vector(to_unsigned(head, waddr'length));
                 end if;
             end if;
         end if;
@@ -139,22 +143,18 @@ begin
     begin
         if rising_edge(i_clk) then
             if i_rst = '1' then
-                tail <= 0;
+                raddr <= (others => '0');
+                tail  <= 0;
             else
                 o_rvalid <= '0';
                 if i_re = '1' and empty = '0' then
                     incr(tail);
+                    raddr    <= std_logic_vector(to_unsigned(tail + 1, raddr'length));
                     o_rvalid <= '1';
+                else
+                    raddr    <= std_logic_vector(to_unsigned(tail, raddr'length));
                 end if;
             end if;
-        end if;
-    end process;
-
-    PROC_BRAM : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            waddr <= std_logic_vector(to_unsigned(head, waddr'length));
-            raddr <= std_logic_vector(to_unsigned(tail, raddr'length));
         end if;
     end process;
 
