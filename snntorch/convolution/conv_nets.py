@@ -84,12 +84,6 @@ class NMNISTV2(nn.Module):
         
     def forward(self, x):
 
-        self.conv1_stats = []
-        self.pool1_stats = []
-        self.conv2_stats = []
-        self.pool2_stats = []
-
-
         batch_size, num_steps, _, H, W, = x.shape
         device = x.device
 
@@ -103,21 +97,16 @@ class NMNISTV2(nn.Module):
             frame = x[:, t, :, :, :]  # [B, 1, 32, 32]
 
             fmap1 = self.conv1(frame)
-            mem1, spikes1 = self.fmap1(mem1, fmap1) # spikes from feature maps are not used
             pooled1 = self.pool1(fmap1)
-
+            mem1, spikes1 = self.fmap1(mem1, fmap1) # spikes from feature maps are not used
+            
             fmap2 = self.conv2(pooled1)
-            mem2, spikes2 = self.fmap2(mem2, fmap2)
             pooled2 = self.pool2(fmap2)
-
+            mem2, spikes2 = self.fmap2(mem2, fmap2)
+            
             flat = pooled2.view(batch_size, -1)  # flatten for FC
             out = self.fc(flat)
             spk_outs.append(out)
-
-            self.conv1_stats.append(self.get_tensor_stats(fmap1))
-            self.pool1_stats.append(self.get_tensor_stats(pooled1))
-            self.conv2_stats.append(self.get_tensor_stats(fmap2))
-            self.pool2_stats.append(self.get_tensor_stats(pooled2))
 
         out = torch.stack(spk_outs, dim=0).sum(dim=0)
         return out

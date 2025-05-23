@@ -47,7 +47,7 @@ def statmsg(msg, kind="info"):
 data_path = "./data/nmnist"
 cache_path_train = "./cache/nmnist_train"
 cache_path_test = "./cache/nmnist_test"
-batch_size = 32  # Small for testing, can increase later
+batch_size = 64  # Small for testing, can increase later
 time_bin_width_us = 1000
 
 # Define transform: to frames, only keep positive spikes
@@ -157,7 +157,6 @@ def train(
     model.train()
     running_loss, running_correct, running_total = 0, 0, 0
     t0 = time.time()
-    batch_stats_all = []
     statmsg(f"Epoch {epoch} started at {time.strftime('%H:%M:%S', time.localtime(t0))}", kind="step")
 
     batch_times = []
@@ -176,20 +175,6 @@ def train(
         preds = outputs.argmax(dim=1)
         batch_loss = loss.item()
         batch_acc = (preds == targets).float().mean().item()
-
-        # Collect stats for this batch (every 10th batch, or for the first 10)
-        if batch_idx < 10 or batch_idx % 10 == 0:
-            batch_stats = {
-                'epoch': epoch,
-                'batch_idx': batch_idx,
-                'batch_loss': batch_loss,
-                'batch_acc': batch_acc,
-                'conv1_stats': model.conv1_stats,
-                'pool1_stats': model.pool1_stats,
-                'conv2_stats': model.conv2_stats,
-                'pool2_stats': model.pool2_stats,
-            }
-            batch_stats_all.append(batch_stats)
 
         running_loss += batch_loss * frames.size(0)
         running_correct += (preds == targets).sum().item()
@@ -211,11 +196,6 @@ def train(
             statmsg(f"Epoch [{epoch}/{total_epochs}] Batch [{batch_idx+1}/{len(loader)}] "
                     f"Loss: {batch_loss:.4f} Acc: {batch_acc:.4f} | Running Avg Acc: {avg_acc:.4f} | Avg time/batch: {avg_batch_time:.4f} s | Est. remaining time: {remaining_time_str}", kind="step")
 
-    # Save all collected batch stats for this epoch to a single file
-    batch_stats_file = os.path.join(batches_dir, f"epoch_{epoch}_batches.json")
-    with open(batch_stats_file, 'w') as f:
-        json.dump(batch_stats_all, f, indent=2)
-
     avg_loss = running_loss / running_total
     avg_acc = running_correct / running_total
     statmsg(f"Epoch {epoch} Summary: Avg Loss = {avg_loss:.4f}, Avg Accuracy = {avg_acc:.4f}", kind="info")
@@ -226,7 +206,7 @@ def train(
 def test(model, loader, device, criterion, epoch=None, batches_dir="./stats/test_batches"):
     model.eval()
     total_correct, total_samples = 0, 0
-    batch_stats_all = []
+    
     running_loss = 0.0
 
     # Make sure directory exists if saving stats
@@ -247,26 +227,13 @@ def test(model, loader, device, criterion, epoch=None, batches_dir="./stats/test
             total_samples += frames.size(0)
             running_loss += batch_loss * frames.size(0)
 
-            batch_stats = {
-                'epoch': epoch,
-                'batch_idx': batch_idx,
-                'batch_loss': batch_loss,
-                'batch_acc': batch_acc,
-                # Optionally add more stats if you want (e.g., model.conv1_stats, etc.)
-            }
-            batch_stats_all.append(batch_stats)
+            
 
             statmsg(f"Testing batch {batch_idx}: Loss: {batch_loss:.4f} Acc: {batch_acc:.4f} | Processed {total_samples} samples so far...", kind="step")
 
     avg_loss = running_loss / total_samples if total_samples > 0 else float('nan')
     acc = total_correct / total_samples if total_samples > 0 else float('nan')
     statmsg(f"Test Summary: Avg Loss = {avg_loss:.4f}, Accuracy = {acc:.4f}", kind="success")
-
-    # Save stats for the epoch
-    if epoch is not None:
-        stats_file = os.path.join(batches_dir, f"test_batches_epoch_{epoch}.json")
-        with open(stats_file, 'w') as f:
-            json.dump(batch_stats_all, f, indent=2)
 
     return acc, avg_loss
 
@@ -315,10 +282,10 @@ statmsg("Sanity checks passed. Proceeding to full training loop.", kind="check")
 
 
 
-NUM_EPOCHS = 10
+NUM_EPOCHS = 50
 statmsg(f"Training for {NUM_EPOCHS} epochs...", kind="info")
 
-train_stats = {'train_loss': [], 'train_acc': [], 'test_acc': []}
+train_stats = {'train_loss': [], 'train_acc': [], 'test_acc': [], 'test_loss': []}
 
 
 
