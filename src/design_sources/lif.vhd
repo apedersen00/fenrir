@@ -76,7 +76,7 @@ entity LIF_NEURON is
 
         -- outputs
         o_nrn_state_next    : out std_logic_vector(11 downto 0);    -- next neuron state
-        o_event_fifo_out    : out std_logic_vector(11 downto 0);    -- spike out event
+        o_event_fifo_out    : out std_logic_vector(12 downto 0);    -- spike out event
         o_event_fifo_we     : out std_logic;                        -- enable write to output fifo
         o_continue          : out std_logic;                        -- continue iteration
         o_goto_idle         : out std_logic;
@@ -191,8 +191,8 @@ begin
 
                 if (i_timestep = '1') and (v_cur_state >= to_integer(unsigned(cfg_threshold))) then
                     o_nrn_state_next <= (others => '0');
-                    o_event_fifo_out <= std_logic_vector(to_unsigned(0, 12)) when unsigned(idx_reg) = 0 else
-                                        std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
+                    o_event_fifo_out <= '0' & std_logic_vector(to_unsigned(0, 12)) when unsigned(idx_reg) = 0 else
+                                        '0' & std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
                     o_event_fifo_we  <= '1';
                 else
                     o_nrn_state_next <= std_logic_vector(to_signed(v_next_state, o_nrn_state_next'length));

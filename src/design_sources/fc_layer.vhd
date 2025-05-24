@@ -39,7 +39,6 @@ use std.textio.all;
 --      i_out_fifo_full     =>
 --      o_out_fifo_we       =>
 --      o_out_fifo_wdata    =>
---      i_timestep          =>
 --      i_rst               =>
 --      i_clk               =>
 --      o_busy              =>
@@ -63,13 +62,12 @@ entity FC_LAYER is
         i_cfg_val           : in std_logic_vector(31 downto 0);
         i_enable            : in std_logic;
         i_in_fifo_we        : in std_logic;
-        i_in_fifo_wdata     : in std_logic_vector(11 downto 0);
+        i_in_fifo_wdata     : in std_logic_vector(12 downto 0);
         o_in_fifo_empty     : out std_logic;
         o_in_fifo_full      : out std_logic;
         i_out_fifo_full     : in std_logic;
         o_out_fifo_we       : out std_logic;
-        o_out_fifo_wdata    : out std_logic_vector(11 downto 0);
-        i_timestep          : in std_logic;
+        o_out_fifo_wdata    : out std_logic_vector(12 downto 0);
         i_rst               : in std_logic;
         i_clk               : in std_logic;
         o_busy              : out std_logic;
@@ -108,7 +106,7 @@ architecture behavior of FC_LAYER is
     -- input event fifo
     signal in_fifo_re          : std_logic;
     signal in_fifo_rvalid      : std_logic;
-    signal in_fifo_rdata       : std_logic_vector(11 downto 0);
+    signal in_fifo_rdata       : std_logic_vector(12 downto 0);
     signal in_fifo_empty       : std_logic;
 
     -- synapse loader
@@ -118,6 +116,8 @@ architecture behavior of FC_LAYER is
     signal synldr_valid_last    : std_logic;
     signal synldr_start         : std_logic;
     signal synldr_busy          : std_logic;
+    signal synldr_fifo_rdata    : std_logic_vector(11 downto 0);
+    signal synldr_fifo_re       : std_logic;
 
     -- neuron loader
     signal nrnldr_state         : std_logic_vector(11 downto 0);
@@ -204,13 +204,16 @@ begin
     SCHEDULER : entity work.SCHEDULER
     port map (
         i_enable        => i_enable,
-        i_timestep      => i_timestep,
         i_synldr_busy   => synldr_busy,
         i_nrnldr_busy   => nrnldr_busy,
         o_synldr_start  => synldr_start,
         o_nrnldr_start  => nrnldr_start,
         o_timestep      => timestep,
         i_fifo_in_empty => in_fifo_empty,
+        o_fifo_re       => in_fifo_re,
+        i_fifo_rdata    => in_fifo_rdata,
+        i_re            => synldr_fifo_re,
+        o_rdata         => synldr_fifo_rdata,
         i_fifo_out_full => i_out_fifo_full,
         o_busy          => o_busy,
         i_clk           => i_clk,
@@ -220,7 +223,7 @@ begin
     INPUT_FIFO : entity work.BRAM_FIFO
     generic map (
         DEPTH => 256,
-        WIDTH => 12
+        WIDTH => 13     -- 1b timestep and 12b neuron index
     )
     port map (
         i_we                => i_in_fifo_we,
@@ -278,9 +281,9 @@ begin
         i_cfg_en            => synldr_cfg_en,
         i_cfg_addr          => synldr_cfg_addr,
         i_cfg_val           => synldr_cfg_val,
-        o_fifo_re           => in_fifo_re,
-        i_fifo_rvalid       => in_fifo_rvalid,
-        i_fifo_rdata        => in_fifo_rdata,
+        o_fifo_re           => synldr_fifo_re,
+        i_fifo_rvalid       => '1',                 -- unused
+        i_fifo_rdata        => synldr_fifo_rdata,
         o_syn_weight        => synldr_weight,
         o_syn_valid         => synldr_valid,
         o_syn_valid_next    => synldr_valid_next,

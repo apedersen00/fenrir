@@ -35,11 +35,11 @@ architecture behavior of TB_FC_MULTILAYER is
     signal fc1_cfg_val      : std_logic_vector(31 downto 0);
     signal fc1_en           : std_logic;
     signal fc1_in_we        : std_logic;
-    signal fc1_in_wdata     : std_logic_vector(11 downto 0);
+    signal fc1_in_wdata     : std_logic_vector(12 downto 0);
     signal fc1_empty        : std_logic;
     signal fc1_full         : std_logic;
     signal fc1_out_we       : std_logic;
-    signal fc1_out_wdata    : std_logic_vector(11 downto 0);
+    signal fc1_out_wdata    : std_logic_vector(12 downto 0);
     signal fc1_timestep     : std_logic;
     signal fc1_busy         : std_logic;
 
@@ -48,12 +48,12 @@ architecture behavior of TB_FC_MULTILAYER is
     signal fc2_cfg_val      : std_logic_vector(31 downto 0);
     signal fc2_en           : std_logic;
     signal fc2_in_we        : std_logic;
-    signal fc2_in_wdata     : std_logic_vector(11 downto 0);
+    signal fc2_in_wdata     : std_logic_vector(12 downto 0);
     signal fc2_empty        : std_logic;
     signal fc2_full         : std_logic;
     signal out_fifo_full    : std_logic;
     signal fc2_out_we       : std_logic;
-    signal fc2_out_wdata    : std_logic_vector(11 downto 0);
+    signal fc2_out_wdata    : std_logic_vector(12 downto 0);
     signal fc2_timestep     : std_logic;
     signal fc2_busy         : std_logic;
 
@@ -72,33 +72,6 @@ architecture behavior of TB_FC_MULTILAYER is
     signal tb_nrnmem2_wdata : std_logic_vector(35 downto 0);
 
 begin
-
-    FC_SCHEDULER : entity work.MASTER_SCHEDULER
-    generic map (
-        NUM_LAYERS      => 2
-    )
-    port map (
-        i_enable        => enable,
-        i_timestep      => timestep,
-        i_fc1_busy      => fc1_busy,
-        i_fc2_busy      => fc2_busy,
-        i_fc3_busy      => '0',
-        i_fc1_full      => fc1_full,
-        i_fc2_full      => fc2_full,
-        i_fc3_full      => '0',
-        i_fc1_empty     => fc1_empty,
-        i_fc2_empty     => fc2_empty,
-        i_fc3_empty     => '0',
-        o_fc1_start     => fc1_en,
-        o_fc2_start     => fc2_en,
-        o_fc3_start     => open,
-        o_fc1_timestep  => fc1_timestep,
-        o_fc2_timestep  => fc2_timestep,
-        o_fc3_timestep  => open,
-        o_busy          => busy,
-        i_clk           => clk,
-        i_rst           => rst
-    );
 
     FC1 : entity work.FC_LAYER
     generic map (
@@ -121,7 +94,6 @@ begin
         i_out_fifo_full     => fc2_full,
         o_out_fifo_we       => fc1_out_we,
         o_out_fifo_wdata    => fc1_out_wdata,
-        i_timestep          => fc1_timestep,
         i_rst               => rst,
         i_clk               => clk,
         o_busy              => fc1_busy,
@@ -152,7 +124,6 @@ begin
         i_out_fifo_full     => out_fifo_full,
         o_out_fifo_we       => fc2_out_we,
         o_out_fifo_wdata    => fc2_out_wdata,
-        i_timestep          => fc2_timestep,
         i_rst               => rst,
         i_clk               => clk,
         o_busy              => fc2_busy,
@@ -165,7 +136,7 @@ begin
     OUTPUT_FIFO : entity work.BRAM_FIFO
         generic map (
             DEPTH => 512,
-            WIDTH => 12
+            WIDTH => 13
         )
         port map (
             i_we                => fc2_out_we,
@@ -362,12 +333,13 @@ begin
 
             wait until busy = '0';
 
+            timestep <= '0';
             if (slv_data(12) = '1') then
                 timestep        <= '1';
                 tb_tstep        <= tb_tstep + 1;
             else
                 fc1_in_we       <= '1';
-                fc1_in_wdata    <= slv_data(11 downto 0);
+                fc1_in_wdata    <= timestep & slv_data(11 downto 0);
             end if;
 
             wait until rising_edge(clk);
@@ -375,9 +347,8 @@ begin
             fc1_in_we       <= '0';
             fc1_in_wdata    <= (others => '0');
 
-            wait until busy = '1';
-
-            while (busy = '1') loop
+            wait until fc1_busy = '1';
+            while (fc1_busy = '1') loop
                 wait until rising_edge(clk);
             end loop;
 
