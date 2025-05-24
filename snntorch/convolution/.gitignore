@@ -1,2 +1,5 @@
 # ignore local data folder and its contents
 data/
+weights/
+stats/
+old_stats/
