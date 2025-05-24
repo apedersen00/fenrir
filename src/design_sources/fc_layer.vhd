@@ -133,6 +133,8 @@ architecture behavior of FC_LAYER is
     signal lif_continue         : std_logic;
     signal lif_goto_idle        : std_logic;
     signal lif_out_valid        : std_logic;
+    signal lif_fifo_we          : std_logic;
+    signal lif_fifo_wdata       : std_logic_vector(11 downto 0);
 
     -- synapse memory
     signal synmem_we            : std_logic;
@@ -151,6 +153,7 @@ architecture behavior of FC_LAYER is
     signal nrnmem_rdata         : std_logic_vector(35 downto 0);
 
     signal timestep             : std_logic;
+    signal write_timestep       : std_logic;
 
 begin
 
@@ -165,7 +168,10 @@ begin
     o_nrnmem_wdata  <= nrnmem_wdata;
     o_sched_tstep   <= timestep;
 
-    o_in_fifo_empty <= in_fifo_empty;
+    o_out_fifo_wdata    <= '0' & lif_fifo_wdata when write_timestep  = '0' else "1000000000000";
+    o_out_fifo_we       <= lif_fifo_we when write_timestep = '0' else '1';
+
+    o_in_fifo_empty     <= in_fifo_empty;
 
     config : process(i_clk)
     begin
@@ -203,21 +209,22 @@ begin
 
     SCHEDULER : entity work.SCHEDULER
     port map (
-        i_enable        => i_enable,
-        i_synldr_busy   => synldr_busy,
-        i_nrnldr_busy   => nrnldr_busy,
-        o_synldr_start  => synldr_start,
-        o_nrnldr_start  => nrnldr_start,
-        o_timestep      => timestep,
-        i_fifo_in_empty => in_fifo_empty,
-        o_fifo_re       => in_fifo_re,
-        i_fifo_rdata    => in_fifo_rdata,
-        i_re            => synldr_fifo_re,
-        o_rdata         => synldr_fifo_rdata,
-        i_fifo_out_full => i_out_fifo_full,
-        o_busy          => o_busy,
-        i_clk           => i_clk,
-        i_rst           => i_rst
+        i_enable            => i_enable,
+        i_synldr_busy       => synldr_busy,
+        i_nrnldr_busy       => nrnldr_busy,
+        o_synldr_start      => synldr_start,
+        o_nrnldr_start      => nrnldr_start,
+        o_timestep          => timestep,
+        o_write_timestep    => write_timestep,
+        i_fifo_in_empty     => in_fifo_empty,
+        o_fifo_re           => in_fifo_re,
+        i_fifo_rdata        => in_fifo_rdata,
+        i_re                => synldr_fifo_re,
+        o_rdata             => synldr_fifo_rdata,
+        i_fifo_out_full     => i_out_fifo_full,
+        o_busy              => o_busy,
+        i_clk               => i_clk,
+        i_rst               => i_rst
     );
 
     INPUT_FIFO : entity work.BRAM_FIFO
@@ -339,8 +346,8 @@ begin
         i_nrn_index         => nrnldr_nrn_index,
         i_timestep          => timestep,
         o_nrn_state_next    => lif_nrn_state_next,
-        o_event_fifo_out    => o_out_fifo_wdata,
-        o_event_fifo_we     => o_out_fifo_we,
+        o_event_fifo_out    => lif_fifo_wdata,
+        o_event_fifo_we     => lif_fifo_we,
         o_output_valid      => lif_out_valid,
         o_continue          => lif_continue,
         o_goto_idle         => lif_goto_idle,

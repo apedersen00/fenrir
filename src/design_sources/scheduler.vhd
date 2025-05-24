@@ -39,27 +39,28 @@ use ieee.math_real.all;
 
 entity SCHEDULER is
     port (
-        i_enable        : in std_logic;
-        i_synldr_busy   : in std_logic;
-        i_nrnldr_busy   : in std_logic;
+        i_enable            : in std_logic;
+        i_synldr_busy       : in std_logic;
+        i_nrnldr_busy       : in std_logic;
 
-        o_synldr_start  : out std_logic;
-        o_nrnldr_start  : out std_logic;
-        o_timestep      : out std_logic;
+        o_synldr_start      : out std_logic;
+        o_nrnldr_start      : out std_logic;
+        o_timestep          : out std_logic;
+        o_write_timestep    : out std_logic;
 
         -- input fifo
-        i_fifo_in_empty : in std_logic;
-        o_fifo_re       : out std_logic;                        -- read enable fifo
-        i_fifo_rdata    : in std_logic_vector(12 downto 0);     -- read from fifo, 1b tstep & 12b neuron index
-        i_re            : in std_logic;                         -- read enable from synapse loader
-        o_rdata         : out std_logic_vector(11 downto 0);    -- data to synapse loader, 12b neuron index
+        i_fifo_in_empty     : in std_logic;
+        o_fifo_re           : out std_logic;                        -- read enable fifo
+        i_fifo_rdata        : in std_logic_vector(12 downto 0);     -- read from fifo, 1b tstep & 12b neuron index
+        i_re                : in std_logic;                         -- read enable from synapse loader
+        o_rdata             : out std_logic_vector(11 downto 0);    -- data to synapse loader, 12b neuron index
 
         -- output fifo
-        i_fifo_out_full : in std_logic;
+        i_fifo_out_full     : in std_logic;
 
-        o_busy          : out std_logic;
-        i_clk           : in std_logic;
-        i_rst           : in std_logic
+        o_busy              : out std_logic;
+        i_clk               : in std_logic;
+        i_rst               : in std_logic
     );
 end SCHEDULER;
 
@@ -73,6 +74,7 @@ architecture Behavioral of SCHEDULER is
         PROCESS_FIFO,
         PROCESS_EVENT,
         PROCESS_EVENT_BUSY,
+        PROPAGATE_TIMESTEP,
         TIMESTEP,
         TIMESTEP_BUSY
     );
@@ -133,7 +135,7 @@ begin
 
             when PROCESS_FIFO =>
                 if  (tstep_buf = '1') then
-                    next_state <= TIMESTEP;
+                    next_state <= PROPAGATE_TIMESTEP;
                 else
                     next_state <= PROCESS_EVENT;
                 end if;
@@ -154,6 +156,9 @@ begin
                     next_state <= IDLE;
                 end if;
 
+            when PROPAGATE_TIMESTEP =>
+                next_state <= TIMESTEP;
+
             when TIMESTEP =>
                 if      (i_rst = '1') then
                     next_state <= IDLE;
@@ -172,6 +177,9 @@ begin
 
     outputs : process(i_clk)
     begin
+
+        o_write_timestep    <= '0';
+
         case present_state is    
             when IDLE =>
                 o_timestep      <= '0';
@@ -207,15 +215,21 @@ begin
                 o_synldr_start  <= '0';
                 o_nrnldr_start  <= '0';
 
+            when PROPAGATE_TIMESTEP =>
+                o_timestep          <= '1';
+                o_synldr_start      <= '0';
+                o_nrnldr_start      <= '1';
+                o_write_timestep    <= '1';
+
             when TIMESTEP =>
-                o_timestep      <= '1';
-                o_synldr_start  <= '0';
-                o_nrnldr_start  <= '1';
+                o_timestep          <= '1';
+                o_synldr_start      <= '0';
+                o_nrnldr_start      <= '1';
 
             when TIMESTEP_BUSY =>
-                o_timestep      <= '1';
-                o_synldr_start  <= '0';
-                o_nrnldr_start  <= '0';
+                o_timestep          <= '1';
+                o_synldr_start      <= '0';
+                o_nrnldr_start      <= '0';
         end case;
     end process;
 
