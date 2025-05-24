@@ -23,13 +23,18 @@ def export_spike_data(spike_data, out_file):
         for idx in non_zero_indices.tolist():
             events.append(idx)
 
+        events.append(0b1000000000000)
+
         tstep_event_idx.append(len(events))
 
     binary_events = [format(idx, '010b') for idx in events]
 
-    with open(out_file, 'w') as f:
+    with open(out_file, 'w', encoding='utf-8') as f:
         for b in binary_events:
-            f.write("0000000000000000000000" + b + '\n')
+            if not b == '1000000000000':
+                f.write("000" + b + '\n')
+            else:
+                f.write(b + '\n')
 
 def export_weights(fc, bits_per_addr, input_size, out_file) -> None:
     """
