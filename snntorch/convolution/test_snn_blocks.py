@@ -1,5 +1,6 @@
 import torch, sys, io, contextlib
 from snn_blocks import FeatureMapNeuronLayer, SumPooling2D, SurrogateSpike
+from quant_blocks import QuantizedFeatureMap
 
 def test_surrogate_spike() -> bool:
     print("Testing SurrogateSpike...")
@@ -73,6 +74,52 @@ def test_sum_pooling_2d() -> bool:
     print("SumPooling2D test passed.")
     return True
 
+def test_quantized_feature_map() -> bool:
+    print("Testing QuantizedFeatureMap...")
+
+    batch = 2
+    channels = 3
+    dimensions = (5, 5)
+    bit_width = 8
+    qmin = 0
+    qmax = (1 << bit_width) - 1
+
+    fm = QuantizedFeatureMap(
+        num_feature_maps=channels,
+        spatial_shape=dimensions,
+        bit_width=bit_width,
+        init_threshold=100,   # Choose arbitrary, valid values
+        init_decay=3,
+        init_reset=0,
+    )
+    # Typical SNN: initial membrane is zero, input is random within bitwidth
+    membrane = torch.zeros(batch, channels, *dimensions)
+    input = torch.randint(low=50, high=150, size=(batch, channels, *dimensions))
+
+    out_mem, out_spike = fm(membrane, input)
+    print("Updated membrane:", out_mem)
+    print("Spikes:", out_spike)
+
+    # Check shape
+    if out_mem.shape != (batch, channels, *dimensions):
+        print("Membrane shape mismatch")
+        return False
+    if out_spike.shape != (batch, channels, *dimensions):
+        print("Spike shape mismatch")
+        return False
+    # Check quantization range
+    if not (out_mem.ge(qmin).all() and out_mem.le(qmax).all()):
+        print("Membrane out of quantized range")
+        return False
+    # Spikes should be 0 or 1
+    if not set(out_spike.flatten().tolist()).issubset({0, 1}):
+        print("Spikes not binary")
+        return False
+
+    print("QuantizedFeatureMap test passed.")
+    return True
+
+
 def test_annotate(test: callable) -> str:
 
     if test():
@@ -93,6 +140,7 @@ if __name__ == "__main__":
         ("test_surrogate_spike", test_surrogate_spike),
         ("test_feature_map_neuron_layer", test_feature_map_neuron_layer),
         ("test_sum_pooling_2d", test_sum_pooling_2d),
+        ("test_quantized_feature_map", test_quantized_feature_map),
     ]
     result = []
     for name, test in tests:

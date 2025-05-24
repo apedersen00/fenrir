@@ -116,4 +116,3 @@ class SumPooling2D(nn.Module):
             widthOut
         )
         return spikes2D
-
