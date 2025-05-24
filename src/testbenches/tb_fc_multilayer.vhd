@@ -306,9 +306,9 @@ begin
         fc2_cfg_en      <= '1';
         fc2_cfg_addr    <= "00100000";
         fc2_cfg_val     <=
-            std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
+            std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
             std_logic_vector(to_unsigned(213, 12))  &   -- beta
-            std_logic_vector(to_unsigned(598, 12));     -- threshold
+            std_logic_vector(to_unsigned(60, 12));     -- threshold
         wait until rising_edge(clk);
         fc2_cfg_en      <= '0';
         wait until rising_edge(clk);
@@ -325,6 +325,7 @@ begin
         wait until rising_edge(clk);
 
         fc1_en <= '1';
+        fc2_en <= '1';
 
         while not endfile(bin_file) loop
 
