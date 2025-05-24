@@ -63,3 +63,66 @@ class QuantizedFeatureMap(nn.Module):
         membrane = torch.clamp(membrane, self.qmin, self.qmax)
 
         return membrane, spikes
+    
+class QuantizedSumPooling2D(nn.Module):
+    def __init__(
+            self,
+            kernel_size:        int,
+            stride:             int,
+            num_feature_maps:   int,
+            bit_width:          int = 8,
+            init_threshold:     float = 128.
+    ):
+        """
+        args:
+            kernel_size (int): Size of the pooling kernel.
+            stride (int): Stride for the pooling operation.
+            num_feature_maps (int): Number of feature maps.
+            bit_width (int): Bit width for quantization.
+            init_threshold (float): Initial threshold for quantization.
+        """
+        super().__init__()
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.num_feature_maps = num_feature_maps
+        self.bit_width = bit_width
+
+        self.qmin = 0
+        self.qmax = (1 << bit_width) - 1
+
+        self.threshold = nn.Parameter(torch.full((num_feature_maps,), init_threshold, dtype=torch.float32))
+        self.quant_threshold = QuantIdentity(act_bit_width=bit_width)
+
+        self.quant_input = QuantIdentity(act_bit_width=bit_width)
+        self.quant_output = QuantIdentity(act_bit_width=bit_width)
+
+    def forward(self, x: torch.Tensor):
+
+        x = self.quant_input(x) # x : (batch, channels, height, width)
+        
+        B, C, H, W = x.shape
+
+        x_unfold = torch.nn.functional.unfold(
+            x,
+            kernel_size=self.kernel_size,
+            stride=self.stride,
+        )
+
+        K = self.kernel_size ** 2
+        num_windows = x_unfold.shape[-1]
+        x_unfold = x_unfold.view(B, C, K, num_windows)
+
+        # Sum pooling
+        pooled_sums = x_unfold.sum(dim=2)  # (B, C, num_windows)
+
+        #Quantize pooled sums
+        pooled_sums = self.quant_output(pooled_sums)
+        pooled_sums = torch.clamp(pooled_sums, self.qmin, self.qmax)
+
+        threshold = self.quant_threshold(self.threshold).view(1, -1, 1)
+        spikes = SurrogateSpike.apply(pooled_sums, threshold).int()
+
+        H_out = (H - self.kernel_size) // self.stride + 1
+        W_out = (W - self.kernel_size) // self.stride + 1
+        spikes2d = spikes.view(B, C, H_out, W_out)
+        return spikes2d

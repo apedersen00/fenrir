@@ -1,6 +1,10 @@
 import torch, sys, io, contextlib
 from snn_blocks import FeatureMapNeuronLayer, SumPooling2D, SurrogateSpike
-from quant_blocks import QuantizedFeatureMap
+from quant_blocks import QuantizedFeatureMap, QuantizedSumPooling2D
+
+import warnings
+warnings.filterwarnings("ignore", message="Named tensors and all their associated APIs are an experimental feature")
+
 
 def test_surrogate_spike() -> bool:
     print("Testing SurrogateSpike...")
@@ -119,11 +123,44 @@ def test_quantized_feature_map() -> bool:
     print("QuantizedFeatureMap test passed.")
     return True
 
+def test_quantized_sum_pooling_2d() -> bool:
+    print("Testing QuantizedSumPooling2D...")
+    batch = 2
+    channels = 3
+    H, W = 6, 6
+    kernel_size = 2
+    stride = 2
+    bit_width = 8
+
+    pool = QuantizedSumPooling2D(
+        kernel_size=kernel_size,
+        stride=stride,
+        num_feature_maps=channels,
+        bit_width=bit_width,
+        init_threshold=128,
+    )
+
+    x = torch.randint(50, 100, (batch, channels, H, W)).float()
+    spikes = pool(x)
+    print("Spikes:", spikes)
+
+    H_out = (H - kernel_size) // stride + 1
+    W_out = (W - kernel_size) // stride + 1
+    if spikes.shape != (batch, channels, H_out, W_out):
+        print("Spike shape mismatch")
+        return False
+    if not set(spikes.flatten().tolist()).issubset({0, 1}):
+        print("Spikes not binary")
+        return False
+
+    print("QuantizedSumPooling2D test passed.")
+    return True
+
 
 def test_annotate(test: callable) -> str:
 
     if test():
-        return f"✅ {test.__name__}"
+        return f"✅ {test.__name__}" 
     else:
         return f"❌ {test.__name__}"
 
@@ -141,6 +178,7 @@ if __name__ == "__main__":
         ("test_feature_map_neuron_layer", test_feature_map_neuron_layer),
         ("test_sum_pooling_2d", test_sum_pooling_2d),
         ("test_quantized_feature_map", test_quantized_feature_map),
+        ("test_quantized_sum_pooling_2d", test_quantized_sum_pooling_2d),
     ]
     result = []
     for name, test in tests:
