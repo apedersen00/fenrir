@@ -12,7 +12,7 @@ def export_spike_data(spike_data, out_file):
     """
     exp_data    = spike_data[:, 0, :, :]
     exp_data    = exp_data.view(exp_data.shape[0], -1)
-    tsteps      = spike_data.shape[0]
+    tsteps      = exp_data.shape[0]
     events      = []
     tstep_event_idx = []
 
