@@ -69,6 +69,7 @@ architecture Behavioral of SCHEDULER is
     type state is (
         IDLE,
         READ_FIFO,
+        WAIT_FIFO,
         PROCESS_FIFO,
         PROCESS_EVENT,
         PROCESS_EVENT_BUSY,
@@ -121,10 +122,13 @@ begin
                         (i_fifo_out_full    = '0')  and
                         (i_synldr_busy      = '0')  and
                         (i_nrnldr_busy      = '0')  then
-                    next_state <= PROCESS_EVENT;
+                    next_state <= READ_FIFO;
                 end if;
 
             when READ_FIFO =>
+                next_state <= WAIT_FIFO;
+
+            when WAIT_FIFO =>
                 next_state <= PROCESS_FIFO;
 
             when PROCESS_FIFO =>
@@ -180,12 +184,18 @@ begin
                 o_nrnldr_start  <= '0';
                 o_fifo_re       <= '1';
 
-            when PROCESS_FIFO =>
+            when WAIT_FIFO =>
                 o_timestep      <= '0';
                 o_synldr_start  <= '0';
                 o_nrnldr_start  <= '0';
                 o_fifo_re       <= '0';
                 event_buf       <= i_fifo_rdata;
+
+            when PROCESS_FIFO =>
+                o_timestep      <= '0';
+                o_synldr_start  <= '0';
+                o_nrnldr_start  <= '0';
+                o_fifo_re       <= '0';
 
             when PROCESS_EVENT =>
                 o_timestep      <= '0';

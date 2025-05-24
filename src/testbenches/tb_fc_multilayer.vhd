@@ -225,6 +225,8 @@ begin
     begin
 
         -- Reset Synapse and Neuron Loader
+        fc1_en      <= '0';
+        fc2_en      <= '0';
         fc1_in_we   <= '0';
         rst         <= '1';
         enable      <= '0';
@@ -322,7 +324,7 @@ begin
         fc2_cfg_en      <= '0';
         wait until rising_edge(clk);
 
-        enable <= '1';
+        fc1_en <= '1';
 
         while not endfile(bin_file) loop
 
@@ -331,15 +333,15 @@ begin
 
             slv_data := to_stdlogicvector(bv_data);
 
-            wait until busy = '0';
+            -- wait until fc1_busy = '0';
 
-            timestep <= '0';
             if (slv_data(12) = '1') then
-                timestep        <= '1';
                 tb_tstep        <= tb_tstep + 1;
+                fc1_in_we       <= '1';
+                fc1_in_wdata    <= '1' & "000000000000";
             else
                 fc1_in_we       <= '1';
-                fc1_in_wdata    <= timestep & slv_data(11 downto 0);
+                fc1_in_wdata    <= '0' & slv_data(11 downto 0);
             end if;
 
             wait until rising_edge(clk);
@@ -352,10 +354,7 @@ begin
                 wait until rising_edge(clk);
             end loop;
 
-            
             wait for 10 * clk_period;
-
-            timestep        <= '0';
 
         end loop;
 

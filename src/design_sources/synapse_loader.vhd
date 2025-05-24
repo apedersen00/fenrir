@@ -104,6 +104,7 @@ architecture Behavioral of SYNAPSE_LOADER is
 
     -- registers
     signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
+    signal reg_event_buf        : std_logic_vector(11 downto 0);    -- buffers the event for address decoding
 
     -- configuration
     signal cfg_layer_size       : std_logic_vector(10 downto 0);    -- number of neurons in the layer
@@ -137,7 +138,7 @@ begin
         -- TODO: Fix the number of bits used for syn_addr_cntr
         -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
-            o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(i_fifo_rdata)) * addr_per_event + syn_addr_cntr, SYN_MEM_ADDR_WIDTH));
+            o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(reg_event_buf)) * addr_per_event + syn_addr_cntr, SYN_MEM_ADDR_WIDTH));
         end if;
     end process;
 
@@ -306,7 +307,7 @@ begin
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
-                    next_state <= GET_WEIGHTS;
+                    next_state <= WAIT_FOR_BRAM;
                 end if;
 
         end case;
@@ -322,6 +323,7 @@ begin
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
+                reg_event_buf   <= (others => '0');
 
             when GET_EVENT =>
                 o_busy          <= '1';
@@ -334,6 +336,7 @@ begin
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
+                reg_event_buf   <= i_fifo_rdata;
 
             when WAIT_FOR_BRAM =>
                 o_busy          <= '1';
