@@ -51,6 +51,7 @@ entity FC_LAYER is
     generic (
         IN_SIZE         : integer;
         OUT_SIZE        : integer;
+        IS_LAST         : integer;
         SYN_MEM_WIDTH   : integer;
         BITS_PER_SYN    : integer;
         SYN_INIT_FILE   : string := "";
@@ -169,7 +170,7 @@ begin
     o_sched_tstep   <= timestep;
 
     o_out_fifo_wdata    <= '0' & lif_fifo_wdata when write_timestep  = '0' else "1000000000000";
-    o_out_fifo_we       <= lif_fifo_we when write_timestep = '0' else '1';
+    o_out_fifo_we       <= lif_fifo_we when (write_timestep = '0' or IS_LAST = 1) else '1';
 
     o_in_fifo_empty     <= in_fifo_empty;
 

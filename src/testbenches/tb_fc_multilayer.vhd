@@ -51,32 +51,46 @@
         signal fc2_in_wdata     : std_logic_vector(12 downto 0);
         signal fc2_empty        : std_logic;
         signal fc2_full         : std_logic;
-        signal out_fifo_full    : std_logic;
         signal fc2_out_we       : std_logic;
         signal fc2_out_wdata    : std_logic_vector(12 downto 0);
         signal fc2_timestep     : std_logic;
         signal fc2_busy         : std_logic;
 
-        signal busy             : std_logic;
-        signal enable           : std_logic;
-        signal timestep         : std_logic;
+        signal fc3_cfg_en       : std_logic;
+        signal fc3_cfg_addr     : std_logic_vector(7 downto 0);
+        signal fc3_cfg_val      : std_logic_vector(31 downto 0);
+        signal fc3_en           : std_logic;
+        signal fc3_in_we        : std_logic;
+        signal fc3_in_wdata     : std_logic_vector(12 downto 0);
+        signal fc3_empty        : std_logic;
+        signal fc3_full         : std_logic;
+        signal out_fifo_full    : std_logic;
+        signal fc3_out_we       : std_logic;
+        signal fc3_out_wdata    : std_logic_vector(12 downto 0);
+        signal fc3_timestep     : std_logic;
+        signal fc3_busy         : std_logic;
 
         signal tb_fc1_tstep     : integer := 0;
         signal tb_fc2_tstep     : integer := 0;
+        signal tb_fc3_tstep     : integer := 0;
         signal tb_tstep         : integer := 0;      -- for testbench only
         signal tb_nrnmem1_we    : std_logic;
-        signal tb_nrnmem1_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(16) / 3.0))))))-1 downto 0);
+        signal tb_nrnmem1_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(256) / 3.0))))))-1 downto 0);
         signal tb_nrnmem1_wdata : std_logic_vector(35 downto 0);
         signal tb_nrnmem2_we    : std_logic;
-        signal tb_nrnmem2_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(10) / 3.0))))))-1 downto 0);
+        signal tb_nrnmem2_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(128) / 3.0))))))-1 downto 0);
         signal tb_nrnmem2_wdata : std_logic_vector(35 downto 0);
+        signal tb_nrnmem3_we    : std_logic;
+        signal tb_nrnmem3_waddr : std_logic_vector(integer(ceil(log2(real(integer(ceil(real(10) / 3.0))))))-1 downto 0);
+        signal tb_nrnmem3_wdata : std_logic_vector(35 downto 0);
 
     begin
 
         FC1 : entity work.FC_LAYER
         generic map (
-            IN_SIZE         => 1024,
-            OUT_SIZE        => 16,
+            IN_SIZE         => 256,
+            OUT_SIZE        => 256,
+            IS_LAST         => 0,
             SYN_MEM_WIDTH   => 32,
             BITS_PER_SYN    => 4,
             SYN_INIT_FILE   => "data/fc1_syn.data",
@@ -105,9 +119,10 @@
 
         FC2 : entity work.FC_LAYER
         generic map (
-            IN_SIZE         => 16,
-            OUT_SIZE        => 10,
-            SYN_MEM_WIDTH   => 40,
+            IN_SIZE         => 256,
+            OUT_SIZE        => 128,
+            IS_LAST         => 0,
+            SYN_MEM_WIDTH   => 32,
             BITS_PER_SYN    => 4,
             SYN_INIT_FILE   => "data/fc2_syn.data",
             NRN_INIT_FILE   => ""
@@ -121,7 +136,7 @@
             i_in_fifo_wdata     => fc1_out_wdata,
             o_in_fifo_empty     => fc2_empty,
             o_in_fifo_full      => fc2_full,
-            i_out_fifo_full     => out_fifo_full,
+            i_out_fifo_full     => fc3_full,
             o_out_fifo_we       => fc2_out_we,
             o_out_fifo_wdata    => fc2_out_wdata,
             i_rst               => rst,
@@ -133,14 +148,45 @@
             o_nrnmem_wdata      => tb_nrnmem2_wdata
         );
 
+        FC3 : entity work.FC_LAYER
+        generic map (
+            IN_SIZE         => 128,
+            OUT_SIZE        => 10,
+            IS_LAST         => 0,
+            SYN_MEM_WIDTH   => 40,
+            BITS_PER_SYN    => 4,
+            SYN_INIT_FILE   => "data/fc3_syn.data",
+            NRN_INIT_FILE   => ""
+        )
+        port map (
+            i_cfg_en            => fc3_cfg_en,
+            i_cfg_addr          => fc3_cfg_addr,
+            i_cfg_val           => fc3_cfg_val,
+            i_enable            => fc3_en,
+            i_in_fifo_we        => fc2_out_we,
+            i_in_fifo_wdata     => fc2_out_wdata,
+            o_in_fifo_empty     => fc3_empty,
+            o_in_fifo_full      => fc3_full,
+            i_out_fifo_full     => out_fifo_full,
+            o_out_fifo_we       => fc3_out_we,
+            o_out_fifo_wdata    => fc3_out_wdata,
+            i_rst               => rst,
+            i_clk               => clk,
+            o_busy              => fc3_busy,
+            o_sched_tstep       => open,
+            o_nrnmem_we         => tb_nrnmem3_we,
+            o_nrnmem_waddr      => tb_nrnmem3_waddr,
+            o_nrnmem_wdata      => tb_nrnmem3_wdata
+        );
+
         OUTPUT_FIFO : entity work.BRAM_FIFO
             generic map (
                 DEPTH => 512,
                 WIDTH => 13
             )
             port map (
-                i_we                => fc2_out_we,
-                i_wdata             => fc2_out_wdata,
+                i_we                => fc3_out_we,
+                i_wdata             => fc3_out_wdata,
                 i_re                => '0',
                 o_rvalid            => open,
                 o_rdata             => open,
@@ -215,6 +261,36 @@
             end if;
         end process;
 
+        SPKREC3_WRITE_PROCESS : process(clk)
+            file result : text open write_mode is ("spk_rec3.csv");
+            variable lo : line;
+        begin
+            if rising_edge(clk) then
+                if fc3_out_we = '1' then
+                    write(lo, tb_fc3_tstep);
+                    write(lo, ',');
+                    write(lo, fc3_out_wdata);
+                    writeline(result, lo);
+                end if;
+            end if;
+        end process;
+
+        MEMREC3_WRITE_PROCESS : process(clk)
+            file result : text open write_mode is ("mem_rec3.csv");
+            variable lo : line;
+        begin
+            if rising_edge(clk) then
+                if (tb_nrnmem3_we = '1') then
+                    write(lo, tb_fc3_tstep);
+                    write(lo, ',');
+                    write(lo, tb_nrnmem3_waddr);
+                    write(lo, ',');
+                    write(lo, tb_nrnmem3_wdata);
+                    writeline(result, lo);
+                end if;
+            end if;
+        end process;
+
         TSTEP_INCREMENT : process(clk)
         begin
             if rising_edge(clk) then
@@ -224,12 +300,15 @@
                 if (fc2_out_we = '1' and fc2_out_wdata(12) = '1') then
                     tb_fc2_tstep <= tb_fc2_tstep + 1;
                 end if;
+                if (fc3_out_we = '1' and fc3_out_wdata(12) = '1') then
+                    tb_fc3_tstep <= tb_fc3_tstep + 1;
+                end if;
             end if;
         end process;
         
         PROC_SEQUENCER : process
 
-            file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/test_spike_data.txt";
+            file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/nmnist_data.txt";
             variable line_buffer    : line;
             variable bv_data        : bit_vector(12 downto 0);
             variable slv_data       : std_logic_vector(12 downto 0);
@@ -239,9 +318,9 @@
             -- Reset Synapse and Neuron Loader
             fc1_en      <= '0';
             fc2_en      <= '0';
+            fc3_en      <= '0';
             fc1_in_we   <= '0';
             rst         <= '1';
-            enable      <= '0';
             wait for 10 * clk_period;
             rst     <= '0';
             wait until rising_edge(clk);
@@ -253,7 +332,7 @@
                 "00000000"                              &   -- zero padding
                 std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(16, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(256, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc1_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -264,7 +343,7 @@
             fc1_cfg_val     <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(16, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(256, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc1_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -273,9 +352,9 @@
             fc1_cfg_en      <= '1';
             fc1_cfg_addr    <= "00100000";
             fc1_cfg_val     <=
-                std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
-                std_logic_vector(to_unsigned(13, 12))  &   -- beta
-                std_logic_vector(to_unsigned(371, 12));     -- threshold
+                std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
+                std_logic_vector(to_unsigned(92, 12))  &   -- beta
+                std_logic_vector(to_unsigned(69, 12));     -- threshold
             wait until rising_edge(clk);
             fc1_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -286,7 +365,7 @@
             fc1_cfg_val     <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(16, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(256, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc1_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -298,7 +377,7 @@
                 "00000000"                              &   -- zero padding
                 std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(128, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc2_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -309,7 +388,7 @@
             fc2_cfg_val     <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(128, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc2_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -318,9 +397,9 @@
             fc2_cfg_en      <= '1';
             fc2_cfg_addr    <= "00100000";
             fc2_cfg_val     <=
-                std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
-                std_logic_vector(to_unsigned(213, 12))  &   -- beta
-                std_logic_vector(to_unsigned(60, 12));     -- threshold
+                std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
+                std_logic_vector(to_unsigned(439, 12))  &   -- beta
+                std_logic_vector(to_unsigned(599, 12));     -- threshold
             wait until rising_edge(clk);
             fc2_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -331,13 +410,59 @@
             fc2_cfg_val     <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(128, 11));      -- neurons per layer
             wait until rising_edge(clk);
             fc2_cfg_en      <= '0';
             wait until rising_edge(clk);
 
+            -- configure synapse loader
+            fc3_cfg_en      <= '1';
+            fc3_cfg_addr    <= "00000000";
+            fc3_cfg_val     <=
+                "00000000"                              &   -- zero padding
+                std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            wait until rising_edge(clk);
+            fc3_cfg_en      <= '0';
+            wait until rising_edge(clk);
+
+            -- configure neuron loader
+            fc3_cfg_en      <= '1';
+            fc3_cfg_addr    <= "00010000";
+            fc3_cfg_val     <=
+                "0000000000"                            &   -- zero padding
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            wait until rising_edge(clk);
+            fc3_cfg_en      <= '0';
+            wait until rising_edge(clk);
+
+            -- configure lif
+            fc3_cfg_en      <= '1';
+            fc3_cfg_addr    <= "00100000";
+            fc3_cfg_val     <=
+                std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
+                std_logic_vector(to_unsigned(403, 12))  &   -- beta
+                std_logic_vector(to_unsigned(358, 12));     -- threshold
+            wait until rising_edge(clk);
+            fc3_cfg_en      <= '0';
+            wait until rising_edge(clk);
+
+            -- configure neuron writer
+            fc3_cfg_en      <= '1';
+            fc3_cfg_addr    <= "00110000";
+            fc3_cfg_val     <=
+                "0000000000"                            &   -- zero padding
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+            wait until rising_edge(clk);
+            fc3_cfg_en      <= '0';
+            wait until rising_edge(clk);
+            
             fc1_en <= '1';
             fc2_en <= '1';
+            fc3_en <= '1';
 
             while not endfile(bin_file) loop
 
@@ -367,8 +492,12 @@
                     wait until rising_edge(clk);
                 end loop;
 
-                wait for 10 * clk_period;
+                -- wait for 10 * clk_period;
 
+            end loop;
+
+            while (fc3_empty = '1' or fc2_empty = '1' or fc1_empty = '1') loop
+                wait until rising_edge(clk);
             end loop;
 
             finish;
