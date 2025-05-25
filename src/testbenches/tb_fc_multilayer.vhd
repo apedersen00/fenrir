@@ -97,20 +97,26 @@
             NRN_INIT_FILE   => ""
         )
         port map (
+            -- config
             i_cfg_en            => fc1_cfg_en,
             i_cfg_addr          => fc1_cfg_addr,
             i_cfg_val           => fc1_cfg_val,
-            i_enable            => fc1_en,
+            -- input
             i_in_fifo_we        => fc1_in_we,
             i_in_fifo_wdata     => fc1_in_wdata,
+            -- output
+            o_out_fifo_we       => fc1_out_we,
+            o_out_fifo_wdata    => fc1_out_wdata,
+            -- status
             o_in_fifo_empty     => fc1_empty,
             o_in_fifo_full      => fc1_full,
             i_out_fifo_full     => fc2_full,
-            o_out_fifo_we       => fc1_out_we,
-            o_out_fifo_wdata    => fc1_out_wdata,
+            o_busy              => fc1_busy,
+            -- control
+            i_enable            => fc1_en,
             i_rst               => rst,
             i_clk               => clk,
-            o_busy              => fc1_busy,
+            -- debug
             o_sched_tstep       => open,
             o_nrnmem_we         => tb_nrnmem1_we,
             o_nrnmem_waddr      => tb_nrnmem1_waddr,
@@ -128,20 +134,26 @@
             NRN_INIT_FILE   => ""
         )
         port map (
+            -- config
             i_cfg_en            => fc2_cfg_en,
             i_cfg_addr          => fc2_cfg_addr,
             i_cfg_val           => fc2_cfg_val,
-            i_enable            => fc2_en,
+            -- input
             i_in_fifo_we        => fc1_out_we,
             i_in_fifo_wdata     => fc1_out_wdata,
+            -- output
+            o_out_fifo_we       => fc2_out_we,
+            o_out_fifo_wdata    => fc2_out_wdata,
+            -- status
             o_in_fifo_empty     => fc2_empty,
             o_in_fifo_full      => fc2_full,
             i_out_fifo_full     => fc3_full,
-            o_out_fifo_we       => fc2_out_we,
-            o_out_fifo_wdata    => fc2_out_wdata,
+            o_busy              => fc2_busy,
+            -- control
+            i_enable            => fc2_en,
             i_rst               => rst,
             i_clk               => clk,
-            o_busy              => fc2_busy,
+            -- debug
             o_sched_tstep       => open,
             o_nrnmem_we         => tb_nrnmem2_we,
             o_nrnmem_waddr      => tb_nrnmem2_waddr,
@@ -159,20 +171,26 @@
             NRN_INIT_FILE   => ""
         )
         port map (
+            -- config
             i_cfg_en            => fc3_cfg_en,
             i_cfg_addr          => fc3_cfg_addr,
             i_cfg_val           => fc3_cfg_val,
-            i_enable            => fc3_en,
+            -- input
             i_in_fifo_we        => fc2_out_we,
             i_in_fifo_wdata     => fc2_out_wdata,
+            -- output
+            o_out_fifo_we       => fc3_out_we,
+            o_out_fifo_wdata    => fc3_out_wdata,
+            -- status
             o_in_fifo_empty     => fc3_empty,
             o_in_fifo_full      => fc3_full,
             i_out_fifo_full     => out_fifo_full,
-            o_out_fifo_we       => fc3_out_we,
-            o_out_fifo_wdata    => fc3_out_wdata,
+            o_busy              => fc3_busy,
+            -- control
+            i_enable            => fc3_en,
             i_rst               => rst,
             i_clk               => clk,
-            o_busy              => fc3_busy,
+            -- debug
             o_sched_tstep       => open,
             o_nrnmem_we         => tb_nrnmem3_we,
             o_nrnmem_waddr      => tb_nrnmem3_waddr,

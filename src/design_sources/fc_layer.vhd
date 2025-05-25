@@ -28,20 +28,27 @@ use std.textio.all;
 --      NRN_INIT_FILE   =>
 --  )
 --  port map (
+--      -- config
 --      i_cfg_en            =>
 --      i_cfg_addr          =>
 --      i_cfg_val           =>
---      i_enable            =>
+--      -- input
 --      i_in_fifo_we        =>
 --      i_in_fifo_wdata     =>
+--      -- output
+--      o_out_fifo_we       =>
+--      o_out_fifo_wdata    =>
+--      -- status
 --      o_in_fifo_empty     =>
 --      o_in_fifo_full      =>
 --      i_out_fifo_full     =>
---      o_out_fifo_we       =>
---      o_out_fifo_wdata    =>
+--      o_busy              =>
+--      -- control
+--      i_enable            =>
 --      i_rst               =>
 --      i_clk               =>
---      o_busy              =>
+--      -- debug
+--      o_sched_tstep       =>
 --      o_nrnmem_we         =>
 --      o_nrnmem_waddr      =>
 --      o_nrnmem_wdata      =>
