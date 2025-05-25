@@ -95,6 +95,7 @@ architecture Behavioral of SYNAPSE_LOADER is
     type state is (
         IDLE,
         GET_EVENT,
+        STORE_EVENT,
         GET_WEIGHTS,
         WAIT_FOR_BRAM,
         ITERATE
@@ -286,9 +287,16 @@ begin
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
                 else
-                    next_state  <= GET_WEIGHTS;
+                    next_state  <= STORE_EVENT;
                 end if;
             
+            when STORE_EVENT =>
+                if (i_goto_idle = '1') then
+                    next_state <= IDLE;
+                else
+                    next_state  <= GET_WEIGHTS;
+                end if;
+
             when GET_WEIGHTS =>
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
@@ -307,7 +315,7 @@ begin
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
-                    next_state <= WAIT_FOR_BRAM;
+                    next_state <= GET_WEIGHTS;
                 end if;
 
         end case;
@@ -331,12 +339,18 @@ begin
                 counter_enable  <= '0';
                 counter_reset   <= '1';
 
-            when GET_WEIGHTS =>
+            when STORE_EVENT =>
                 o_busy          <= '1';
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
                 reg_event_buf   <= i_fifo_rdata;
+
+            when GET_WEIGHTS =>
+                o_busy          <= '1';
+                o_fifo_re       <= '0';
+                counter_enable  <= '0';
+                counter_reset   <= '0';
 
             when WAIT_FOR_BRAM =>
                 o_busy          <= '1';
