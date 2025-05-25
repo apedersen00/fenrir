@@ -70,6 +70,8 @@
         signal fc3_timestep     : std_logic;
         signal fc3_busy         : std_logic;
 
+        signal out_fifo_empty   : std_logic;
+
         signal tb_fc1_tstep     : integer := 0;
         signal tb_fc2_tstep     : integer := 0;
         signal tb_fc3_tstep     : integer := 0;
@@ -111,6 +113,7 @@
             o_in_fifo_empty     => fc1_empty,
             o_in_fifo_full      => fc1_full,
             i_out_fifo_full     => fc2_full,
+            i_out_fifo_empty    => fc2_empty,
             o_busy              => fc1_busy,
             -- control
             i_enable            => fc1_en,
@@ -148,6 +151,7 @@
             o_in_fifo_empty     => fc2_empty,
             o_in_fifo_full      => fc2_full,
             i_out_fifo_full     => fc3_full,
+            i_out_fifo_empty    => fc3_empty,
             o_busy              => fc2_busy,
             -- control
             i_enable            => fc2_en,
@@ -185,6 +189,7 @@
             o_in_fifo_empty     => fc3_empty,
             o_in_fifo_full      => fc3_full,
             i_out_fifo_full     => out_fifo_full,
+            i_out_fifo_empty    => '1',
             o_busy              => fc3_busy,
             -- control
             i_enable            => fc3_en,
@@ -208,7 +213,7 @@
                 i_re                => '0',
                 o_rvalid            => open,
                 o_rdata             => open,
-                o_empty             => open,
+                o_empty             => out_fifo_empty,
                 o_empty_next        => open,
                 o_full              => out_fifo_full,
                 o_full_next         => open,
@@ -371,8 +376,8 @@
             fc1_cfg_addr    <= "00100000";
             fc1_cfg_val     <=
                 std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
-                std_logic_vector(to_unsigned(92, 12))  &   -- beta
-                std_logic_vector(to_unsigned(69, 12));     -- threshold
+                std_logic_vector(to_unsigned(103, 12))  &   -- beta
+                std_logic_vector(to_unsigned(75, 12));     -- threshold
             wait until rising_edge(clk);
             fc1_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -415,9 +420,9 @@
             fc2_cfg_en      <= '1';
             fc2_cfg_addr    <= "00100000";
             fc2_cfg_val     <=
-                std_logic_vector(to_unsigned(100, 8))   &   -- weight scalar
-                std_logic_vector(to_unsigned(439, 12))  &   -- beta
-                std_logic_vector(to_unsigned(599, 12));     -- threshold
+                std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
+                std_logic_vector(to_unsigned(56, 12))  &   -- beta
+                std_logic_vector(to_unsigned(47, 12));     -- threshold
             wait until rising_edge(clk);
             fc2_cfg_en      <= '0';
             wait until rising_edge(clk);
@@ -461,8 +466,8 @@
             fc3_cfg_addr    <= "00100000";
             fc3_cfg_val     <=
                 std_logic_vector(to_unsigned(10, 8))   &   -- weight scalar
-                std_logic_vector(to_unsigned(403, 12))  &   -- beta
-                std_logic_vector(to_unsigned(358, 12));     -- threshold
+                std_logic_vector(to_unsigned(244, 12))  &   -- beta
+                std_logic_vector(to_unsigned(228, 12));     -- threshold
             wait until rising_edge(clk);
             fc3_cfg_en      <= '0';
             wait until rising_edge(clk);

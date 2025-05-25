@@ -184,8 +184,8 @@ begin
                     v_next_state := v_cur_state + v_syn_weight;
                     if (v_next_state > 2047) then
                         v_next_state := 2047;
-                    elsif (v_next_state < -2047) then
-                        v_next_state := -2047;
+                    elsif (v_next_state < -2048) then
+                        v_next_state := -2048;
                     end if;
                 end if;
 

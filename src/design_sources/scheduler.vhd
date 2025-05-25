@@ -57,6 +57,7 @@ entity SCHEDULER is
 
         -- output fifo
         i_fifo_out_full     : in std_logic;
+        i_fifo_out_empty    : in std_logic;
 
         o_busy              : out std_logic;
         i_clk               : in std_logic;
@@ -121,7 +122,7 @@ begin
 
                 elsif   (i_enable           = '1')  and
                         (i_fifo_in_empty    = '0')  and
-                        (i_fifo_out_full    = '0')  and
+                        (i_fifo_out_empty   = '1')  and
                         (i_synldr_busy      = '0')  and
                         (i_nrnldr_busy      = '0')  then
                     next_state <= READ_FIFO;

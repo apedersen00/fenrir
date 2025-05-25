@@ -74,6 +74,7 @@ entity FC_LAYER is
         o_in_fifo_empty     : out std_logic;
         o_in_fifo_full      : out std_logic;
         i_out_fifo_full     : in std_logic;
+        i_out_fifo_empty    : in std_logic;
         o_out_fifo_we       : out std_logic;
         o_out_fifo_wdata    : out std_logic_vector(12 downto 0);
         i_rst               : in std_logic;
@@ -230,6 +231,7 @@ begin
         i_re                => synldr_fifo_re,
         o_rdata             => synldr_fifo_rdata,
         i_fifo_out_full     => i_out_fifo_full,
+        i_fifo_out_empty    => i_out_fifo_empty,
         o_busy              => o_busy,
         i_clk               => i_clk,
         i_rst               => i_rst
@@ -237,7 +239,7 @@ begin
 
     INPUT_FIFO : entity work.BRAM_FIFO
     generic map (
-        DEPTH => 256,
+        DEPTH => 1024,
         WIDTH => 13     -- 1b timestep and 12b neuron index
     )
     port map (
