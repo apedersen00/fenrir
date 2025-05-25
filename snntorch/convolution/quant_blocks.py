@@ -56,7 +56,7 @@ class QuantizedFeatureMap(nn.Module):
         membrane = self.quant_membrane(membrane)
         membrane = torch.clamp(membrane, self.qmin, self.qmax)
 
-        spikes = SurrogateSpike.apply(membrane, threshold).int()
+        spikes = SurrogateSpike.apply(membrane, threshold)
 
         membrane = torch.where(membrane >= threshold, reset, membrane)
         membrane = self.quant_membrane(membrane)
@@ -120,7 +120,7 @@ class QuantizedSumPooling2D(nn.Module):
         pooled_sums = torch.clamp(pooled_sums, self.qmin, self.qmax)
 
         threshold = self.quant_threshold(self.threshold).view(1, -1, 1)
-        spikes = SurrogateSpike.apply(pooled_sums, threshold).int()
+        spikes = SurrogateSpike.apply(pooled_sums, threshold)
 
         H_out = (H - self.kernel_size) // self.stride + 1
         W_out = (W - self.kernel_size) // self.stride + 1
