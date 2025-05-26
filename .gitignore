@@ -7,8 +7,8 @@
 # Ignore BRAM initialization files
 **/design_sources/data
 
-# Ignore the Vivado project directory
-vivado/
+# Ignore actual vivado project
+vivado/fenrir
 
 # Ignore dataset files
 python/data/
