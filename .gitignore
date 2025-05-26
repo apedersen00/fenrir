@@ -9,3 +9,9 @@
 
 # Ignore the Vivado project directory
 vivado/
+
+# Ignore dataset files
+python/data/
+
+# Drawio
+*.bkp
