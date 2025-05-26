@@ -219,7 +219,7 @@ begin
         end if;
     end process;
 
-    SCHEDULER : entity work.SCHEDULER
+    SCHEDULER : entity work.FC_SCHEDULER
     port map (
         i_enable            => i_enable,
         i_synldr_busy       => synldr_busy,
@@ -292,7 +292,7 @@ begin
         i_clk       => i_clk
     );
 
-    SYN_LOADER : entity work.SYNAPSE_LOADER
+    SYN_LOADER : entity work.FC_SYNAPSE_LOADER
     generic map (
         SYN_MEM_DEPTH   => SYN_MEM_DEPTH,
         SYN_MEM_WIDTH   => SYN_MEM_WIDTH
@@ -319,7 +319,7 @@ begin
         i_rst               => i_rst
     );
 
-    NRN_LOADER : entity work.NEURON_LOADER
+    NRN_LOADER : entity work.FC_NEURON_LOADER
     generic map (
         NRN_MEM_DEPTH   => NRN_MEM_DEPTH,
         OUT_FIFO_DEPTH  => OUT_FIFO_DEPTH
@@ -345,7 +345,7 @@ begin
         i_rst                   => i_rst
     );
 
-    LIF : entity work.LIF_NEURON
+    LIF : entity work.FC_LIF_NEURON
     port map (
         i_cfg_en            => lif_cfg_en,
         i_cfg_addr          => lif_cfg_addr,
@@ -370,7 +370,7 @@ begin
         i_rst               => i_rst
     );
 
-    NRN_WRITER : entity work.NEURON_WRITER
+    NRN_WRITER : entity work.FC_NEURON_WRITER
     generic map (
         NRN_MEM_DEPTH   => NRN_MEM_DEPTH
     )

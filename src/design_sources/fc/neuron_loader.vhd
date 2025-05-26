@@ -25,7 +25,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 --  Instantiation Template:
---  INST_NAME : entity work.NEURON_LOADER
+--  INST_NAME : entity work.FC_NEURON_LOADER
 --  generic map (
 --      NRN_MEM_DEPTH   =>
 --  )
@@ -49,7 +49,7 @@ use ieee.math_real.all;
 --      i_rst                   =>
 --  );
 
-entity NEURON_LOADER is
+entity FC_NEURON_LOADER is
     generic (
         NRN_MEM_DEPTH   : integer;                           -- depth of the neuron memory
         OUT_FIFO_DEPTH  : integer
@@ -84,9 +84,9 @@ entity NEURON_LOADER is
         i_clk                   : in std_logic;
         i_rst                   : in std_logic
     );
-end NEURON_LOADER;
+end FC_NEURON_LOADER;
 
-architecture Behavioral of NEURON_LOADER is
+architecture Behavioral of FC_NEURON_LOADER is
     -- fsm
     type state is (
         IDLE,

@@ -27,7 +27,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 --  Instantiation Template:
---  INST_NAME : entity work.SYNAPSE_LOADER
+--  INST_NAME : entity work.FC_SYNAPSE_LOADER
 --  generic map (
 --      SYN_MEM_DEPTH   =>
 --      SYN_MEM_WIDTH   =>
@@ -53,7 +53,7 @@ use ieee.math_real.all;
 --      i_rst               =>
 --  );
 
-entity SYNAPSE_LOADER is
+entity FC_SYNAPSE_LOADER is
     generic (
         SYN_MEM_DEPTH   : integer; -- depth of the synapse memory
         SYN_MEM_WIDTH   : integer  -- width of the synapse memory
@@ -88,9 +88,9 @@ entity SYNAPSE_LOADER is
         i_clk               : in std_logic;
         i_rst               : in std_logic
     );
-end SYNAPSE_LOADER;
+end FC_SYNAPSE_LOADER;
 
-architecture Behavioral of SYNAPSE_LOADER is
+architecture Behavioral of FC_SYNAPSE_LOADER is
     -- fsm
     type state is (
         IDLE,

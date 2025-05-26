@@ -26,7 +26,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 --  Instantiation Template:
---  INST_NAME : entity work.LIF_NEURON
+--  INST_NAME : entity work.FC_LIF_NEURON
 --  port map (
 --      i_cfg_en            =>
 --      i_cfg_addr          =>
@@ -51,7 +51,7 @@ use ieee.math_real.all;
 --      i_rst               =>
 --  );
 
-entity LIF_NEURON is
+entity FC_LIF_NEURON is
     port (
         -- configuration interface
         i_cfg_en        : in std_logic;                             -- enable configuration
@@ -86,9 +86,9 @@ entity LIF_NEURON is
         i_clk           : in std_logic;
         i_rst           : in std_logic
     );
-end LIF_NEURON;
+end FC_LIF_NEURON;
 
-architecture Behavioral of LIF_NEURON is
+architecture Behavioral of FC_LIF_NEURON is
     -- registers
     signal reg_cfg_0        : std_logic_vector(31 downto 0);    -- configuration register 0
 

@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="TB_FC_MULTILAYER_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="TB_FC_MULTILAYER" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="10,167.633588 us"></ZoomStartTime>
+      <ZoomEndTime time="10,621.433589 us"></ZoomEndTime>
+      <Cursor1Time time="10,295.433588 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="202"></NameColumnWidth>
+      <ValueColumnWidth column_width="58"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="25" />
+   <wvobject fp_name="/TB_FC_MULTILAYER/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TB_FC_MULTILAYER/tb_tstep" type="other">
+      <obj_property name="ElementShortName">tb_tstep</obj_property>
+      <obj_property name="ObjectShortName">tb_tstep</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TB_FC_MULTILAYER/tb_fc1_tstep" type="other">
+      <obj_property name="ElementShortName">tb_fc1_tstep</obj_property>
+      <obj_property name="ObjectShortName">tb_fc1_tstep</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TB_FC_MULTILAYER/tb_fc2_tstep" type="other">
+      <obj_property name="ElementShortName">tb_fc2_tstep</obj_property>
+      <obj_property name="ObjectShortName">tb_fc2_tstep</obj_property>
+   </wvobject>
+   <wvobject fp_name="/TB_FC_MULTILAYER/tb_fc3_tstep" type="other">
+      <obj_property name="ElementShortName">tb_fc3_tstep</obj_property>
+      <obj_property name="ObjectShortName">tb_fc3_tstep</obj_property>
+   </wvobject>
+   <wvobject fp_name="group1628" type="group">
+      <obj_property name="label">MASTER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject fp_name="group460" type="group">
+      <obj_property name="label">FC1</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group461" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/i_cfg_en" type="logic">
+            <obj_property name="ElementShortName">i_cfg_en</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_en</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/i_cfg_addr" type="array">
+            <obj_property name="ElementShortName">i_cfg_addr[7:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_addr[7:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/i_cfg_val" type="array">
+            <obj_property name="ElementShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/o_timestep" type="logic">
+         <obj_property name="ElementShortName">o_timestep</obj_property>
+         <obj_property name="ObjectShortName">o_timestep</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/i_enable" type="logic">
+         <obj_property name="ElementShortName">i_enable</obj_property>
+         <obj_property name="ObjectShortName">i_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group940" type="group">
+      <obj_property name="label">FC1_SCHEDULER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/next_state" type="other">
+         <obj_property name="ElementShortName">next_state</obj_property>
+         <obj_property name="ObjectShortName">next_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/present_state" type="other">
+         <obj_property name="ElementShortName">present_state</obj_property>
+         <obj_property name="ObjectShortName">present_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/i_enable" type="logic">
+         <obj_property name="ElementShortName">i_enable</obj_property>
+         <obj_property name="ObjectShortName">i_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SCHEDULER/o_timestep" type="logic">
+         <obj_property name="ElementShortName">o_timestep</obj_property>
+         <obj_property name="ObjectShortName">o_timestep</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group324" type="group">
+      <obj_property name="label">FC1_FIFO</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/INPUT_FIFO/o_fill_count" type="array">
+         <obj_property name="ElementShortName">o_fill_count[7:0]</obj_property>
+         <obj_property name="ObjectShortName">o_fill_count[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/INPUT_FIFO/i_we" type="logic">
+         <obj_property name="ElementShortName">i_we</obj_property>
+         <obj_property name="ObjectShortName">i_we</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/INPUT_FIFO/i_wdata" type="array">
+         <obj_property name="ElementShortName">i_wdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">i_wdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/INPUT_FIFO/i_re" type="logic">
+         <obj_property name="ElementShortName">i_re</obj_property>
+         <obj_property name="ObjectShortName">i_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/INPUT_FIFO/o_rdata" type="array">
+         <obj_property name="ElementShortName">o_rdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_rdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group331" type="group">
+      <obj_property name="label">FC1_SYN_LOADER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group347" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_cfg_en" type="logic">
+            <obj_property name="ElementShortName">i_cfg_en</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_en</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_cfg_addr" type="array">
+            <obj_property name="ElementShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_cfg_val" type="array">
+            <obj_property name="ElementShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/cfg_layer_size" type="array">
+            <obj_property name="ElementShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/cfg_layer_offset" type="array">
+            <obj_property name="ElementShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/cfg_syn_bits" type="array">
+            <obj_property name="ElementShortName">cfg_syn_bits[1:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_syn_bits[1:0]</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_start" type="logic">
+         <obj_property name="ElementShortName">i_start</obj_property>
+         <obj_property name="ObjectShortName">i_start</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/next_state" type="other">
+         <obj_property name="ElementShortName">next_state</obj_property>
+         <obj_property name="ObjectShortName">next_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/present_state" type="other">
+         <obj_property name="ElementShortName">present_state</obj_property>
+         <obj_property name="ObjectShortName">present_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_fifo_re" type="logic">
+         <obj_property name="ElementShortName">o_fifo_re</obj_property>
+         <obj_property name="ObjectShortName">o_fifo_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_fifo_rdata" type="array">
+         <obj_property name="ElementShortName">i_fifo_rdata[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_fifo_rdata[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/reg_event_buf" type="array">
+         <obj_property name="ElementShortName">reg_event_buf[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_event_buf[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_synmem_raddr" type="array">
+         <obj_property name="ElementShortName">o_synmem_raddr[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_synmem_raddr[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/i_synmem_rdata" type="array">
+         <obj_property name="ElementShortName">i_synmem_rdata[31:0]</obj_property>
+         <obj_property name="ObjectShortName">i_synmem_rdata[31:0]</obj_property>
+         <obj_property name="Radix">BINARYRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/syn_index" type="other">
+         <obj_property name="ElementShortName">syn_index</obj_property>
+         <obj_property name="ObjectShortName">syn_index</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_syn_valid" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_syn_valid_next" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid_next</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_syn_valid_last" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid_last</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid_last</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/SYN_LOADER/o_syn_weight" type="array">
+         <obj_property name="ElementShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group338" type="group">
+      <obj_property name="label">FC1_NRN_LOADER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group348" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/i_cfg_en" type="logic">
+            <obj_property name="ElementShortName">i_cfg_en</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_en</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/i_cfg_addr" type="array">
+            <obj_property name="ElementShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/i_cfg_val" type="array">
+            <obj_property name="ElementShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/reg_cfg_0" type="array">
+            <obj_property name="ElementShortName">reg_cfg_0[31:0]</obj_property>
+            <obj_property name="ObjectShortName">reg_cfg_0[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/cfg_layer_size" type="array">
+            <obj_property name="ElementShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/cfg_layer_offset" type="array">
+            <obj_property name="ElementShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/i_start" type="logic">
+         <obj_property name="ElementShortName">i_start</obj_property>
+         <obj_property name="ObjectShortName">i_start</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/next_state" type="other">
+         <obj_property name="ElementShortName">next_state</obj_property>
+         <obj_property name="ObjectShortName">next_state</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/present_state" type="other">
+         <obj_property name="ElementShortName">present_state</obj_property>
+         <obj_property name="ObjectShortName">present_state</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_re" type="logic">
+         <obj_property name="ElementShortName">o_nrn_re</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_re</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/i_nrn_data" type="array">
+         <obj_property name="ElementShortName">i_nrn_data[35:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_data[35:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_addr" type="array">
+         <obj_property name="ElementShortName">o_nrn_addr[6:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_addr[6:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_index" type="array">
+         <obj_property name="ElementShortName">o_nrn_index[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_index[11:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_state" type="array">
+         <obj_property name="ElementShortName">o_nrn_state[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_state[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_valid_next" type="logic">
+         <obj_property name="ElementShortName">o_nrn_valid_next</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_valid_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_LOADER/o_nrn_valid" type="logic">
+         <obj_property name="ElementShortName">o_nrn_valid</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_valid</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group346" type="group">
+      <obj_property name="label">FC1_LIF</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group349" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_cfg_en" type="logic">
+            <obj_property name="ElementShortName">i_cfg_en</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_en</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_cfg_addr" type="array">
+            <obj_property name="ElementShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_addr[3:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_cfg_val" type="array">
+            <obj_property name="ElementShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="ObjectShortName">i_cfg_val[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/reg_cfg_0" type="array">
+            <obj_property name="ElementShortName">reg_cfg_0[31:0]</obj_property>
+            <obj_property name="ObjectShortName">reg_cfg_0[31:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/cfg_threshold" type="array">
+            <obj_property name="ElementShortName">cfg_threshold[11:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_threshold[11:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/cfg_beta" type="array">
+            <obj_property name="ElementShortName">cfg_beta[11:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_beta[11:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/cfg_weight_scale" type="array">
+            <obj_property name="ElementShortName">cfg_weight_scale[7:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_weight_scale[7:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/o_continue" type="logic">
+         <obj_property name="ElementShortName">o_continue</obj_property>
+         <obj_property name="ObjectShortName">o_continue</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_timestep" type="logic">
+         <obj_property name="ElementShortName">i_timestep</obj_property>
+         <obj_property name="ObjectShortName">i_timestep</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_syn_valid" type="logic">
+         <obj_property name="ElementShortName">i_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_nrn_valid" type="logic">
+         <obj_property name="ElementShortName">i_nrn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_nrn_index" type="array">
+         <obj_property name="ElementShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_syn_weight" type="array">
+         <obj_property name="ElementShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/i_nrn_state" type="array">
+         <obj_property name="ElementShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/o_nrn_state_next" type="array">
+         <obj_property name="ElementShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/LIF/o_output_valid" type="logic">
+         <obj_property name="ElementShortName">o_output_valid</obj_property>
+         <obj_property name="ObjectShortName">o_output_valid</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group801" type="group">
+      <obj_property name="label">FC1_NRN_WRITER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/nrn_index" type="other">
+         <obj_property name="ElementShortName">nrn_index</obj_property>
+         <obj_property name="ObjectShortName">nrn_index</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_valid_0" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_0</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_0</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_state_0" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_0[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_0[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_valid_1" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_1</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_1</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_state_1" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_1[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_1[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_valid_2" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_2</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_2</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/reg_nrn_state_2" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_2[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_2[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/o_nrn_addr" type="array">
+         <obj_property name="ElementShortName">o_nrn_addr[6:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_addr[6:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/nrn_we" type="logic">
+         <obj_property name="ElementShortName">nrn_we</obj_property>
+         <obj_property name="ObjectShortName">nrn_we</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/NRN_WRITER/nrn_data" type="array">
+         <obj_property name="ElementShortName">nrn_data[35:0]</obj_property>
+         <obj_property name="ObjectShortName">nrn_data[35:0]</obj_property>
+         <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3115" type="group">
+      <obj_property name="label">FC1_OUT</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/o_out_fifo_we" type="logic">
+         <obj_property name="ElementShortName">o_out_fifo_we</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_we</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC1/o_out_fifo_wdata" type="array">
+         <obj_property name="ElementShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3119" type="group">
+      <obj_property name="label">FC2</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/o_in_fifo_empty" type="logic">
+         <obj_property name="ElementShortName">o_in_fifo_empty</obj_property>
+         <obj_property name="ObjectShortName">o_in_fifo_empty</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/fc2_timestep" type="logic">
+         <obj_property name="ElementShortName">fc2_timestep</obj_property>
+         <obj_property name="ObjectShortName">fc2_timestep</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/i_enable" type="logic">
+         <obj_property name="ElementShortName">i_enable</obj_property>
+         <obj_property name="ObjectShortName">i_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3123" type="group">
+      <obj_property name="label">FC2_SCHEDULER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/next_state" type="other">
+         <obj_property name="ElementShortName">next_state</obj_property>
+         <obj_property name="ObjectShortName">next_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/present_state" type="other">
+         <obj_property name="ElementShortName">present_state</obj_property>
+         <obj_property name="ObjectShortName">present_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/i_enable" type="logic">
+         <obj_property name="ElementShortName">i_enable</obj_property>
+         <obj_property name="ObjectShortName">i_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/i_fifo_out_full" type="logic">
+         <obj_property name="ElementShortName">i_fifo_out_full</obj_property>
+         <obj_property name="ObjectShortName">i_fifo_out_full</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/i_fifo_in_empty" type="logic">
+         <obj_property name="ElementShortName">i_fifo_in_empty</obj_property>
+         <obj_property name="ObjectShortName">i_fifo_in_empty</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SCHEDULER/o_timestep" type="logic">
+         <obj_property name="ElementShortName">o_timestep</obj_property>
+         <obj_property name="ObjectShortName">o_timestep</obj_property>
+         <obj_property name="CustomSignalColor">#00FF7F</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3128" type="group">
+      <obj_property name="label">FC2_FIFO</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/o_full_next" type="logic">
+         <obj_property name="ElementShortName">o_full_next</obj_property>
+         <obj_property name="ObjectShortName">o_full_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/o_full" type="logic">
+         <obj_property name="ElementShortName">o_full</obj_property>
+         <obj_property name="ObjectShortName">o_full</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/o_fill_count" type="array">
+         <obj_property name="ElementShortName">o_fill_count[7:0]</obj_property>
+         <obj_property name="ObjectShortName">o_fill_count[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/fifo_bram/i_we" type="logic">
+         <obj_property name="ElementShortName">i_we</obj_property>
+         <obj_property name="ObjectShortName">i_we</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/fifo_bram/i_wdata" type="array">
+         <obj_property name="ElementShortName">i_wdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">i_wdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3140" type="group">
+      <obj_property name="label">FC2_SYN_LOADER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="group3141" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/cfg_layer_size" type="array">
+            <obj_property name="ElementShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_size[10:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/cfg_layer_offset" type="array">
+            <obj_property name="ElementShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_layer_offset[10:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/cfg_syn_bits" type="array">
+            <obj_property name="ElementShortName">cfg_syn_bits[1:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_syn_bits[1:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_synmem_re" type="logic">
+         <obj_property name="ElementShortName">o_synmem_re</obj_property>
+         <obj_property name="ObjectShortName">o_synmem_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_fifo_re" type="logic">
+         <obj_property name="ElementShortName">o_fifo_re</obj_property>
+         <obj_property name="ObjectShortName">o_fifo_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/INPUT_FIFO/o_rdata" type="array">
+         <obj_property name="ElementShortName">o_rdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_rdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_synmem_raddr" type="array">
+         <obj_property name="ElementShortName">o_synmem_raddr[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_synmem_raddr[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_syn_valid" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_syn_valid_next" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid_next</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid_next</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_syn_valid_last" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid_last</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid_last</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/syn_index" type="other">
+         <obj_property name="ElementShortName">syn_index</obj_property>
+         <obj_property name="ObjectShortName">syn_index</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/SYN_LOADER/o_syn_weight" type="array">
+         <obj_property name="ElementShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">BINARYRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3151" type="group">
+      <obj_property name="label">FC2_LIF</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group3152" type="group">
+         <obj_property name="label">CFG</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/cfg_threshold" type="array">
+            <obj_property name="ElementShortName">cfg_threshold[11:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_threshold[11:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/cfg_beta" type="array">
+            <obj_property name="ElementShortName">cfg_beta[11:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_beta[11:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         </wvobject>
+         <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/cfg_weight_scale" type="array">
+            <obj_property name="ElementShortName">cfg_weight_scale[7:0]</obj_property>
+            <obj_property name="ObjectShortName">cfg_weight_scale[7:0]</obj_property>
+            <obj_property name="CustomSignalColor">#FF00FF</obj_property>
+            <obj_property name="UseCustomSignalColor">true</obj_property>
+            <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/i_syn_valid" type="logic">
+         <obj_property name="ElementShortName">i_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/i_nrn_valid" type="logic">
+         <obj_property name="ElementShortName">i_nrn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/i_nrn_index" type="array">
+         <obj_property name="ElementShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/i_syn_weight" type="array">
+         <obj_property name="ElementShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/i_nrn_state" type="array">
+         <obj_property name="ElementShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/LIF/o_nrn_state_next" type="array">
+         <obj_property name="ElementShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group2965" type="group">
+      <obj_property name="label">FC2_NRN_WRITER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/nrn_index" type="other">
+         <obj_property name="ElementShortName">nrn_index</obj_property>
+         <obj_property name="ObjectShortName">nrn_index</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_valid_0" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_0</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_0</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_state_0" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_0[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_0[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDMAGRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_valid_1" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_1</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_1</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_state_1" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_1[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_1[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDMAGRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_valid_2" type="logic">
+         <obj_property name="ElementShortName">reg_nrn_valid_2</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_valid_2</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/reg_nrn_state_2" type="array">
+         <obj_property name="ElementShortName">reg_nrn_state_2[11:0]</obj_property>
+         <obj_property name="ObjectShortName">reg_nrn_state_2[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDMAGRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/o_nrn_addr" type="array">
+         <obj_property name="ElementShortName">o_nrn_addr[5:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_addr[5:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/o_nrn_we" type="logic">
+         <obj_property name="ElementShortName">o_nrn_we</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_we</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/NRN_WRITER/o_nrn_data" type="array">
+         <obj_property name="ElementShortName">o_nrn_data[35:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_data[35:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group3155" type="group">
+      <obj_property name="label">FC2_OUT</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/o_out_fifo_we" type="logic">
+         <obj_property name="ElementShortName">o_out_fifo_we</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_we</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC2/o_out_fifo_wdata" type="array">
+         <obj_property name="ElementShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+         <obj_property name="CustomSignalColor">#00FFFF</obj_property>
+         <obj_property name="UseCustomSignalColor">true</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group908" type="group">
+      <obj_property name="label">FC3_SCHEDULER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SCHEDULER/i_enable" type="logic">
+         <obj_property name="ElementShortName">i_enable</obj_property>
+         <obj_property name="ObjectShortName">i_enable</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SCHEDULER/next_state" type="other">
+         <obj_property name="ElementShortName">next_state</obj_property>
+         <obj_property name="ObjectShortName">next_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SCHEDULER/present_state" type="other">
+         <obj_property name="ElementShortName">present_state</obj_property>
+         <obj_property name="ObjectShortName">present_state</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SCHEDULER/o_busy" type="logic">
+         <obj_property name="ElementShortName">o_busy</obj_property>
+         <obj_property name="ObjectShortName">o_busy</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SCHEDULER/o_timestep" type="logic">
+         <obj_property name="ElementShortName">o_timestep</obj_property>
+         <obj_property name="ObjectShortName">o_timestep</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group916" type="group">
+      <obj_property name="label">FC3_SYN_LOADER</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/o_synmem_re" type="logic">
+         <obj_property name="ElementShortName">o_synmem_re</obj_property>
+         <obj_property name="ObjectShortName">o_synmem_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/o_fifo_re" type="logic">
+         <obj_property name="ElementShortName">o_fifo_re</obj_property>
+         <obj_property name="ObjectShortName">o_fifo_re</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/i_fifo_rdata" type="array">
+         <obj_property name="ElementShortName">i_fifo_rdata[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_fifo_rdata[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/o_synmem_raddr" type="array">
+         <obj_property name="ElementShortName">o_synmem_raddr[6:0]</obj_property>
+         <obj_property name="ObjectShortName">o_synmem_raddr[6:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/o_syn_valid" type="logic">
+         <obj_property name="ElementShortName">o_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">o_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/syn_index" type="other">
+         <obj_property name="ElementShortName">syn_index</obj_property>
+         <obj_property name="ObjectShortName">syn_index</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/SYN_LOADER/o_syn_weight" type="array">
+         <obj_property name="ElementShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">o_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group923" type="group">
+      <obj_property name="label">FC3_LIF</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/i_syn_valid" type="logic">
+         <obj_property name="ElementShortName">i_syn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_syn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/i_nrn_valid" type="logic">
+         <obj_property name="ElementShortName">i_nrn_valid</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_valid</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/i_nrn_index" type="array">
+         <obj_property name="ElementShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_index[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/i_syn_weight" type="array">
+         <obj_property name="ElementShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="ObjectShortName">i_syn_weight[7:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/i_nrn_state" type="array">
+         <obj_property name="ElementShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="ObjectShortName">i_nrn_state[11:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/LIF/o_nrn_state_next" type="array">
+         <obj_property name="ElementShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="ObjectShortName">o_nrn_state_next[11:0]</obj_property>
+         <obj_property name="Radix">SIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group926" type="group">
+      <obj_property name="label">FC3_OUT</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/o_out_fifo_we" type="logic">
+         <obj_property name="ElementShortName">o_out_fifo_we</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_we</obj_property>
+      </wvobject>
+      <wvobject fp_name="/TB_FC_MULTILAYER/FC3/o_out_fifo_wdata" type="array">
+         <obj_property name="ElementShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="ObjectShortName">o_out_fifo_wdata[12:0]</obj_property>
+         <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

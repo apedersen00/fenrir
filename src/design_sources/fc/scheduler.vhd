@@ -18,7 +18,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 --  Instantiation Template:
---  INST_NAME : entity work.SCHEDULER
+--  INST_NAME : entity work.FC_SCHEDULER
 --  port map (
 --      i_enable        =>
 --      i_synldr_busy   =>
@@ -37,7 +37,7 @@ use ieee.math_real.all;
 --      i_rst           =>
 --  );
 
-entity SCHEDULER is
+entity FC_SCHEDULER is
     port (
         i_enable            : in std_logic;
         i_synldr_busy       : in std_logic;
@@ -63,9 +63,9 @@ entity SCHEDULER is
         i_clk               : in std_logic;
         i_rst               : in std_logic
     );
-end SCHEDULER;
+end FC_SCHEDULER;
 
-architecture Behavioral of SCHEDULER is
+architecture Behavioral of FC_SCHEDULER is
 
     -- fsm
     type state is (

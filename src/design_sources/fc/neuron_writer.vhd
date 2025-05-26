@@ -25,7 +25,7 @@ use ieee.numeric_std.all;
 use ieee.math_real.all;
 
 --  Instantiation Template:
---  INST_NAME : entity work.NEURON_WRITER
+--  INST_NAME : entity work.FC_NEURON_WRITER
 --  generic map (
 --      NRN_MEM_DEPTH   =>
 --  )
@@ -45,7 +45,7 @@ use ieee.math_real.all;
 --      o_fault     =>
 --  );
 
-entity NEURON_WRITER is
+entity FC_NEURON_WRITER is
     generic (
         NRN_MEM_DEPTH   : integer                           -- depth of the neuron memory
     );
@@ -71,9 +71,9 @@ entity NEURON_WRITER is
         i_clk       : in std_logic;
         i_rst       : in std_logic
     );
-end NEURON_WRITER;
+end FC_NEURON_WRITER;
 
-architecture Behavioral of NEURON_WRITER is
+architecture Behavioral of FC_NEURON_WRITER is
 
     -- registers
     signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
