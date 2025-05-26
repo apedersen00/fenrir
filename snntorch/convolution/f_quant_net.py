@@ -241,3 +241,93 @@ class FQuantNetInt(nn.Module):
             logits += fc_out
 
         return logits / T
+    
+
+class SpikePooling2D(nn.Module):
+    def __init__(
+            self,
+            num_channels: int,
+            kernel_size: int = 2,
+            stride: int = 2,
+            decay: float = 5.0,
+            threshold: float = 100.0,
+            reset_value: float = 0.0
+    ):
+        super().__init__()
+        self.decay = nn.Parameter(torch.full((num_channels,), decay))
+        self.threshold = nn.Parameter(torch.full((num_channels,), threshold))
+        self.kernel_size = kernel_size
+        self.reset_value = reset_value
+        self.stride = stride
+
+    def forward(self, membrane, conv_out):
+        membrane = membrane + conv_out
+        decay = self.decay.view(1, -1, 1, 1)
+        membrane = membrane - decay
+
+        # Pool for spike output only
+        pooled = F.avg_pool2d(membrane, kernel_size=self.kernel_size, stride=self.stride) * (self.kernel_size ** 2)
+        spikes = SurrogateSpike.apply(pooled, self.threshold.view(1, -1, 1, 1))
+
+        return membrane, spikes  # keep membrane at original size!
+
+class DebileClassifier(nn.Module):
+    def __init__(self, channels, num_classes):
+        super().__init__()
+        self.fc = nn.Linear(channels, num_classes, bias=False)
+    
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.mean(dim=(2, 3))  # Average over spatial dimensions
+        return self.fc(x)
+
+class ThreeConvPoolingNet(nn.Module):
+    def __init__(
+            self,
+            conv1_out: int = 12,
+            conv2_out: int = 24,
+            conv3_out: int = 8,
+            kernel_size: int = 3
+    ):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=conv1_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
+        self.conv2 = nn.Conv2d(in_channels=conv1_out, out_channels=conv2_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
+        self.conv3 = nn.Conv2d(in_channels=conv2_out, out_channels=conv3_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
+        
+        nn.init.normal_(self.conv1.weight, mean=20.0, std=2.5)
+        nn.init.normal_(self.conv2.weight, mean=20.0, std=2.5)
+        nn.init.normal_(self.conv3.weight, mean=20.0, std=2.5)
+
+        self.pool1 = SpikePooling2D(num_channels=conv1_out, kernel_size=2, stride=2)
+        self.pool2 = SpikePooling2D(num_channels=conv2_out, kernel_size=2, stride=2)
+        self.pool3 = SpikePooling2D(num_channels=conv3_out, kernel_size=2, stride=2)
+
+        self.classifier = DebileClassifier(channels=conv3_out, num_classes=10)
+
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        B, T, C, H, W = x.shape
+
+        mem1 = torch.zeros(B, self.conv1.out_channels, H, W, device=x.device)
+        mem2 = torch.zeros(B, self.conv2.out_channels, H//2, W//2, device=x.device)
+        mem3 = torch.zeros(B, self.conv3.out_channels, H//4, W//4, device=x.device)
+
+        logits = 0
+
+        for t in range(T):
+
+            xt = x[:, t, :, :, :]
+
+            conv1_out = self.conv1(xt)
+            mem1, spikes1 = self.pool1(mem1, conv1_out)
+
+            conv2_out = self.conv2(spikes1)
+            mem2, spikes2 = self.pool2(mem2, conv2_out)
+
+            conv3_out = self.conv3(spikes2)
+            mem3, spikes3 = self.pool3(mem3, conv3_out)
+
+            out = self.classifier(spikes3)
+            logits += out
+
+        return logits / T
