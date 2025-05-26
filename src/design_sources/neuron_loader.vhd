@@ -30,54 +30,59 @@ use ieee.math_real.all;
 --      NRN_MEM_DEPTH   =>
 --  )
 --  port map (
---      i_cfg_en            =>
---      i_cfg_addr          =>
---      i_cfg_val           =>
---      o_nrn_re            =>
---      o_nrn_addr          =>
---      i_nrn_data          =>
---      o_nrn_state         =>
---      o_nrn_index         =>
---      o_nrn_valid         =>
---      o_nrn_valid_next    =>
---      o_nrn_valid_last    =>
---      i_start             =>
---      i_continue          =>
---      o_busy              =>
---      i_clk               =>
---      i_rst               =>
+--      i_cfg_en                =>
+--      i_cfg_addr              =>
+--      i_cfg_val               =>
+--      o_nrn_re                =>
+--      o_nrn_addr              =>
+--      i_nrn_data              =>
+--      i_out_fifo_fill_count   =>
+--      o_nrn_state             =>
+--      o_nrn_index             =>
+--      o_nrn_valid             =>
+--      o_nrn_valid_next        =>
+--      o_nrn_valid_last        =>
+--      i_start                 =>
+--      i_continue              =>
+--      o_busy                  =>
+--      i_clk                   =>
+--      i_rst                   =>
 --  );
 
 entity NEURON_LOADER is
     generic (
-        NRN_MEM_DEPTH   : integer                           -- depth of the neuron memory
+        NRN_MEM_DEPTH   : integer;                           -- depth of the neuron memory
+        OUT_FIFO_DEPTH  : integer
     );
     port (
         -- configuration interface
-        i_cfg_en    : in std_logic;                         -- enable configuration
-        i_cfg_addr  : in std_logic_vector(3 downto 0);      -- register to configure
-        i_cfg_val   : in std_logic_vector(31 downto 0);     -- value to configure
+        i_cfg_en                : in std_logic;                         -- enable configuration
+        i_cfg_addr              : in std_logic_vector(3 downto 0);      -- register to configure
+        i_cfg_val               : in std_logic_vector(31 downto 0);     -- value to configure
 
         -- neuron memory interface
-        o_nrn_re    : out std_logic;                        -- neuron memory read enable
-        o_nrn_addr  : out std_logic_vector(integer(ceil(log2(real(NRN_MEM_DEPTH))))-1 downto 0);
-        i_nrn_data  : in std_logic_vector(35 downto 0);     -- neuron memory data in (3x12b)
+        o_nrn_re                : out std_logic;                        -- neuron memory read enable
+        o_nrn_addr              : out std_logic_vector(integer(ceil(log2(real(NRN_MEM_DEPTH))))-1 downto 0);
+        i_nrn_data              : in std_logic_vector(35 downto 0);     -- neuron memory data in (3x12b)
+
+        -- fc layer output fifo
+        i_out_fifo_fill_count   : in std_logic_vector(integer(ceil(log2(real(OUT_FIFO_DEPTH))))-1 downto 0);
 
         -- output
-        o_nrn_state         : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
-        o_nrn_index         : out std_logic_vector(11 downto 0);    -- index of outputtet neuron
-        o_nrn_valid         : out std_logic;                        -- output valid
-        o_nrn_valid_next    : out std_logic;                        -- next output is valid
-        o_nrn_valid_last    : out std_logic;
+        o_nrn_state             : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
+        o_nrn_index             : out std_logic_vector(11 downto 0);    -- index of outputtet neuron
+        o_nrn_valid             : out std_logic;                        -- output valid
+        o_nrn_valid_next        : out std_logic;                        -- next output is valid
+        o_nrn_valid_last        : out std_logic;
 
         -- control signals
-        i_start     : in std_logic;                         -- start signal
-        i_continue  : in std_logic;                         -- continue iteration
-        o_busy      : out std_logic;                        -- busy signal
-        i_goto_idle : in std_logic;
+        i_start                 : in std_logic;                         -- start signal
+        i_continue              : in std_logic;                         -- continue iteration
+        o_busy                  : out std_logic;                        -- busy signal
+        i_goto_idle             : in std_logic;
 
-        i_clk       : in std_logic;
-        i_rst       : in std_logic
+        i_clk                   : in std_logic;
+        i_rst                   : in std_logic
     );
 end NEURON_LOADER;
 
@@ -91,6 +96,9 @@ architecture Behavioral of NEURON_LOADER is
     );
     signal present_state        : state;
     signal next_state           : state;
+
+    -- status
+    signal out_fifo_ready       : std_logic;
 
     -- registers
     signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
@@ -118,6 +126,17 @@ begin
     -- constants
     neurons_per_addr    <= 3;
     bits_per_neuron     <= 12;
+
+    fifo_not_full : process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            if (to_integer(unsigned(i_out_fifo_fill_count)) < OUT_FIFO_DEPTH - 5) then
+                out_fifo_ready <= '1';
+            else
+                out_fifo_ready <= '0';
+            end if;
+        end if;
+    end process;
 
     nrn_index_out : process(i_clk)
     begin
@@ -246,7 +265,7 @@ begin
             when GET_NEURONS =>
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
-                else
+                elsif (out_fifo_ready = '1') then
                     next_state  <= WAIT_FOR_BRAM;
                 end if;
 

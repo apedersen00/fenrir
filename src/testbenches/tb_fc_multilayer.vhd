@@ -38,6 +38,7 @@
         signal fc1_in_wdata     : std_logic_vector(12 downto 0);
         signal fc1_empty        : std_logic;
         signal fc1_full         : std_logic;
+        signal fc1_fill_count   : std_logic_vector(7 downto 0);
         signal fc1_out_we       : std_logic;
         signal fc1_out_wdata    : std_logic_vector(12 downto 0);
         signal fc1_timestep     : std_logic;
@@ -51,6 +52,7 @@
         signal fc2_in_wdata     : std_logic_vector(12 downto 0);
         signal fc2_empty        : std_logic;
         signal fc2_full         : std_logic;
+        signal fc2_fill_count   : std_logic_vector(7 downto 0);
         signal fc2_out_we       : std_logic;
         signal fc2_out_wdata    : std_logic_vector(12 downto 0);
         signal fc2_timestep     : std_logic;
@@ -64,6 +66,7 @@
         signal fc3_in_wdata     : std_logic_vector(12 downto 0);
         signal fc3_empty        : std_logic;
         signal fc3_full         : std_logic;
+        signal fc3_fill_count   : std_logic_vector(7 downto 0);
         signal out_fifo_full    : std_logic;
         signal fc3_out_we       : std_logic;
         signal fc3_out_wdata    : std_logic_vector(12 downto 0);
@@ -92,6 +95,7 @@
         generic map (
             IN_SIZE         => 256,
             OUT_SIZE        => 256,
+            OUT_FIFO_DEPTH  => 256,
             IS_LAST         => 0,
             SYN_MEM_WIDTH   => 32,
             BITS_PER_SYN    => 4,
@@ -100,36 +104,39 @@
         )
         port map (
             -- config
-            i_cfg_en            => fc1_cfg_en,
-            i_cfg_addr          => fc1_cfg_addr,
-            i_cfg_val           => fc1_cfg_val,
+            i_cfg_en                => fc1_cfg_en,
+            i_cfg_addr              => fc1_cfg_addr,
+            i_cfg_val               => fc1_cfg_val,
             -- input
-            i_in_fifo_we        => fc1_in_we,
-            i_in_fifo_wdata     => fc1_in_wdata,
+            i_in_fifo_we            => fc1_in_we,
+            i_in_fifo_wdata         => fc1_in_wdata,
             -- output
-            o_out_fifo_we       => fc1_out_we,
-            o_out_fifo_wdata    => fc1_out_wdata,
+            o_out_fifo_we           => fc1_out_we,
+            o_out_fifo_wdata        => fc1_out_wdata,
             -- status
-            o_in_fifo_empty     => fc1_empty,
-            o_in_fifo_full      => fc1_full,
-            i_out_fifo_full     => fc2_full,
-            i_out_fifo_empty    => fc2_empty,
-            o_busy              => fc1_busy,
+            o_in_fifo_empty         => fc1_empty,
+            o_in_fifo_full          => fc1_full,
+            o_in_fifo_fill_count    => open,
+            i_out_fifo_full         => fc2_full,
+            i_out_fifo_empty        => fc2_empty,
+            i_out_fifo_fill_count   => fc2_fill_count,
+            o_busy                  => fc1_busy,
             -- control
-            i_enable            => fc1_en,
-            i_rst               => rst,
-            i_clk               => clk,
+            i_enable                => fc1_en,
+            i_rst                   => rst,
+            i_clk                   => clk,
             -- debug
-            o_sched_tstep       => open,
-            o_nrnmem_we         => tb_nrnmem1_we,
-            o_nrnmem_waddr      => tb_nrnmem1_waddr,
-            o_nrnmem_wdata      => tb_nrnmem1_wdata
+            o_sched_tstep           => open,
+            o_nrnmem_we             => tb_nrnmem1_we,
+            o_nrnmem_waddr          => tb_nrnmem1_waddr,
+            o_nrnmem_wdata          => tb_nrnmem1_wdata
         );
 
         FC2 : entity work.FC_LAYER
         generic map (
             IN_SIZE         => 256,
             OUT_SIZE        => 128,
+            OUT_FIFO_DEPTH  => 256,
             IS_LAST         => 0,
             SYN_MEM_WIDTH   => 32,
             BITS_PER_SYN    => 4,
@@ -138,36 +145,39 @@
         )
         port map (
             -- config
-            i_cfg_en            => fc2_cfg_en,
-            i_cfg_addr          => fc2_cfg_addr,
-            i_cfg_val           => fc2_cfg_val,
+            i_cfg_en                => fc2_cfg_en,
+            i_cfg_addr              => fc2_cfg_addr,
+            i_cfg_val               => fc2_cfg_val,
             -- input
-            i_in_fifo_we        => fc1_out_we,
-            i_in_fifo_wdata     => fc1_out_wdata,
+            i_in_fifo_we            => fc1_out_we,
+            i_in_fifo_wdata         => fc1_out_wdata,
             -- output
-            o_out_fifo_we       => fc2_out_we,
-            o_out_fifo_wdata    => fc2_out_wdata,
+            o_out_fifo_we           => fc2_out_we,
+            o_out_fifo_wdata        => fc2_out_wdata,
             -- status
-            o_in_fifo_empty     => fc2_empty,
-            o_in_fifo_full      => fc2_full,
-            i_out_fifo_full     => fc3_full,
-            i_out_fifo_empty    => fc3_empty,
-            o_busy              => fc2_busy,
+            o_in_fifo_empty         => fc2_empty,
+            o_in_fifo_full          => fc2_full,
+            o_in_fifo_fill_count    => fc2_fill_count,
+            i_out_fifo_full         => fc3_full,
+            i_out_fifo_empty        => fc3_empty,
+            i_out_fifo_fill_count   => fc3_fill_count,
+            o_busy                  => fc2_busy,
             -- control
-            i_enable            => fc2_en,
-            i_rst               => rst,
-            i_clk               => clk,
+            i_enable                => fc2_en,
+            i_rst                   => rst,
+            i_clk                   => clk,
             -- debug
-            o_sched_tstep       => open,
-            o_nrnmem_we         => tb_nrnmem2_we,
-            o_nrnmem_waddr      => tb_nrnmem2_waddr,
-            o_nrnmem_wdata      => tb_nrnmem2_wdata
+            o_sched_tstep           => open,
+            o_nrnmem_we             => tb_nrnmem2_we,
+            o_nrnmem_waddr          => tb_nrnmem2_waddr,
+            o_nrnmem_wdata          => tb_nrnmem2_wdata
         );
 
         FC3 : entity work.FC_LAYER
         generic map (
             IN_SIZE         => 128,
             OUT_SIZE        => 10,
+            OUT_FIFO_DEPTH  => 512,
             IS_LAST         => 0,
             SYN_MEM_WIDTH   => 40,
             BITS_PER_SYN    => 4,
@@ -176,30 +186,32 @@
         )
         port map (
             -- config
-            i_cfg_en            => fc3_cfg_en,
-            i_cfg_addr          => fc3_cfg_addr,
-            i_cfg_val           => fc3_cfg_val,
+            i_cfg_en                => fc3_cfg_en,
+            i_cfg_addr              => fc3_cfg_addr,
+            i_cfg_val               => fc3_cfg_val,
             -- input
-            i_in_fifo_we        => fc2_out_we,
-            i_in_fifo_wdata     => fc2_out_wdata,
+            i_in_fifo_we            => fc2_out_we,
+            i_in_fifo_wdata         => fc2_out_wdata,
             -- output
-            o_out_fifo_we       => fc3_out_we,
-            o_out_fifo_wdata    => fc3_out_wdata,
+            o_out_fifo_we           => fc3_out_we,
+            o_out_fifo_wdata        => fc3_out_wdata,
             -- status
-            o_in_fifo_empty     => fc3_empty,
-            o_in_fifo_full      => fc3_full,
-            i_out_fifo_full     => out_fifo_full,
-            i_out_fifo_empty    => '1',
-            o_busy              => fc3_busy,
+            o_in_fifo_empty         => fc3_empty,
+            o_in_fifo_full          => fc3_full,
+            o_in_fifo_fill_count    => fc3_fill_count,
+            i_out_fifo_full         => out_fifo_full,
+            i_out_fifo_empty        => '1',
+            i_out_fifo_fill_count   => "000000000",
+            o_busy                  => fc3_busy,
             -- control
-            i_enable            => fc3_en,
-            i_rst               => rst,
-            i_clk               => clk,
+            i_enable                => fc3_en,
+            i_rst                   => rst,
+            i_clk                   => clk,
             -- debug
-            o_sched_tstep       => open,
-            o_nrnmem_we         => tb_nrnmem3_we,
-            o_nrnmem_waddr      => tb_nrnmem3_waddr,
-            o_nrnmem_wdata      => tb_nrnmem3_wdata
+            o_sched_tstep           => open,
+            o_nrnmem_we             => tb_nrnmem3_we,
+            o_nrnmem_waddr          => tb_nrnmem3_waddr,
+            o_nrnmem_wdata          => tb_nrnmem3_wdata
         );
 
         OUTPUT_FIFO : entity work.BRAM_FIFO

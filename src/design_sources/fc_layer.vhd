@@ -59,31 +59,34 @@ entity FC_LAYER is
         IN_SIZE         : integer;
         OUT_SIZE        : integer;
         IS_LAST         : integer;
+        OUT_FIFO_DEPTH  : integer;
         SYN_MEM_WIDTH   : integer;
         BITS_PER_SYN    : integer;
         SYN_INIT_FILE   : string := "";
         NRN_INIT_FILE   : string := ""
     );
     port (
-        i_cfg_en            : in std_logic;
-        i_cfg_addr          : in std_logic_vector(7 downto 0);
-        i_cfg_val           : in std_logic_vector(31 downto 0);
-        i_enable            : in std_logic;
-        i_in_fifo_we        : in std_logic;
-        i_in_fifo_wdata     : in std_logic_vector(12 downto 0);
-        o_in_fifo_empty     : out std_logic;
-        o_in_fifo_full      : out std_logic;
-        i_out_fifo_full     : in std_logic;
-        i_out_fifo_empty    : in std_logic;
-        o_out_fifo_we       : out std_logic;
-        o_out_fifo_wdata    : out std_logic_vector(12 downto 0);
-        i_rst               : in std_logic;
-        i_clk               : in std_logic;
-        o_busy              : out std_logic;
-        o_sched_tstep       : out std_logic;                                                                                    -- for tb only
-        o_nrnmem_we         : out std_logic;                                                                                    -- for tb only
-        o_nrnmem_waddr      : out std_logic_vector(integer(ceil(log2(real(integer(ceil(real(OUT_SIZE) / 3.0))))))-1 downto 0);  -- for tb only
-        o_nrnmem_wdata      : out std_logic_vector(35 downto 0)                                                                 -- for tb only
+        i_cfg_en                : in std_logic;
+        i_cfg_addr              : in std_logic_vector(7 downto 0);
+        i_cfg_val               : in std_logic_vector(31 downto 0);
+        i_enable                : in std_logic;
+        i_in_fifo_we            : in std_logic;
+        i_in_fifo_wdata         : in std_logic_vector(12 downto 0);
+        o_in_fifo_empty         : out std_logic;
+        o_in_fifo_full          : out std_logic;
+        o_in_fifo_fill_count    : out std_logic_vector(7 downto 0);
+        i_out_fifo_full         : in std_logic;
+        i_out_fifo_empty        : in std_logic;
+        i_out_fifo_fill_count   : in std_logic_vector(integer(ceil(log2(real(OUT_FIFO_DEPTH))))-1 downto 0);
+        o_out_fifo_we           : out std_logic;
+        o_out_fifo_wdata        : out std_logic_vector(12 downto 0);
+        i_rst                   : in std_logic;
+        i_clk                   : in std_logic;
+        o_busy                  : out std_logic;
+        o_sched_tstep           : out std_logic;                                                                                    -- for tb only
+        o_nrnmem_we             : out std_logic;                                                                                    -- for tb only
+        o_nrnmem_waddr          : out std_logic_vector(integer(ceil(log2(real(integer(ceil(real(OUT_SIZE) / 3.0))))))-1 downto 0);  -- for tb only
+        o_nrnmem_wdata          : out std_logic_vector(35 downto 0)                                                                 -- for tb only
     );
 end FC_LAYER;
 
@@ -239,7 +242,7 @@ begin
 
     INPUT_FIFO : entity work.BRAM_FIFO
     generic map (
-        DEPTH => 1024,
+        DEPTH => 256,
         WIDTH => 13     -- 1b timestep and 12b neuron index
     )
     port map (
@@ -252,7 +255,7 @@ begin
         o_empty_next        => open,
         o_full              => o_in_fifo_full,
         o_full_next         => open,
-        o_fill_count        => open,
+        o_fill_count        => o_in_fifo_fill_count,
         i_clk               => i_clk,
         i_rst               => i_rst
     );
@@ -318,26 +321,28 @@ begin
 
     NRN_LOADER : entity work.NEURON_LOADER
     generic map (
-        NRN_MEM_DEPTH   => NRN_MEM_DEPTH
+        NRN_MEM_DEPTH   => NRN_MEM_DEPTH,
+        OUT_FIFO_DEPTH  => OUT_FIFO_DEPTH
     )
     port map (
-        i_cfg_en            => nrnldr_cfg_en,
-        i_cfg_addr          => nrnldr_cfg_addr,
-        i_cfg_val           => nrnldr_cfg_val,
-        o_nrn_re            => nrnmem_re,
-        o_nrn_addr          => nrnmem_raddr,
-        i_nrn_data          => nrnmem_rdata,
-        o_nrn_state         => nrnldr_state,
-        o_nrn_index         => nrnldr_nrn_index,
-        o_nrn_valid         => nrnldr_valid,
-        o_nrn_valid_next    => nrnldr_valid_next,
-        o_nrn_valid_last    => nnrldr_valid_last,
-        i_start             => nrnldr_start,
-        i_continue          => lif_continue,
-        o_busy              => nrnldr_busy,
-        i_goto_idle         => lif_goto_idle,
-        i_clk               => i_clk,
-        i_rst               => i_rst
+        i_cfg_en                => nrnldr_cfg_en,
+        i_cfg_addr              => nrnldr_cfg_addr,
+        i_cfg_val               => nrnldr_cfg_val,
+        o_nrn_re                => nrnmem_re,
+        o_nrn_addr              => nrnmem_raddr,
+        i_nrn_data              => nrnmem_rdata,
+        i_out_fifo_fill_count   => i_out_fifo_fill_count,
+        o_nrn_state             => nrnldr_state,
+        o_nrn_index             => nrnldr_nrn_index,
+        o_nrn_valid             => nrnldr_valid,
+        o_nrn_valid_next        => nrnldr_valid_next,
+        o_nrn_valid_last        => nnrldr_valid_last,
+        i_start                 => nrnldr_start,
+        i_continue              => lif_continue,
+        o_busy                  => nrnldr_busy,
+        i_goto_idle             => lif_goto_idle,
+        i_clk                   => i_clk,
+        i_rst                   => i_rst
     );
 
     LIF : entity work.LIF_NEURON
