@@ -16,6 +16,16 @@ Subgroups (at the time of writing):
 - `fenrir`: work on main CNN/SNN hardware 
 - `vortex`: python framework for testing and validation
 
+## Upgrading HW Platform in Vitis
+
+1. Generate bitstream in Vivado and `export hardware`.
+
+2. Change the XSA and select the same one again.
+
+3. Build `platform`.
+
+4. Run `update_platform.bat`.
+
 ## Python Environment Installation
 
 ### Poetry
