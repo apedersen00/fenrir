@@ -1,0 +1,6 @@
+# ignore vunit_out folder
+vunit_out/
+# ignore in this folder all .cf files
+*.cf
+#also all .vcd files
+*.vcd

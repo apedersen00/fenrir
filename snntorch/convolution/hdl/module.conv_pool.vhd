@@ -1,0 +1,97 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+use work.conv_pool_pkg.all;
+
+entity conv_pool is
+    generic(
+        CHANNELS_IN : integer := 1;
+        CHANNELS_OUT : integer := 1;
+        BITS_PER_NEURON : integer := 6;
+        BITS_PER_WEIGHT : integer := 6;
+        IMG_WIDTH : integer := 32;
+        IMG_HEIGHT : integer := 32;
+        BITS_PER_COORD : integer := 8
+    );
+    port(
+        -- Standard ports needed for digital components
+        clk : in std_logic;
+        rst_i : in std_logic;
+        enable_i : in std_logic;
+
+        -- Control signals
+        timestep_i : in std_logic;
+
+        -- pragma translate_off
+        debug_main_state : out main_state_et;
+        debug_next_state : out main_state_et;
+        debug_last_state : out main_state_et;
+
+        debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
+        -- pragma translate_on
+
+    );
+end entity conv_pool;
+
+architecture rtl of conv_pool is
+
+    signal main_state, main_next_state, main_last_state : main_state_et := IDLE;
+
+begin
+
+    state_register_update : process (clk, rst_i)
+    begin
+        if rising_edge(clk) then
+            if rst_i = '1' then
+                main_state <= RESET;
+            else
+                main_state <= main_next_state;
+            end if;
+        end if;
+    end process state_register_update;
+
+    update_last_state : process (clk, rst_i)
+    begin
+        if rising_edge(clk) then
+            if rst_i = '1' then
+                main_last_state <= IDLE;
+            elsif main_state /= PAUSE then
+                main_last_state <= main_state;
+            end if;
+        end if;
+    end process update_last_state;
+
+    state_machine_control : process (all)
+    begin
+
+        main_next_state <= main_state; -- assign current state as next by default
+
+        -- check for enable signal
+        if enable_i = '0' then
+            main_next_state <= PAUSE;
+        else
+            case main_state is
+            when IDLE =>
+            when EVENT_CONV => 
+            when PAUSE => main_next_state <= main_last_state;
+            when POOL =>
+            when CONFIG =>
+            WHEN RESET => main_next_state <= IDLE;
+            end case;
+        end if;
+
+    end process state_machine_control;
+
+    -- pragma translate_off
+    debug_main_state <= main_state;
+    debug_next_state <= main_next_state;
+    debug_last_state <= main_last_state;
+
+    debug_main_state_vec <= state_to_slv(main_state);
+    debug_next_state_vec <= state_to_slv(main_next_state);
+    debug_last_state_vec <= state_to_slv(main_last_state);
+    -- pragma translate_on
+
+
+end architecture rtl;
