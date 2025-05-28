@@ -19,286 +19,212 @@ use ieee.math_real.all;
 entity FENRIR_TOP is
     port (
         sysclk  : in std_logic;
-        spike   : out std_logic
+        ctrl    : in std_logic_vector(3 downto 0);
+        led     : out std_logic_vector(3 downto 0);
+
+        -- output spike counters
+        spike_0 : out std_logic_vector(31 downto 0);
+        spike_1 : out std_logic_vector(31 downto 0);
+        spike_2 : out std_logic_vector(31 downto 0);
+
+        -- BRAM 1 interface PS
+        bram_addr_a    : in std_logic_vector(11 downto 0);
+        bram_clk_a     : in std_logic;
+        bram_wrdata_a  : in std_logic_vector(32 - 1 downto 0);
+        bram_rddata_a  : out std_logic_vector(32 - 1 downto 0);
+        bram_en_a      : in std_logic;
+        bram_rst_a     : in std_logic;
+        bram_we_a      : in std_logic_vector((32 / 8) - 1 downto 0)
     );
+
 end FENRIR_TOP;
 
 architecture behavior of FENRIR_TOP is
 
-    constant DEPTH      : integer := 512;
-    constant WIDTH      : integer := 32;
+    ATTRIBUTE X_INTERFACE_INFO : string;
+    ATTRIBUTE X_INTERFACE_INFO OF bram_addr_a    : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA ADDR";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_clk_a     : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA CLK";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_wrdata_a  : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA DIN";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_rddata_a  : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA DOUT";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_en_a      : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA EN";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_rst_a     : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA RST";
+    ATTRIBUTE X_INTERFACE_INFO OF bram_we_a      : SIGNAL IS "xilinx.com:interface:bram:1.0 BRAM_PORTA WE";
 
-    signal clk              : std_logic;
+    -- fsm
+    type state is (
+        IDLE,
+        CONFIG,
+        RUN,
+        INVALID
+    );
+    signal present_state        : state;
+    signal next_state           : state;
 
-    -- input event fifo
-    signal fifo_we          : std_logic;
-    signal fifo_wdata       : std_logic_vector(WIDTH - 1 downto 0);
-    signal fifo_re          : std_logic;
-    signal fifo_rvalid      : std_logic;
-    signal fifo_rdata       : std_logic_vector(WIDTH - 1 downto 0);
-    signal fifo_empty       : std_logic;
-    signal fifo_empty_next  : std_logic;
-    signal fifo_full        : std_logic;
-    signal fifo_full_next   : std_logic;
-    signal fifo_fill_count  : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
-    signal fifo_rst         : std_logic;
-    signal fifo_fault       : std_logic;
+    signal spike_0_reg  : unsigned(31 downto 0);
+    signal spike_1_reg  : unsigned(31 downto 0);
+    signal spike_2_reg  : unsigned(31 downto 0);
+    signal clk_div      : unsigned(1 downto 0);
 
-    -- output event fifo
-    signal out_fifo_we          : std_logic;
-    signal out_fifo_wdata       : std_logic_vector(16 - 1 downto 0);
-    signal out_fifo_re          : std_logic;
-    signal out_fifo_rvalid      : std_logic;
-    signal out_fifo_rdata       : std_logic_vector(16 - 1 downto 0);
-    signal out_fifo_empty       : std_logic;
-    signal out_fifo_empty_next  : std_logic;
-    signal out_fifo_full        : std_logic;
-    signal out_fifo_full_next   : std_logic;
-    signal out_fifo_fill_count  : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
-    signal out_fifo_rst         : std_logic;
-    signal out_fifo_fault       : std_logic;
+    signal testmem_we       : std_logic;
+    signal testmem_waddr    : std_logic_vector(7 downto 0);
+    signal testmem_wdata    : std_logic_vector(31 downto 0);
+    signal testmem_re       : std_logic;
+    signal testmem_raddr    : std_logic_vector(7 downto 0);
+    signal testmem_rdata    : std_logic_vector(31 downto 0);
+    signal testmem_clk      : std_logic;
 
-    -- synapse loader
-    signal synldr_cfg_en        : std_logic;
-    signal synldr_cfg_addr      : std_logic_vector(3 downto 0);
-    signal synldr_cfg_val       : std_logic_vector(31 downto 0);
-    signal synldr_weight        : std_logic_vector(7 downto 0);
-    signal synldr_valid         : std_logic;
-    signal synldr_valid_next    : std_logic;
-    signal synldr_valid_last    : std_logic;
-    signal synldr_start         : std_logic;
-    signal synldr_busy          : std_logic;
-    signal synldr_rst           : std_logic;
-    signal synldr_fault         : std_logic;
+    signal synmem_we        : std_logic;
+    signal synmem_waddr     : std_logic_vector(7 downto 0);
+    signal synmem_wdata     : std_logic_vector(31 downto 0);
+    signal synmem_re        : std_logic;
+    signal synmem_raddr     : std_logic_vector(7 downto 0);
+    signal synmem_rdata     : std_logic_vector(31 downto 0);
 
-    -- neuron loader
-    signal nrnldr_cfg_en        : std_logic;
-    signal nrnldr_cfg_addr      : std_logic_vector(3 downto 0);
-    signal nrnldr_cfg_val       : std_logic_vector(31 downto 0);
-    signal nrnldr_re            : std_logic;
-    signal nrnldr_data          : std_logic_vector(35 downto 0);
-    signal nrnldr_state         : std_logic_vector(11 downto 0);
-    signal nrnldr_nrn_index     : std_logic_vector(11 downto 0);
-    signal nrnldr_valid         : std_logic;
-    signal nrnldr_valid_next    : std_logic;
-    signal nnrldr_valid_last    : std_logic;
-    signal nrnldr_start         : std_logic;
-    signal nrnldr_busy          : std_logic;
-    signal nrnldr_rst           : std_logic;
-
-    -- lif
-    signal lif_cfg_en            : std_logic;
-    signal lif_cfg_addr          : std_logic_vector(3 downto 0);
-    signal lif_cfg_val           : std_logic_vector(31 downto 0);
-    signal lif_nrn_state         : std_logic_vector(11 downto 0);
-    signal lif_syn_weight        : std_logic_vector(3 downto 0);
-    signal lif_nrn_index         : std_logic_vector(15 downto 0);
-    signal lif_timestep          : std_logic;
-    signal lif_nrn_state_next    : std_logic_vector(11 downto 0);
-    signal lif_event_fifo_out    : std_logic_vector(15 downto 0);
-    signal lif_event_fifo_we     : std_logic;
-    signal lif_continue          : std_logic;
-    signal lif_rst               : std_logic;
-    signal goto_idle             : std_logic;
-    signal lif_out_valid         : std_logic;
-
-    -- neuron writer
-    signal nrnwrt_cfg_en        : std_logic;
-    signal nrnwrt_cfg_addr      : std_logic_vector(3 downto 0);
-    signal nrnwrt_cfg_val       : std_logic_vector(31 downto 0);
-    signal nrnwrt_mem_we        : std_logic;
-    signal nrnwrt_mem_addr      : std_logic_vector(1 downto 0);
-    signal nrnwrt_mem_data      : std_logic_vector(35 downto 0);
-    signal nrnwrt_rst           : std_logic;
-    signal nrnwrt_fault         : std_logic;
-
-    -- synapse memory
-    signal synmem_addr      : std_logic_vector(9 downto 0);
-    signal synmem_dout      : std_logic_vector(39 downto 0);
-
-    -- neuron memory
-    signal nrnmem_addr      : std_logic_vector(1 downto 0);
-    signal nrnmem_dout      : std_logic_vector(35 downto 0);
-
-    signal syn_addr         : std_logic_vector(integer(ceil(log2(real(DEPTH))))-1 downto 0);
-    signal syn_data         : std_logic_vector(WIDTH - 1 downto 0);
-
-    -- testbench
-    signal event_number     : integer range 0 to 1024;
+    signal bram_sel         : std_logic;
 
 begin
 
-    clk     <= sysclk;
-    spike   <= out_fifo_we;
+    bram_sel <= '0' when present_state = CONFIG else '1';
+    synmem_re       <=  '1';
+    synmem_raddr    <=  std_logic_vector(to_unsigned(1, synmem_raddr'length));
 
-    INPUT_FIFO : entity work.BRAM_FIFO
-        generic map (
-            DEPTH => DEPTH,
-            WIDTH => WIDTH
-        )
-        port map (
-            i_we                => fifo_we,
-            i_wdata             => fifo_wdata,
-            i_re                => fifo_re,
-            o_rvalid            => fifo_rvalid,
-            o_rdata             => fifo_rdata,
-            o_empty             => fifo_empty,
-            o_empty_next        => fifo_empty_next,
-            o_full              => fifo_full,
-            o_full_next         => fifo_full_next,
-            o_fill_count        => fifo_fill_count,
-            i_clk               => clk,
-            i_rst               => fifo_rst,
-            o_fault             => fifo_fault
-        );
-
-    OUTPUT_FIFO : entity work.BRAM_FIFO
-        generic map (
-            DEPTH => DEPTH,
-            WIDTH => 16
-        )
-        port map (
-            i_we                => out_fifo_we,
-            i_wdata             => out_fifo_wdata,
-            i_re                => '0',
-            o_rvalid            => open,
-            o_rdata             => open,
-            o_empty             => open,
-            o_empty_next        => open,
-            o_full              => open,
-            o_full_next         => open,
-            o_fill_count        => open,
-            i_clk               => clk,
-            i_rst               => out_fifo_rst,
-            o_fault             => out_fifo_fault
-        );
-
-    SYN_MEMORY : entity work.SINGLE_PORT_BRAM
+    TEST_MEMORY : entity work.DUAL_PORT_BRAM
     generic map (
-        DEPTH       => 1024,
-        WIDTH       => 40,
-        FILENAME    => "data/syn_init.data"
+        DEPTH       => 256,
+        WIDTH       => 32,
+        FILENAME    => ""
     )
     port map (
-        i_we        => '0',
-        i_addr      => synmem_addr,
-        i_data      => (others => '0'),
-        o_data      => synmem_dout,
-        i_clk       => clk
+        i_we        => testmem_we,
+        i_waddr     => testmem_waddr,
+        i_wdata     => testmem_wdata,
+        i_re        => testmem_re,
+        i_raddr     => testmem_raddr,
+        o_rdata     => testmem_rdata,
+        i_clk       => testmem_clk
     );
 
-    NRN_MEMORY : entity work.DUAL_PORT_BRAM
+    BRAM_MUX_0 : entity work.BRAM_MUX
     generic map (
-        DEPTH       => 4,
-        WIDTH       => 36,
-        FILENAME    => "data/nrn_init.data"
+        RAM_WIDTH   => 32,
+        RAM_DEPTH   => 256,
+        PS_DEPTH    => 2048
     )
     port map (
-        i_we        => nrnwrt_mem_we,
-        i_waddr     => nrnwrt_mem_addr,
-        i_wdata     => nrnwrt_mem_data,
-        i_re        => nrnldr_re,
-        i_raddr     => nrnmem_addr,
-        o_rdata     => nrnldr_data,
-        i_clk       => clk
+        i_clk               => sysclk,
+        i_sel               => bram_sel,
+        -- BRAM interface
+        o_we                => testmem_we,
+        o_waddr             => testmem_waddr,
+        o_wdata             => testmem_wdata,
+        o_re                => testmem_re,
+        o_raddr             => testmem_raddr,
+        i_rdata             => testmem_rdata,
+        o_clk               => testmem_clk,
+        -- BRAM port A interface PS
+        i_ps_bram_addr_a    => bram_addr_a,
+        i_ps_bram_clk_a     => bram_clk_a,
+        i_ps_bram_wrdata_a  => bram_wrdata_a,
+        o_ps_bram_rddata_a  => bram_rddata_a,
+        i_ps_bram_en_a      => bram_en_a,
+        i_ps_bram_rst_a     => bram_rst_a,
+        i_ps_bram_we_a      => bram_we_a,
+        -- BRAM interface PL
+        i_pl_we             => synmem_we, 
+        i_pl_waddr          => synmem_waddr,
+        i_pl_wdata          => synmem_wdata,
+        i_pl_re             => synmem_re,
+        i_pl_raddr          => synmem_raddr,
+        o_pl_rdata          => synmem_rdata,
+        i_pl_clk            => sysclk
     );
 
-    SYN_LOADER : entity work.SYNAPSE_LOADER
-    generic map (
-        SYN_MEM_DEPTH   => 1024,
-        SYN_MEM_WIDTH   => 40
-    )
-    port map (
-        i_cfg_en            => synldr_cfg_en,
-        i_cfg_addr          => synldr_cfg_addr,
-        i_cfg_val           => synldr_cfg_val,
+    -- READ_BRAM : process(sysclk)
+    -- begin
+    --     if rising_edge(sysclk) then
+    --         if present_state = RUN then
+    --             synmem_we       <= '0';
+    --             synmem_waddr    <=  (others => '0');
+    --             synmem_wdata    <=  (others => '0');
+    --             synmem_re       <=  '1';
+    --             synmem_raddr    <=  std_logic_vector(to_unsigned(1, synmem_raddr'length));
+    --         else
+    --             synmem_we       <= '0';
+    --             synmem_waddr    <=  (others => '0');
+    --             synmem_wdata    <=  (others => '0');
+    --             synmem_re       <=  '0';
+    --             synmem_raddr    <=  (others => '0');
+    --         end if;
+    --     end if;
+    -- end process;
 
-        o_fifo_re           => fifo_re,
-        i_fifo_rvalid       => fifo_rvalid,
-        i_fifo_rdata        => fifo_rdata,
+    -- Debugging
+    spike_0 <= std_logic_vector(spike_0_reg);
+    spike_1 <= std_logic_vector(spike_1_reg);
+    spike_2 <= testmem_rdata;
 
-        o_syn_weight        => synldr_weight,
-        o_syn_valid         => synldr_valid,
-        o_syn_valid_next    => synldr_valid_next,
-        o_syn_valid_last    => synldr_valid_last,
+    increment : process(sysclk)
+    begin
+        if rising_edge(sysclk) then
+            if (ctrl = "0000") then
+                spike_0_reg <= (others => '0');
+                spike_1_reg <= (others => '0');
+                spike_2_reg <= (others => '0');
+                clk_div     <= (others => '0');
+            else
+                clk_div     <= clk_div + 1;
+                spike_0_reg <= spike_0_reg + 1;
 
-        o_synmem_raddr          => synmem_addr,
-        i_synmem_rdata          => synmem_dout,
+                if clk_div(0) = '0' then
+                    spike_1_reg <= spike_1_reg + 1;
+                end if;
 
-        i_start             => synldr_start,
-        i_continue          => lif_continue,
-        o_busy              => synldr_busy,
-        i_goto_idle         => goto_idle,
-        i_clk               => clk,
-        i_rst               => synldr_rst
-    );
+                if clk_div = "00" then
+                    spike_2_reg <= spike_2_reg + 1;
+                end if;
+            end if;
+        end if;
+    end process;
 
-    NRN_LOADER : entity work.NEURON_LOADER
-    generic map (
-        NRN_MEM_DEPTH   => 4
-    )
-    port map (
-        i_cfg_en            => nrnldr_cfg_en,
-        i_cfg_addr          => nrnldr_cfg_addr,
-        i_cfg_val           => nrnldr_cfg_val,
-        o_nrn_re            => nrnldr_re,
-        o_nrn_addr          => nrnmem_addr,
-        i_nrn_data          => nrnldr_data,
-        o_nrn_state         => nrnldr_state,
-        o_nrn_index         => nrnldr_nrn_index,
-        o_nrn_valid         => nrnldr_valid,
-        o_nrn_valid_next    => nrnldr_valid_next,
-        o_nrn_valid_last    => nnrldr_valid_last,
-        i_start             => nrnldr_start,
-        i_continue          => lif_continue,
-        o_busy              => nrnldr_busy,
-        i_goto_idle         => goto_idle,
-        i_clk               => clk,
-        i_rst               => nrnldr_rst
-    );
+    -- FSM state register process
+    state_reg : process(sysclk)
+    begin
+        if rising_edge(sysclk) then
+            if (ctrl = "0000") then
+                present_state <= IDLE;
+            else
+                present_state <= next_state;
+            end if;
+        end if;
+    end process;
 
-    LIF : entity work.LIF_NEURON
-    port map (
-        i_cfg_en            => lif_cfg_en,
-        i_cfg_addr          => lif_cfg_addr,
-        i_cfg_val           => lif_cfg_val,
-        i_nrn_valid         => nrnldr_valid,
-        i_nrn_valid_next    => nrnldr_valid_next,
-        i_nrn_valid_last    => nnrldr_valid_last,
-        i_nrn_state         => nrnldr_state,
-        i_syn_valid         => synldr_valid,
-        i_syn_valid_next    => synldr_valid_next,
-        i_syn_valid_last    => synldr_valid_last,
-        i_syn_weight        => synldr_weight,
-        i_nrn_index         => nrnldr_nrn_index,
-        i_timestep          => lif_timestep,
-        o_nrn_state_next    => lif_nrn_state_next,
-        o_event_fifo_out    => out_fifo_wdata,
-        o_event_fifo_we     => out_fifo_we,
-        o_output_valid      => lif_out_valid,
-        o_continue          => lif_continue,
-        o_goto_idle         => goto_idle,
-        i_clk               => clk,
-        i_rst               => lif_rst
-    );
+    -- FSM next state process
+    nxt_state : process(sysclk)
+    begin
+        case ctrl is
+            when "0001" =>
+                next_state <= IDLE;
+            when "0010" =>
+                next_state <= CONFIG;
+            when "0011" =>
+                next_state <= RUN;
+            when others =>
+                next_state <= INVALID;
+        end case;
+    end process;
 
-    NRN_WRITER : entity work.NEURON_WRITER
-    generic map (
-        NRN_MEM_DEPTH   => 4
-    )
-    port map (
-        i_cfg_en    => nrnwrt_cfg_en,
-        i_cfg_addr  => nrnwrt_cfg_addr,
-        i_cfg_val   => nrnwrt_cfg_val,
-        o_nrn_we    => nrnwrt_mem_we,
-        o_nrn_addr  => nrnwrt_mem_addr,
-        o_nrn_data  => nrnwrt_mem_data,
-        i_nrn_state => lif_nrn_state_next,
-        i_valid     => lif_out_valid,
-        i_nrn_data  => (others => '0'),
-        i_clk       => clk,
-        i_rst       => nrnwrt_rst,
-        o_fault     => nrnwrt_fault
-    );
+    outputs : process(sysclk)
+    begin
+        case present_state is    
+            when IDLE =>
+                led <= "0001";
+            when CONFIG =>
+                led <= "0011";
+            when RUN =>
+                led <= "0111";
+            when INVALID =>
+                led <= "0000";
+        end case;
+    end process;
 
 end behavior;
