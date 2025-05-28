@@ -3,3 +3,7 @@ data/
 weights/
 stats/
 old_stats/
+frame_sample42/
+*.pt
+*.mp4
+*.png

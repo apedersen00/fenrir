@@ -2,6 +2,7 @@ import argparse
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from f_quant_net import ThreeConvPoolingNet
 import tonic
 from tonic import transforms
@@ -24,13 +25,19 @@ def parse_arguments():
     
     return parser.parse_args()
 
-def process_single_timestep(model, frame, t, device):
-    """Process a single timestep and capture activations"""
-    with torch.no_grad():
-        # Extract single timestep
-        frame_t = frame[:, t:t+1, :, :, :].to(device)
+def process_timesteps(model, sample, device, max_t, stride=1):
+    """Process all timesteps and track membrane potentials"""
+    B, T, C, H, W = sample.shape
+    
+    # Track all activations and accumulated logits
+    all_data = []
+    accumulated_logits = torch.zeros(10, device=device)
+    
+    for t in range(0, max_t, stride):
+        print(f"Processing timestep {t+1}/{T}")
         
-        # Convert to float tensor
+        # Extract single timestep
+        frame_t = sample[:, t:t+1, :, :, :].to(device)
         frame_t = frame_t.float()
         
         # Create membrane potentials
@@ -41,79 +48,275 @@ def process_single_timestep(model, frame, t, device):
         # Process timestep
         xt = frame_t.squeeze(1)
         
-        # First layer
-        conv1_out = model.conv1(xt)
-        mem1, spikes1 = model.pool1(mem1, conv1_out)
-        
-        # Second layer
-        conv2_out = model.conv2(spikes1)
-        mem2, spikes2 = model.pool2(mem2, conv2_out)
-        
-        # Third layer
-        conv3_out = model.conv3(spikes2)
-        mem3, spikes3 = model.pool3(mem3, conv3_out)
-        
-        # Classification
-        logits = model.classifier(spikes3)
-        
-        # Get prediction
-        pred = torch.argmax(logits, dim=1).item()
-        
-        # Get class scores
-        scores = logits.squeeze().cpu().numpy()
-        
-        # Return all needed data for visualization
-        return {
-            'input': xt.squeeze().cpu().numpy(),  # Remove all singleton dimensions
-            'spikes1': spikes1.cpu().numpy(),
-            'spikes2': spikes2.cpu().numpy(),
-            'spikes3': spikes3.cpu().numpy(),
-            'logits': scores,
-            'prediction': pred
-        }
+        # Forward pass
+        with torch.no_grad():
+            # First layer
+            conv1_out = model.conv1(xt)
+            mem1, spikes1 = model.pool1(mem1, conv1_out)
+            
+            # Second layer
+            conv2_out = model.conv2(spikes1)
+            mem2, spikes2 = model.pool2(mem2, conv2_out)
+            
+            # Third layer
+            conv3_out = model.conv3(spikes2)
+            mem3, spikes3 = model.pool3(mem3, conv3_out)
+            
+            # Classification
+            logits = model.classifier(spikes3)
+            
+            # Accumulate logits
+            accumulated_logits += logits.squeeze()
+            
+            # Get prediction from accumulated logits
+            pred = torch.argmax(accumulated_logits).item()
+            
+            # Store data for this timestep
+            timestep_data = {
+                'input': xt.squeeze().cpu().numpy(),
+                'mem1': mem1.cpu().numpy(),  # Store membrane potentials
+                'mem2': mem2.cpu().numpy(),
+                'mem3': mem3.cpu().numpy(),
+                'spikes1': spikes1.cpu().numpy(),
+                'spikes2': spikes2.cpu().numpy(),
+                'spikes3': spikes3.cpu().numpy(),
+                'logits': logits.squeeze().cpu().numpy(),
+                'accumulated_logits': accumulated_logits.cpu().numpy(),
+                'prediction': pred,
+                'timestep': t
+            }
+            
+            all_data.append(timestep_data)
+    
+    return all_data
 
-def create_simple_visualization(data, timestep, total_timesteps, output_path, dpi=200):
-    """Create a simple visualization with just the most important elements"""
-    # Create a simple figure with 3 rows, 2 columns
-    fig, axs = plt.subplots(3, 2, figsize=(12, 12))
+def process_timesteps(model, sample, device, max_t, stride=1):
+    """Process all timesteps and track membrane potentials"""
+    B, T, C, H, W = sample.shape
     
-    # First row: Input image and first feature map from layer 1
-    axs[0, 0].imshow(data['input'], cmap='gray')
-    axs[0, 0].set_title("Input Sample")
-    axs[0, 0].axis('off')
+    # Track all activations and accumulated logits
+    all_data = []
+    accumulated_logits = torch.zeros(10, device=device)
     
-    # Show first feature map from each layer
-    axs[0, 1].imshow(data['spikes1'][0, 0], cmap='hot')
-    axs[0, 1].set_title("Conv1 - First Feature Map")
-    axs[0, 1].axis('off')
+    # Create persistent membrane potentials
+    mem1 = torch.zeros(1, model.conv1.out_channels, 32, 32, device=device)
+    mem2 = torch.zeros(1, model.conv2.out_channels, 16, 16, device=device)
+    mem3 = torch.zeros(1, model.conv3.out_channels, 8, 8, device=device)
     
-    axs[1, 0].imshow(data['spikes2'][0, 0], cmap='hot')
-    axs[1, 0].set_title("Conv2 - First Feature Map")
-    axs[1, 0].axis('off')
+    for t in range(0, max_t, stride):
+        print(f"Processing timestep {t+1}/{T}")
+        
+        # Extract single timestep
+        frame_t = sample[:, t:t+1, :, :, :].to(device)
+        frame_t = frame_t.float()
+        
+        # Process timestep
+        xt = frame_t.squeeze(1)
+        
+        # Forward pass
+        with torch.no_grad():
+            # First layer
+            conv1_out = model.conv1(xt)
+            mem1, spikes1 = model.pool1(mem1, conv1_out)
+            
+            # Second layer
+            conv2_out = model.conv2(spikes1)
+            mem2, spikes2 = model.pool2(mem2, conv2_out)
+            
+            # Third layer
+            conv3_out = model.conv3(spikes2)
+            mem3, spikes3 = model.pool3(mem3, conv3_out)
+            
+            # Classification
+            logits = model.classifier(spikes3)
+            
+            # Accumulate logits
+            accumulated_logits += logits.squeeze()
+            
+            # Get prediction from accumulated logits
+            pred = torch.argmax(accumulated_logits).item()
+            
+            # Store data for this timestep
+            timestep_data = {
+                'input': xt.squeeze().cpu().numpy(),
+                'mem1': mem1.cpu().numpy().copy(),  # Make sure to copy
+                'mem2': mem2.cpu().numpy().copy(),
+                'mem3': mem3.cpu().numpy().copy(),
+                'spikes1': spikes1.cpu().numpy(),
+                'spikes2': spikes2.cpu().numpy(),
+                'spikes3': spikes3.cpu().numpy(),
+                'logits': logits.squeeze().cpu().numpy(),
+                'accumulated_logits': accumulated_logits.cpu().numpy(),
+                'prediction': pred,
+                'timestep': t
+            }
+            
+            all_data.append(timestep_data)
     
-    axs[1, 1].imshow(data['spikes3'][0, 0], cmap='hot')
-    axs[1, 1].set_title("Conv3 - First Feature Map")
-    axs[1, 1].axis('off')
+    return all_data
+
+def create_custom_visualization(data, timestep, total_timesteps, target_digit, output_path, dpi=200):
+    """Create visualization with membrane potentials as heatmaps"""
+    fig = plt.figure(figsize=(18, 10))
     
-    # Class scores
-    axs[2, 0].bar(range(10), data['logits'])
-    axs[2, 0].set_title("Class Scores")
-    axs[2, 0].set_xlabel("Digit")
-    axs[2, 0].set_ylabel("Score")
-    axs[2, 0].set_xticks(range(10))
+    # Add title showing the target digit
+    fig.suptitle(f"NMNIST Sample - Target Digit: {target_digit}", fontsize=16)
     
-    # Additional info
-    axs[2, 1].axis('off')
-    axs[2, 1].text(0.5, 0.7, f"Prediction: {data['prediction']}", 
-                  fontsize=14, ha='center',
-                  bbox=dict(facecolor='white', alpha=0.8, boxstyle='round'))
-    axs[2, 1].text(0.5, 0.3, f"Timestep: {timestep+1}/{total_timesteps}", 
-                  fontsize=12, ha='center')
+    # Define main grid layout to match the sketch
+    main_grid = GridSpec(2, 3, figure=fig, height_ratios=[1, 1.5], 
+                        width_ratios=[1, 1.5, 1], hspace=0.3, wspace=0.3)
     
-    plt.tight_layout()
+    # Box 1: Input sample (top-left)
+    ax1 = fig.add_subplot(main_grid[0, 0])
+    ax1.imshow(data['input'], cmap='gray')
+    ax1.set_title("Input Sample")
+    ax1.axis('off')
+    
+    # Find global min/max for each layer for consistent colormaps
+    mem1_min, mem1_max = np.min(data['mem1']), np.max(data['mem1'])
+    mem2_min, mem2_max = np.min(data['mem2']), np.max(data['mem2'])
+    mem3_min, mem3_max = np.min(data['mem3']), np.max(data['mem3'])
+    
+    # Add some margin to ensure values aren't at colormap extremes
+    def add_margin(min_val, max_val, margin=0.1):
+        range_val = max_val - min_val
+        if range_val < 1e-6:  # Avoid division by very small values
+            return min_val - 0.1, max_val + 0.1
+        return min_val - margin * range_val, max_val + margin * range_val
+    
+    mem1_min, mem1_max = add_margin(mem1_min, mem1_max)
+    mem2_min, mem2_max = add_margin(mem2_min, mem2_max)
+    mem3_min, mem3_max = add_margin(mem3_min, mem3_max)
+    
+    # Box 2: Conv1 membrane potentials (top-middle)
+    ax2 = fig.add_subplot(main_grid[0, 1])
+    ax2.set_title("Conv1 Membrane Potentials")
+    ax2.axis('off')
+    
+    # Create a grid for conv1 feature maps
+    n_maps1 = min(data['mem1'].shape[1], 12)
+    n_cols1 = 4
+    n_rows1 = int(np.ceil(n_maps1 / n_cols1))
+    
+    # Inner grid for conv1
+    gs1 = GridSpec(n_rows1, n_cols1, figure=fig, 
+                  left=ax2.get_position().x0, right=ax2.get_position().x1,
+                  bottom=ax2.get_position().y0, top=ax2.get_position().y1)
+    
+    # Plot conv1 membrane potentials as heatmaps
+    for i in range(n_maps1):
+        ax = fig.add_subplot(gs1[i // n_cols1, i % n_cols1])
+        im = ax.imshow(data['mem1'][0, i], cmap='plasma', vmin=mem1_min, vmax=mem1_max)
+        
+        # Add spike markers (white dots where spikes occur)
+        if np.max(data['spikes1'][0, i]) > 0:  # If there are spikes
+            y, x = np.where(data['spikes1'][0, i] > 0.5)
+            ax.scatter(x, y, s=10, c='white', marker='o')
+            
+        # Add small colorbar to show the potential range
+        if i == n_maps1 - 1:  # Add colorbar only for the last map
+            cbar = plt.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
+            cbar.set_label('Potential')
+        ax.axis('off')
+    
+    # Box 4: Conv3 membrane potentials (top-right)
+    ax4 = fig.add_subplot(main_grid[0, 2])
+    ax4.set_title("Conv3 Membrane Potentials")
+    ax4.axis('off')
+    
+    # Create a grid for conv3 feature maps
+    n_maps3 = min(data['mem3'].shape[1], 10)
+    n_cols3 = 3
+    n_rows3 = int(np.ceil(n_maps3 / n_cols3))
+    
+    # Inner grid for conv3
+    gs3 = GridSpec(n_rows3, n_cols3, figure=fig, 
+                  left=ax4.get_position().x0, right=ax4.get_position().x1,
+                  bottom=ax4.get_position().y0, top=ax4.get_position().y1)
+    
+    # Plot conv3 membrane potentials as heatmaps
+    for i in range(n_maps3):
+        ax = fig.add_subplot(gs3[i // n_cols3, i % n_cols3])
+        im = ax.imshow(data['mem3'][0, i], cmap='plasma', vmin=mem3_min, vmax=mem3_max)
+        
+        # Add spike markers
+        if np.max(data['spikes3'][0, i]) > 0:  # If there are spikes
+            y, x = np.where(data['spikes3'][0, i] > 0.5)
+            ax.scatter(x, y, s=10, c='white', marker='o')
+            
+        # Add small colorbar to the last map
+        if i == n_maps3 - 1:
+            cbar = plt.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
+            cbar.set_label('Potential')
+        ax.axis('off')
+    
+    # Box 3: Conv2 membrane potentials (bottom spanning 2 columns)
+    ax3 = fig.add_subplot(main_grid[1, 0:2])
+    ax3.set_title("Conv2 Membrane Potentials")
+    ax3.axis('off')
+    
+    # Create a grid for conv2 feature maps
+    n_maps2 = min(data['mem2'].shape[1], 24)
+    n_cols2 = 6
+    n_rows2 = int(np.ceil(n_maps2 / n_cols2))
+    
+    # Inner grid for conv2
+    gs2 = GridSpec(n_rows2, n_cols2, figure=fig, 
+                  left=ax3.get_position().x0, right=ax3.get_position().x1,
+                  bottom=ax3.get_position().y0, top=ax3.get_position().y1)
+    
+    # Plot conv2 membrane potentials as heatmaps
+    for i in range(n_maps2):
+        ax = fig.add_subplot(gs2[i // n_cols2, i % n_cols2])
+        im = ax.imshow(data['mem2'][0, i], cmap='plasma', vmin=mem2_min, vmax=mem2_max)
+        
+        # Add spike markers
+        if np.max(data['spikes2'][0, i]) > 0:  # If there are spikes
+            y, x = np.where(data['spikes2'][0, i] > 0.5)
+            ax.scatter(x, y, s=10, c='white', marker='o')
+            
+        # Add small colorbar to the last map
+        if i == n_maps2 - 1:
+            cbar = plt.colorbar(im, ax=ax, orientation='vertical', shrink=0.7)
+            cbar.set_label('Potential')
+        ax.axis('off')
+    
+    # Box 5: Accumulated class scores bar plot (bottom-right)
+    ax5 = fig.add_subplot(main_grid[1, 2])
+    
+    # Color the bars - highlight the target and current prediction
+    bar_colors = ['#1f77b4'] * 10  # Default color
+    bar_colors[target_digit] = '#2ca02c'  # Green for target
+    if data['prediction'] != target_digit:
+        bar_colors[data['prediction']] = '#d62728'  # Red for wrong prediction
+    
+    ax5.bar(range(10), data['accumulated_logits'], color=bar_colors)
+    ax5.set_title("Accumulated Class Scores")
+    ax5.set_xlabel("Digit")
+    ax5.set_ylabel("Score")
+    ax5.set_xticks(range(10))
+    
+    # Add legend for bar colors
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor='#2ca02c', label='Target'),
+    ]
+    if data['prediction'] != target_digit:
+        legend_elements.append(Patch(facecolor='#d62728', label='Current Prediction'))
+    ax5.legend(handles=legend_elements, loc='upper right')
+    
+    # Box 6: Prediction (overlay on bottom-right)
+    prediction_text = f"Prediction: {data['prediction']}"
+    fig.text(0.85, 0.15, prediction_text, fontsize=14, 
+            bbox=dict(facecolor='white', alpha=0.8, boxstyle='round'))
+    
+    # Add timestep counter
+    fig.text(0.02, 0.02, f"Timestep: {data['timestep']+1}/{total_timesteps}", fontsize=12)
+    
+    # Save figure
     plt.savefig(output_path, dpi=dpi)
     plt.close(fig)
-
+    
 def load_test_sample(data_path, cache_path, sample_idx=0):
     """Load a test sample from NMNIST dataset"""
     # Data transformations
@@ -195,18 +398,19 @@ def main():
     else:
         max_t = T
     
-    # Process selected timesteps
-    for t in range(0, max_t, args.stride):
-        print(f"Processing timestep {t+1}/{T}")
-        
-        # Process this timestep
-        data = process_single_timestep(model, sample, t, device)
-        
-        # Create visualization and save to file
-        output_path = os.path.join(args.output_dir, f"frame_{t:04d}.png")
-        create_simple_visualization(data, t, T, output_path, dpi=args.dpi)
+    # Process all timesteps
+    all_timestep_data = process_timesteps(model, sample, device, max_t, args.stride)
     
-    print(f"Processed {max_t//args.stride} frames. Saved to {args.output_dir}")
+    # In the main function, replace the visualization loop with this:
+    total_frames = len(all_timestep_data)
+    print(f"Processing complete. Now creating {total_frames} visualizations...")
+
+    for i, data in enumerate(all_timestep_data):
+        print(f"Creating visualization {i+1}/{total_frames}")
+        output_path = os.path.join(args.output_dir, f"frame_{i:04d}.png")
+        create_custom_visualization(data, i, total_frames, target, output_path, dpi=args.dpi)
+    
+    print(f"Processed {len(all_timestep_data)} frames. Saved to {args.output_dir}")
     print(f"To create a video from these frames, you can use:")
     print(f"ffmpeg -framerate 8 -i {args.output_dir}/frame_%04d.png -c:v libx264 -pix_fmt yuv420p output.mp4")
 
