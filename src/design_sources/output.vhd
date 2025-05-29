@@ -55,16 +55,16 @@ entity FC_OUTPUT is
         i_fifo_rvalid       : in std_logic;
 
         -- counter outputs
-        o_class_count_0     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_1     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_2     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_3     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_4     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_5     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_6     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_7     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_8     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        o_class_count_9     : out std_logic_vector(FIFO_WIDTH - 1 downto 0);
+        o_class_count_0     : out std_logic_vector(31 downto 0);
+        o_class_count_1     : out std_logic_vector(31 downto 0);
+        o_class_count_2     : out std_logic_vector(31 downto 0);
+        o_class_count_3     : out std_logic_vector(31 downto 0);
+        o_class_count_4     : out std_logic_vector(31 downto 0);
+        o_class_count_5     : out std_logic_vector(31 downto 0);
+        o_class_count_6     : out std_logic_vector(31 downto 0);
+        o_class_count_7     : out std_logic_vector(31 downto 0);
+        o_class_count_8     : out std_logic_vector(31 downto 0);
+        o_class_count_9     : out std_logic_vector(31 downto 0);
 
         i_clk               : in std_logic;
         i_rst               : in std_logic
@@ -121,7 +121,7 @@ begin
                 class_count_9 <= (others => '0');
             else
                 if (present_state = WRITE_COUNTER) and (i_fifo_rvalid = '1') then
-                    case unsigned(i_fifo_rdata) is
+                    case to_integer(unsigned(i_fifo_rdata)) is
                         when 0 =>
                             class_count_0 <= class_count_0 + 1;
                         when 1 =>
@@ -142,6 +142,8 @@ begin
                             class_count_8 <= class_count_8 + 1;
                         when 9 =>
                             class_count_9 <= class_count_9 + 1;
+                        when others =>
+                            null;
                     end case;
                 end if;
             end if;
