@@ -54,9 +54,7 @@ use ieee.math_real.all;
 entity FC_LIF_NEURON is
     port (
         -- configuration interface
-        i_cfg_en        : in std_logic;                             -- enable configuration
-        i_cfg_addr      : in std_logic_vector(3 downto 0);          -- register to configure
-        i_cfg_val       : in std_logic_vector(31 downto 0);         -- value to configure
+        i_reg_cfg_0         : in std_logic_vector(31 downto 0);
 
         -- neuron interface
         i_nrn_valid         : in std_logic;                             -- neuron state valid
@@ -89,8 +87,6 @@ entity FC_LIF_NEURON is
 end FC_LIF_NEURON;
 
 architecture Behavioral of FC_LIF_NEURON is
-    -- registers
-    signal reg_cfg_0        : std_logic_vector(31 downto 0);    -- configuration register 0
 
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
@@ -106,9 +102,9 @@ architecture Behavioral of FC_LIF_NEURON is
 begin
 
     -- configuration decoding
-    cfg_threshold       <= reg_cfg_0(11 downto 0);
-    cfg_beta            <= reg_cfg_0(23 downto 12);
-    cfg_weight_scale    <= reg_cfg_0(31 downto 24);
+    cfg_threshold       <= i_reg_cfg_0(11 downto 0);
+    cfg_beta            <= i_reg_cfg_0(23 downto 12);
+    cfg_weight_scale    <= i_reg_cfg_0(31 downto 24);
     cfg_bits_per_syn    <= 4;
 
     -- lockstep the neuron and synapse loader
@@ -135,21 +131,6 @@ begin
                 nrn_reg     <= (others => '0');
                 idx_reg     <= (others => '0');
                 reg_valid   <= '0';
-            end if;
-        end if;
-    end process;
-
-    -- configuration interface
-    config : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_rst = '1' then
-                reg_cfg_0   <= (others => '0');
-            elsif i_cfg_en = '1' then
-                case i_cfg_addr is
-                    when "0000" => reg_cfg_0 <= i_cfg_val;
-                    when others => null;
-                end case;
             end if;
         end if;
     end process;

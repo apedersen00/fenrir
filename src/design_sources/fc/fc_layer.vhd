@@ -66,9 +66,10 @@ entity FC_LAYER is
         NRN_INIT_FILE   : string := ""
     );
     port (
-        i_cfg_en                : in std_logic;
-        i_cfg_addr              : in std_logic_vector(7 downto 0);
-        i_cfg_val               : in std_logic_vector(31 downto 0);
+        i_synldr_reg_cfg_0      : in std_logic_vector(31 downto 0);
+        i_nrnldr_reg_cfg_0      : in std_logic_vector(31 downto 0);
+        i_lif_reg_cfg_0         : in std_logic_vector(31 downto 0);
+        i_nrnwrt_reg_cfg_0      : in std_logic_vector(31 downto 0);
         i_enable                : in std_logic;
         i_in_fifo_we            : in std_logic;
         i_in_fifo_wdata         : in std_logic_vector(12 downto 0);
@@ -94,26 +95,6 @@ architecture behavior of FC_LAYER is
 
     constant SYN_MEM_DEPTH  : integer := IN_SIZE * OUT_SIZE / (SYN_MEM_WIDTH / BITS_PER_SYN);
     constant NRN_MEM_DEPTH  : integer := (OUT_SIZE + 3 - 1) / 3;
-
-    -- synapse loader config interface
-    signal synldr_cfg_en        : std_logic;
-    signal synldr_cfg_addr      : std_logic_vector(3 downto 0);
-    signal synldr_cfg_val       : std_logic_vector(31 downto 0);
-
-    -- neuron loader config interface
-    signal nrnldr_cfg_en        : std_logic;
-    signal nrnldr_cfg_addr      : std_logic_vector(3 downto 0);
-    signal nrnldr_cfg_val       : std_logic_vector(31 downto 0);
-
-    -- lif config interface
-    signal lif_cfg_en           : std_logic;
-    signal lif_cfg_addr         : std_logic_vector(3 downto 0);
-    signal lif_cfg_val          : std_logic_vector(31 downto 0);
-
-    -- neuron writer config interface
-    signal nrnwrt_cfg_en        : std_logic;
-    signal nrnwrt_cfg_addr      : std_logic_vector(3 downto 0);
-    signal nrnwrt_cfg_val       : std_logic_vector(31 downto 0);
 
     -- input event fifo
     signal in_fifo_re          : std_logic;
@@ -184,40 +165,6 @@ begin
     o_out_fifo_we       <= lif_fifo_we when (write_timestep = '0' or IS_LAST = 1) else '1';
 
     o_in_fifo_empty     <= in_fifo_empty;
-
-    config : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-
-            synldr_cfg_en   <= '0';
-            nrnldr_cfg_en   <= '0';
-            lif_cfg_en      <= '0';
-            nrnwrt_cfg_en   <= '0';
-
-            if (i_cfg_en = '1') and (i_rst = '0') then
-                case i_cfg_addr(7 downto 4) is
-                    when "0000" =>
-                        synldr_cfg_en   <= '1';
-                        synldr_cfg_addr <= i_cfg_addr(3 downto 0);
-                        synldr_cfg_val  <= i_cfg_val;
-                    when "0001" =>
-                        nrnldr_cfg_en   <= '1';
-                        nrnldr_cfg_addr <= i_cfg_addr(3 downto 0);
-                        nrnldr_cfg_val  <= i_cfg_val;
-                    when "0010" =>
-                        lif_cfg_en      <= '1';
-                        lif_cfg_addr    <= i_cfg_addr(3 downto 0);
-                        lif_cfg_val     <= i_cfg_val;
-                    when "0011" =>
-                        nrnwrt_cfg_en   <= '1';
-                        nrnwrt_cfg_addr <= i_cfg_addr(3 downto 0);
-                        nrnwrt_cfg_val  <= i_cfg_val;
-                    when others =>
-                        null;
-                end case;
-            end if;
-        end if;
-    end process;
 
     SCHEDULER : entity work.FC_SCHEDULER
     port map (
@@ -298,9 +245,7 @@ begin
         SYN_MEM_WIDTH   => SYN_MEM_WIDTH
     )
     port map (
-        i_cfg_en            => synldr_cfg_en,
-        i_cfg_addr          => synldr_cfg_addr,
-        i_cfg_val           => synldr_cfg_val,
+        i_reg_cfg_0         => i_synldr_reg_cfg_0,
         o_fifo_re           => synldr_fifo_re,
         i_fifo_rvalid       => '1',                 -- unused
         i_fifo_rdata        => synldr_fifo_rdata,
@@ -325,9 +270,7 @@ begin
         OUT_FIFO_DEPTH  => OUT_FIFO_DEPTH
     )
     port map (
-        i_cfg_en                => nrnldr_cfg_en,
-        i_cfg_addr              => nrnldr_cfg_addr,
-        i_cfg_val               => nrnldr_cfg_val,
+        i_reg_cfg_0             => i_nrnldr_reg_cfg_0,
         o_nrn_re                => nrnmem_re,
         o_nrn_addr              => nrnmem_raddr,
         i_nrn_data              => nrnmem_rdata,
@@ -347,9 +290,7 @@ begin
 
     LIF : entity work.FC_LIF_NEURON
     port map (
-        i_cfg_en            => lif_cfg_en,
-        i_cfg_addr          => lif_cfg_addr,
-        i_cfg_val           => lif_cfg_val,
+        i_reg_cfg_0         => i_lif_reg_cfg_0,
         i_nrn_valid         => nrnldr_valid,
         i_nrn_valid_next    => nrnldr_valid_next,
         i_nrn_valid_last    => nnrldr_valid_last,
@@ -375,9 +316,7 @@ begin
         NRN_MEM_DEPTH   => NRN_MEM_DEPTH
     )
     port map (
-        i_cfg_en    => nrnwrt_cfg_en,
-        i_cfg_addr  => nrnwrt_cfg_addr,
-        i_cfg_val   => nrnwrt_cfg_val,
+        i_reg_cfg_0 => i_nrnwrt_reg_cfg_0,
         o_nrn_we    => nrnmem_we,
         o_nrn_addr  => nrnmem_waddr,
         o_nrn_data  => nrnmem_wdata,

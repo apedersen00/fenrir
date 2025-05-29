@@ -33,9 +33,7 @@ use ieee.math_real.all;
 --      SYN_MEM_WIDTH   =>
 --  )
 --  port map (
---      i_cfg_en            =>
---      i_cfg_addr          =>
---      i_cfg_val           =>
+--      i_reg_cfg_0         =>
 --      o_fifo_re           =>
 --      i_fifo_rvalid       =>
 --      i_fifo_rdata        =>
@@ -60,9 +58,7 @@ entity FC_SYNAPSE_LOADER is
     );
     port (
         -- configuration interface
-        i_cfg_en            : in std_logic;                         -- enable configuration
-        i_cfg_addr          : in std_logic_vector(3 downto 0);      -- register to configure
-        i_cfg_val           : in std_logic_vector(31 downto 0);     -- value to configure
+        i_reg_cfg_0         : in std_logic_vector(31 downto 0);
 
         -- FIFO interface
         o_fifo_re           : out std_logic;                        -- read enable
@@ -104,7 +100,6 @@ architecture Behavioral of FC_SYNAPSE_LOADER is
     signal next_state           : state;
 
     -- registers
-    signal reg_cfg_0            : std_logic_vector(31 downto 0);    -- configuration register 0
     signal reg_event_buf        : std_logic_vector(11 downto 0);    -- buffers the event for address decoding
 
     -- configuration
@@ -130,9 +125,9 @@ architecture Behavioral of FC_SYNAPSE_LOADER is
 begin
 
     -- configuration decoding
-    cfg_layer_size      <= reg_cfg_0(10 downto 0);
-    cfg_layer_offset    <= reg_cfg_0(21 downto 11);
-    cfg_syn_bits        <= reg_cfg_0(23 downto 22);
+    cfg_layer_size      <= i_reg_cfg_0(10 downto 0);
+    cfg_layer_offset    <= i_reg_cfg_0(21 downto 11);
+    cfg_syn_bits        <= i_reg_cfg_0(23 downto 22);
     
     addr_decoding : process(i_clk)
     begin
@@ -170,21 +165,6 @@ begin
                 bits_per_weight  <= 0;
                 addr_per_event   <= 1;
         end case;
-    end process;
-
-    -- configuration interface
-    config : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_rst = '1' then
-                reg_cfg_0   <= (others => '0');
-            elsif i_cfg_en = '1' then
-                case i_cfg_addr is
-                    when "0000" => reg_cfg_0 <= i_cfg_val;
-                    when others => null;
-                end case;
-            end if;
-        end if;
     end process;
 
     -- synapse counter
