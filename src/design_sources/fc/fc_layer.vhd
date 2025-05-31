@@ -181,7 +181,6 @@ begin
         i_re                => synldr_fifo_re,
         o_rdata             => synldr_fifo_rdata,
         i_fifo_out_full     => i_out_fifo_full,
-        i_fifo_out_empty    => i_out_fifo_empty,
         o_busy              => o_busy,
         i_clk               => i_clk,
         i_rst               => i_rst
