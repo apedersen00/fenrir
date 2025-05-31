@@ -3,6 +3,7 @@ from vunit import VUnit
 vu = VUnit.from_argv()
 lib = vu.add_library("lib")
 lib.add_source_files("package.conv_pool.vhd")
+lib.add_source_files("dp_bram.vhd")
 lib.add_source_files("module.conv_pool.vhd")
 lib.add_source_files("tb_module.conv_pool.vhd")
 

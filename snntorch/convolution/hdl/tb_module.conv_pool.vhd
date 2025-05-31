@@ -15,7 +15,8 @@ architecture testbench of tb_conv_pool is
     constant CLK_PERIOD : time := 10 ns;
     constant BITS_PER_COORD : integer := 8;
     constant CHANNELS_IN : integer := 1;
-
+    constant CHANNELS_OUT : integer := 1;
+    constant BITS_PER_NEURON : integer := 6;
     -- control signals
     signal clk : std_logic := '1';
     signal rst_o, enable_o, timestep_o : std_logic := '0';
@@ -34,6 +35,14 @@ architecture testbench of tb_conv_pool is
     signal uut_current_event : event_tensor_t;
     signal uut_event_valid : std_logic;
     signal uut_read_cycle : integer;
+
+    -- uut ram signals
+    signal uut_mem_neuron_wea, uut_mem_neuron_web, uut_mem_neuron_ena, uut_mem_neuron_enb : std_logic;
+    signal uut_mem_neuron_addra, uut_mem_neuron_addrb : std_logic_vector(9 downto 0);
+    signal uut_mem_neuron_dia, uut_mem_neuron_dib : std_logic_vector(BITS_PER_NEURON * CHANNELS_OUT - 1 downto 0);
+    signal uut_mem_neuron_doa, uut_mem_neuron_dob : std_logic_vector(BITS_PER_NEURON * CHANNELS_OUT - 1 downto 0);
+
+
     -- ========================================= TIMING PROCEDURES =========================================
     procedure waitf(n : in integer) is
     begin
@@ -143,6 +152,12 @@ begin
     clk <= not clk after 10 ns;
 
     uut: entity work.conv_pool
+    generic map (
+        BITS_PER_COORD => BITS_PER_COORD,
+        CHANNELS_IN => CHANNELS_IN,
+        CHANNELS_OUT => CHANNELS_OUT,
+        BITS_PER_NEURON => BITS_PER_NEURON
+    )
     port map (
         clk => clk,
         rst_i => rst_o,
@@ -161,7 +176,17 @@ begin
         debug_timestep_pending => uut_timestep_pending,
         debug_current_event => uut_current_event,
         debug_event_valid => uut_event_valid,
-        debug_read_cycle => uut_read_cycle
+        debug_read_cycle => uut_read_cycle,
+        debug_mem_neuron_wea => uut_mem_neuron_wea,
+        debug_mem_neuron_web => uut_mem_neuron_web,
+        debug_mem_neuron_ena => uut_mem_neuron_ena,
+        debug_mem_neuron_enb => uut_mem_neuron_enb,
+        debug_mem_neuron_addra => uut_mem_neuron_addra,
+        debug_mem_neuron_addrb => uut_mem_neuron_addrb,
+        debug_mem_neuron_dia => uut_mem_neuron_dia,
+        debug_mem_neuron_dib => uut_mem_neuron_dib,
+        debug_mem_neuron_doa => uut_mem_neuron_doa,
+        debug_mem_neuron_dob => uut_mem_neuron_dob
     );
 
     main : process

@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 use work.conv_pool_pkg.all;
 
@@ -37,7 +38,15 @@ entity conv_pool is
         debug_timestep_pending : out std_logic;
         debug_current_event : out event_tensor_t;
         debug_event_valid : out std_logic;
-        debug_read_cycle : out integer; -- NEW: Debug signal to show which cycle we're in
+        debug_read_cycle : out integer;
+        -- lets spoof the bram signals 
+        debug_mem_neuron_wea, debug_mem_neuron_web : out std_logic;
+        debug_mem_neuron_ena, debug_mem_neuron_enb : out std_logic;
+        debug_mem_neuron_addra, debug_mem_neuron_addrb : out std_logic_vector(9 downto 0);  -- FIXED: 10-bit to match internal
+        debug_mem_neuron_dia, debug_mem_neuron_dib : out std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0);  -- FIXED: Use CHANNELS_OUT
+        debug_mem_neuron_doa, debug_mem_neuron_dob : out std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0);  -- FIXED: Use CHANNELS_OUT
+
+        debug_total_coords_to_update : out integer;
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
         -- pragma translate_on
     );
@@ -61,11 +70,18 @@ architecture rtl of conv_pool is
     type coords_to_update_t is array (0 to (KERNEL_SIZE ** 2) - 1) of vector2_t;
     signal coords_to_update : coords_to_update_t := (others => (x => 0, y => 0));
     signal total_coords_to_update : integer range 0 to (KERNEL_SIZE ** 2) := 0;
+
+    -- ram signals
+    signal mem_neuron_wea_o, mem_neuron_web_o, mem_neuron_ena_o, mem_neuron_enb_o : std_logic := '0';
+    signal mem_neuron_addra_o, mem_neuron_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
+    signal mem_neuron_dia_o, mem_neuron_dib_o : std_logic_vector((CHANNELS_IN * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
+    signal mem_neuron_doa_i, mem_neuron_dob_i : std_logic_vector((CHANNELS_IN * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
+
 begin
 
     -- UPDATED: Read request logic for 2-cycle protocol
     event_fifo_read_o <= '1' when (main_state = READ_REQUEST and read_cycle_counter = 1) else '0';
-
+    
     state_register_update : process (clk, rst_i)
     begin
         if rising_edge(clk) then
@@ -217,6 +233,32 @@ begin
         end if;
     end process event_capture;
 
+    -- ram instances
+    
+    MEM_NEURON : entity work.TRUE_DUAL_PORT_READ_FIRST
+    generic map(
+        RAM_DEPTH => IMG_WIDTH * IMG_HEIGHT,
+        DATA_WIDTH => CHANNELS_OUT * BITS_PER_NEURON,
+        ADDR_WIDTH => integer(ceil(log2(real(IMG_WIDTH * IMG_HEIGHT))))
+    )
+    port map(
+        clka => clk,
+        clkb => clk,
+        ena => mem_neuron_ena_o, -- Enable for neuron memory
+        enb => mem_neuron_enb_o, -- Enable for neuron memory
+        wea => mem_neuron_wea_o, -- Enable for neuron memory -- Write enable for neuron memory
+        web => mem_neuron_web_o, -- Enable for neuron memory -- Write enable for neuron memory
+        addra => mem_neuron_addra_o, -- Address for neuron memory
+        addrb => mem_neuron_addrb_o, -- Address for neuron memory
+        dia => mem_neuron_dia_o, -- No write data for neuron memory
+        dib => mem_neuron_dib_o, -- No write data for neuron memory
+        doa => mem_neuron_doa_i, -- Output not used
+        dob => mem_neuron_dob_i  -- Output not used
+    );
+
+    
+
+
     -- pragma translate_off
     debug_main_state <= main_state;
     debug_next_state <= main_next_state;
@@ -224,7 +266,20 @@ begin
     debug_timestep_pending <= timestep_pending;
     debug_current_event <= current_event;
     debug_event_valid <= event_valid;
-    debug_read_cycle <= read_cycle_counter; -- NEW: Debug the cycle counter
+    debug_read_cycle <= read_cycle_counter;
+    debug_total_coords_to_update <= total_coords_to_update;
+    --ram spoof signals
+    debug_mem_neuron_wea <= mem_neuron_wea_o;
+    debug_mem_neuron_web <= mem_neuron_web_o;
+    debug_mem_neuron_ena <= mem_neuron_ena_o;
+    debug_mem_neuron_enb <= mem_neuron_enb_o;
+    debug_mem_neuron_addra <= mem_neuron_addra_o;
+    debug_mem_neuron_addrb <= mem_neuron_addrb_o;
+    debug_mem_neuron_dia <= mem_neuron_dia_o;
+    debug_mem_neuron_dib <= mem_neuron_dib_o;
+    debug_mem_neuron_doa <= mem_neuron_doa_i;
+    debug_mem_neuron_dob <= mem_neuron_dob_i;
+
     debug_main_state_vec <= state_to_slv(main_state);
     debug_next_state_vec <= state_to_slv(main_next_state);
     debug_last_state_vec <= state_to_slv(main_last_state);

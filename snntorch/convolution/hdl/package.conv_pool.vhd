@@ -24,6 +24,9 @@ package conv_pool_pkg is
         y : integer;
     end record;
 
+    -- for testing purposes
+    type coords_3x3_t is array (0 to 8) of vector2_t;
+
     function state_to_slv(state : main_state_et) return std_logic_vector;
 
     function bus_to_event_tensor(
