@@ -38,10 +38,10 @@ architecture testbench of tb_conv_pool is
 
     -- uut ram signals
     signal uut_mem_neuron_wea, uut_mem_neuron_web, uut_mem_neuron_ena, uut_mem_neuron_enb : std_logic;
-    signal uut_mem_neuron_addra, uut_mem_neuron_addrb : std_logic_vector(9 downto 0);
-    signal uut_mem_neuron_dia, uut_mem_neuron_dib : std_logic_vector(BITS_PER_NEURON * CHANNELS_OUT - 1 downto 0);
-    signal uut_mem_neuron_doa, uut_mem_neuron_dob : std_logic_vector(BITS_PER_NEURON * CHANNELS_OUT - 1 downto 0);
-
+    signal uut_mem_neuron_addra, uut_mem_neuron_addrb : std_logic_vector(9 downto 0);  -- FIXED: 10-bit
+    signal uut_mem_neuron_dia, uut_mem_neuron_dib : std_logic_vector(CHANNELS_OUT * BITS_PER_NEURON - 1 downto 0);  -- FIXED: CHANNELS_OUT
+    signal uut_mem_neuron_doa, uut_mem_neuron_dob : std_logic_vector(CHANNELS_OUT * BITS_PER_NEURON - 1 downto 0);  -- FIXED: CHANNELS_OUT
+    signal uut_total_coords_to_update : integer;  -- ADD: Missing signal
 
     -- ========================================= TIMING PROCEDURES =========================================
     procedure waitf(n : in integer) is
