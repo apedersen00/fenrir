@@ -12,7 +12,8 @@ entity conv_pool is
         BITS_PER_WEIGHT : integer := 6;
         IMG_WIDTH : integer := 32;
         IMG_HEIGHT : integer := 32;
-        BITS_PER_COORD : integer := 8
+        BITS_PER_COORD : integer := 8;
+        KERNEL_SIZE : integer := 3
     );
     port(
         -- Standard ports needed for digital components
@@ -57,6 +58,9 @@ architecture rtl of conv_pool is
     -- NEW: Counter to track cycles within READ_REQUEST state
     signal read_cycle_counter : integer range 1 to 2 := 1;
 
+    type coords_to_update_t is array (0 to (KERNEL_SIZE ** 2) - 1) of vector2_t;
+    signal coords_to_update : coords_to_update_t := (others => (x => 0, y => 0));
+    signal total_coords_to_update : integer range 0 to (KERNEL_SIZE ** 2) := 0;
 begin
 
     -- UPDATED: Read request logic for 2-cycle protocol
@@ -163,20 +167,46 @@ begin
 
     -- UPDATED: Event capture process with proper timing
     event_capture : process (clk, rst_i)
+
+        variable temp_event : event_tensor_t;
+        variable coords_index : integer range 0 to (KERNEL_SIZE ** 2) := 0;
+        variable kernel_x, kernel_y : integer := 0;
     begin
         if rising_edge(clk) then
             if rst_i = '1' then 
                 current_event <= (x_coord => 0, y_coord => 0, channel => 0);
                 event_valid <= '0';
+                coords_to_update <= (others => (x => 0, y => 0));
             else
                 -- Capture event on cycle 2 of READ_REQUEST (when FIFO data is valid)
                 if main_state = READ_REQUEST and read_cycle_counter = 2 then
-                    current_event <= bus_to_event_tensor(
+                    temp_event := bus_to_event_tensor(
                         event_fifo_bus_i,
                         BITS_PER_COORD,
                         CHANNELS_IN
                     );
                     event_valid <= '1';
+                    current_event <= temp_event;
+                    -- reset coords to update
+                    coords_index := 0;
+                    coords_to_update <= (others => (x => 0, y => 0));
+                    total_coords_to_update <= 0;
+
+                    for x in -(KERNEL_SIZE - 1) / 2 to (KERNEL_SIZE - 1) / 2 LOOP
+                    for y in -(KERNEL_SIZE - 1) / 2 to (KERNEL_SIZE - 1) / 2 LOOP
+
+                        kernel_x := temp_event.x_coord + x;
+                        kernel_y := temp_event.y_coord + y;
+                        if  kernel_x >= 0 and kernel_x < IMG_WIDTH and
+                            kernel_y >= 0 and kernel_y < IMG_HEIGHT and 
+                            coords_index < (KERNEL_SIZE ** 2) then
+
+                            coords_to_update(coords_index) <= (x => kernel_x, y => kernel_y);
+                            coords_index := coords_index + 1;
+
+                        end if;
+                    end loop; end loop;
+                    total_coords_to_update <= coords_index; -- Update total coords to update
                 end if;
                 
                 -- Clear when returning to IDLE

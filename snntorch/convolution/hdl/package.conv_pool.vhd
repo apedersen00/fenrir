@@ -19,6 +19,11 @@ package conv_pool_pkg is
         channel : integer; -- Single channel index (0 to N-1)
     end record;
 
+    type vector2_t is record
+        x : integer;
+        y : integer;
+    end record;
+
     function state_to_slv(state : main_state_et) return std_logic_vector;
 
     function bus_to_event_tensor(
