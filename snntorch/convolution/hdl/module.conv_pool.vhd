@@ -55,12 +55,14 @@ architecture rtl of conv_pool is
         channel => 0
     );
     signal event_valid : std_logic := '0';
+    
+    signal fifo_empty_prev : std_logic := '1';  -- Previous state of FIFO empty
+    signal event_processing : std_logic := '0';  -- Flag to prevent multiple reads
 
 begin
 
     -- signals for output ports
     event_fifo_read_o <= fifo_read_request;
-
 
     state_register_update : process (clk, rst_i)
     begin
@@ -95,59 +97,109 @@ begin
         else
             case main_state is
             when IDLE =>
+                -- Priority 1: Check if we have a pending timestep to process
+                if timestep_pending = '1' then
+                    main_next_state <= POOL;
+                -- Priority 2: Check if we have a valid event to process
+                elsif event_valid = '1' then
+                    main_next_state <= EVENT_CONV;
+                end if;
+                
             when EVENT_CONV => 
-            when PAUSE => main_next_state <= main_last_state;
+                -- FIXED: Add logic to complete event processing
+                -- For now, return to IDLE after one cycle (you can extend this)
+                main_next_state <= IDLE;
+                
+            when PAUSE => 
+                main_next_state <= main_last_state;
+                
             when POOL =>
+                -- FIXED: Add logic to complete pool processing
+                -- For now, return to IDLE after one cycle (you can extend this)
+                main_next_state <= IDLE;
+                
             when CONFIG =>
-            WHEN RESET => main_next_state <= IDLE;
+                -- Configuration processing
+                main_next_state <= IDLE;
+                
+            when RESET => 
+                main_next_state <= IDLE;
             end case;
         end if;
 
     end process state_machine_control;
 
-    timestep_buffer : process (clk, rst_i, timestep_i)
+    timestep_buffer : process (clk, rst_i)
     begin
-    if rising_edge(clk) then
-        if rst_i = '1' then 
-            timestep_pending <= '0';
-        else
-            if timestep_i = '1' then
-                timestep_pending <= '1';
-            elsif main_state = POOL then
+        if rising_edge(clk) then
+            if rst_i = '1' then 
                 timestep_pending <= '0';
+            else
+                if timestep_i = '1' then
+                    timestep_pending <= '1';
+                elsif main_state = POOL then
+                    timestep_pending <= '0';
+                end if;
             end if;
         end if;
-    end if;
     end process timestep_buffer;
 
+    -- FIXED: Proper FIFO read protocol
     fifo_read_control : process (clk, rst_i)
     begin
-    if rising_edge(clk) then
-        if rst_i = '1' then 
-            fifo_read_request <= '0';
-            event_valid <= '0';
-        else
-            
-            fifo_read_request <= '0'; -- default to no read request
-            event_valid <= '0'; -- default to no valid event
-
-            if main_state = IDLE and event_fifo_empty_i = '0' then
-                fifo_read_request <= '1'; -- request to read from FIFO
-            end if;
-
-            if fifo_read_request = '1' then
-                current_event <= bus_to_event_tensor(
-                    event_fifo_bus_i,
-                    BITS_PER_COORD,
-                    CHANNELS_IN
-                );
-                event_valid <= '1'; -- set event as valid
-            else 
+        if rising_edge(clk) then
+            if rst_i = '1' then 
+                fifo_read_request <= '0';
                 event_valid <= '0';
+                fifo_empty_prev <= '1';
+                event_processing <= '0';
+            else
+                -- Track previous FIFO empty state
+                fifo_empty_prev <= event_fifo_empty_i;
+                
+                -- Default: no read request
+                fifo_read_request <= '0';
+                
+                -- FIXED: Generate single-cycle read pulse
+                -- Only read when:
+                -- 1. In IDLE state (not processing anything)
+                -- 2. FIFO was empty and now is not empty (edge detection)
+                -- 3. Not already processing an event
+                if (main_state = IDLE and 
+                    fifo_empty_prev = '1' and 
+                    event_fifo_empty_i = '0' and 
+                    event_processing = '0') then
+                    
+                    fifo_read_request <= '1';  -- Single cycle pulse
+                    event_processing <= '1';   -- Mark that we're now processing
+                end if;
+                
+                -- FIXED: Capture event data when read request is active
+                if fifo_read_request = '1' then
+                    current_event <= bus_to_event_tensor(
+                        event_fifo_bus_i,
+                        BITS_PER_COORD,
+                        CHANNELS_IN
+                    );
+                    event_valid <= '1';  -- Mark event as valid
+                end if;
+                
+                -- FIXED: Clear processing flag when back in IDLE and event processed
+                if main_state = IDLE and main_next_state = IDLE and event_valid = '1' then
+                    event_valid <= '0';
+                    event_processing <= '0';
+                end if;
+                
+                -- FIXED: Also clear when transitioning from EVENT_CONV back to IDLE
+                if main_state = EVENT_CONV and main_next_state = IDLE then
+                    event_valid <= '0';
+                    event_processing <= '0';
+                end if;
+                
             end if;
         end if;
-    end if;
     end process fifo_read_control;
+
     -- pragma translate_off
     debug_main_state <= main_state;
     debug_next_state <= main_next_state;
@@ -161,6 +213,5 @@ begin
     debug_next_state_vec <= state_to_slv(main_next_state);
     debug_last_state_vec <= state_to_slv(main_last_state);
     -- pragma translate_on
-
 
 end architecture rtl;

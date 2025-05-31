@@ -180,48 +180,70 @@ begin
 
         -- Test fifo read request behavior
         if true then
-            -- Let module go to IDLE
-            drive_and_settle(rst_o, '0', 1);
-            drive_and_settle(enable_o, '1', 1);
-            drive_and_settle(timestep_o, '0', 1);
-            drive_and_settle(event_fifo_empty_o, '1', 1);
+            -- Let module go to IDLE with FIFO empty
+            drive_and_settle(rst_o, '0', 2);
+            drive_and_settle(enable_o, '1', 2);
+            drive_and_settle(timestep_o, '0', 2);
+            drive_and_settle(event_fifo_empty_o, '1', 2); -- Ensure FIFO is empty and settled
+            
             check_state_stable(
                 uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
             );
-            -- FIXED: Typo corrected
             check_signal_stable(
                 uut_event_valid, '0', "uut should not have valid event in IDLE state"
             );
-            -- FIXED: Use proper tensor checking procedure
+            check_signal_stable(
+                event_fifo_read_i, '0', "uut should not request read when FIFO is empty"
+            );
             check_event_tensor_stable(
                 uut_current_event, create_tensor(0, 0, 0),
                 "uut should have current_event as zero tensor in IDLE state"
             );
 
-            -- FIXED: Drive event tensor BEFORE making FIFO not empty
+            -- Drive event tensor on the bus (data ready for when read occurs)
             test_tensor := create_tensor(x_coord => 10, y_coord => 10, channel => 0);
             drive_event_tensor(event_fifo_bus_o, test_tensor, 1);
             
-            -- Now make FIFO not empty
+            -- CRITICAL: Create edge transition from empty='1' to empty='0'
+            -- This should trigger the single-cycle read pulse
             drive_and_settle(event_fifo_empty_o, '0', 1);
+            
+            -- Check that read pulse is generated (should be high for exactly one cycle)
             check_signal_stable(
-                event_fifo_read_i, '1', "uut should request fifo read when not empty"
+                event_fifo_read_i, '1', "uut should generate read pulse on FIFO empty transition"
             );
             
-            -- FIXED: Check that state transitions to EVENT_CONV
-            check_state_stable(
-                uut_main_state, EVENT_CONV, "uut should transition to EVENT_CONV when processing event"
+            -- Verify read pulse is only one cycle (should be low on next cycle)
+            waitf(1);
+            check_signal_stable(
+                event_fifo_read_i, '0', "read pulse should only last one cycle"
             );
             
-            -- FIXED: Check that the event was captured correctly
-            waitf(2); -- Give time for event to be captured
+            -- Verify event was captured and is valid
             check_signal_stable(
-                uut_event_valid, '1', "uut should have valid event after reading from FIFO"
+                uut_event_valid, '1', "event should be valid after read pulse"
             );
             check_event_tensor_stable(
                 uut_current_event, test_tensor,
                 "uut should have captured the correct event from FIFO"
             );
+            
+            -- Verify state transitions to EVENT_CONV when event_valid = '1'
+            check_state_stable(
+                uut_main_state, EVENT_CONV, "uut should transition to EVENT_CONV when event is valid"
+            );
+            
+            -- Verify module returns to IDLE after processing (depends on EVENT_CONV implementation)
+            waitf(2); -- Give time for EVENT_CONV to complete
+            check_state_stable(
+                uut_main_state, IDLE, "uut should return to IDLE after event processing"
+            );
+            
+            -- Verify event_valid is cleared when back in IDLE
+            check_signal_stable(
+                uut_event_valid, '0', "event_valid should be cleared when returning to IDLE"
+            );
+            
         end if;wait for 100 ns;
         wait;
 
