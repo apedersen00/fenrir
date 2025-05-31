@@ -23,22 +23,16 @@ architecture testbench of tb_conv_pool is
     --event signals
     signal event_fifo_empty_o : std_logic := '1';
     -- shape of event bus: [x_coord(8), y_coord(8), channel(1), ...]
-    signal event_fifo_bus_o : std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0);
+    signal event_fifo_bus_o : std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0) := (others => '0');
     signal event_fifo_read_i : std_logic;
 
     -- extra debug signals
     signal uut_main_state, uut_next_state, uut_last_state : main_state_et;
     signal uut_main_state_vec, uut_next_state_vec, uut_last_state_vec : std_logic_vector(2 downto 0);
 
-    signal debug_timestep_pending : std_logic;
-
-
-    -- Lets make a test tensor for the event bus
-    signal test_event_tensor : event_tensor_t := (
-        x_coord => to_unsigned(0, BITS_PER_COORD),
-        y_coord => to_unsigned(0, BITS_PER_COORD),
-        channel => (others => '0') -- Assuming 1 channel for simplicity
-    );
+    signal uut_timestep_pending : std_logic;
+    signal uut_current_event : event_tensor_t;
+    signal uut_event_valid : std_logic;
 
     -- ========================================= TIMING PROCEDURES =========================================
     -- Original waitf for compatibility  
@@ -86,6 +80,13 @@ architecture testbench of tb_conv_pool is
             severity failure;
     end procedure check_state_stable;
 
+    procedure drive_event_tensor(signal ebus : out std_logic_vector; tensor : event_tensor_t; settle_cycles : integer := 1) is
+    begin
+        ebus <= tensor_to_bus(tensor, BITS_PER_COORD, CHANNELS_IN);
+        waitf(settle_cycles);
+    end procedure drive_event_tensor;
+
+    
 begin
 
     clk <= not clk after 10 ns;
@@ -106,10 +107,15 @@ begin
         debug_main_state_vec => uut_main_state_vec,
         debug_next_state_vec => uut_next_state_vec,
         debug_last_state_vec => uut_last_state_vec,
-        debug_timestep_pending => debug_timestep_pending
+        debug_timestep_pending => uut_timestep_pending,
+        debug_current_event => uut_current_event,
+        debug_event_valid => uut_event_valid
     );
 
     main : process
+
+        variable test_tensor : event_tensor_t;
+
     begin
 
         test_runner_setup(runner, runner_cfg);
@@ -170,16 +176,22 @@ begin
             check_state_stable(
                 uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
             );
+            check_signal_statble(
+                uut_event_valid, '0', "uut should not have valid event in IDLE state"
+            )
+            check_signal_stable(
+                uut_current_event, create_tensor(0, 0, 0),
+                "uut should have current_event as zero tensor in IDLE state"
+            );
 
             -- Lets simulate fifo not emptyu
             drive_and_settle(event_fifo_empty_o, '0', 1);
+            test_tensor := create_tensor(x_coord => 10, y_coord => 10, channel => 0);
             check_signal_stable(
                 event_fifo_read_i, '1', "uut should request fifo read when not empty"
             );
-            test_event_tensor <= set_tensor_for_sim(10, 10, 1, BITS_PER_COORD);
-            drive_and_settle(event_fifo_bus_o,
-                tensor_to_slv(test_event_tensor, BITS_PER_COORD)
-            );
+            drive_event_tensor(event_fifo_bus_o, test_tensor);
+            
 
             
         end if;

@@ -1,4 +1,3 @@
--- File: package.conv_pool.vhd
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -37,16 +36,18 @@ package conv_pool_pkg is
         channel_vec : std_logic_vector
     ) return integer;
 
-    function set_tensor_for_sim(
+    -- FIXED: Easy tensor creation for simulation
+    function create_tensor(
         x_coord : integer;
         y_coord : integer;
-        channel : integer;
-        bits_per_coord : integer
+        channel : integer
     ) return event_tensor_t;
 
-    function tensor_to_slv(
+    -- FIXED: Flexible tensor to bus conversion
+    function tensor_to_bus(
         tensor : event_tensor_t;
-        bits_per_coord : integer
+        bits_per_coord : integer;
+        bits_per_channel : integer
     ) return std_logic_vector;
 
 end package conv_pool_pkg;
@@ -78,7 +79,7 @@ package body conv_pool_pkg is
     ) return std_logic_vector is
         variable result : std_logic_vector(channels_out-1 downto 0) := (others => '0');
     begin
-        if channel_int < channels_out then
+        if channel_int < channels_out and channel_int >= 0 then
             result(channel_int) := '1';
         end if;
         return result;
@@ -97,11 +98,11 @@ package body conv_pool_pkg is
         return 0; -- default
     end function;
 
-    function set_tensor_for_sim(
+    -- FIXED: Simple tensor creation
+    function create_tensor(
         x_coord : integer;
         y_coord : integer;
-        channel : integer;
-        bits_per_coord : integer
+        channel : integer
     ) return event_tensor_t is
         variable tensor : event_tensor_t;
     begin
@@ -111,15 +112,21 @@ package body conv_pool_pkg is
         return tensor;
     end function;
 
-    function tensor_to_slv(
+    -- FIXED: Flexible tensor to bus conversion
+    function tensor_to_bus(
         tensor : event_tensor_t;
-        bits_per_coord : integer
+        bits_per_coord : integer;
+        bits_per_channel : integer
     ) return std_logic_vector is
-        variable result : std_logic_vector(2 * bits_per_coord + 1 downto 0);
+        variable result : std_logic_vector(2 * bits_per_coord + bits_per_channel - 1 downto 0);
     begin
-        result(2 * bits_per_coord - 1 downto bits_per_coord) := std_logic_vector(to_unsigned(tensor.x_coord, bits_per_coord));
-        result(bits_per_coord - 1 downto 0) := std_logic_vector(to_unsigned(tensor.y_coord, bits_per_coord));
-        result(2 * bits_per_coord + 1 downto 2 * bits_per_coord) := std_logic_vector(to_unsigned(tensor.channel, 1)); -- Assuming single channel
+        -- Pack coordinates and channel into bus
+        result(bits_per_coord - 1 downto 0) := 
+            std_logic_vector(to_unsigned(tensor.y_coord, bits_per_coord));
+        result(2 * bits_per_coord - 1 downto bits_per_coord) := 
+            std_logic_vector(to_unsigned(tensor.x_coord, bits_per_coord));
+        result(2 * bits_per_coord + bits_per_channel - 1 downto 2 * bits_per_coord) := 
+            std_logic_vector(to_unsigned(tensor.channel, bits_per_channel));
         return result;
     end function;
 

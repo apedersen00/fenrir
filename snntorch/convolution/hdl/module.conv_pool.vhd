@@ -28,13 +28,15 @@ entity conv_pool is
         -- shape of event bus: [x_coord(8), y_coord(8), channel(1), ..., channel]
         event_fifo_bus_i : in std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0);
         event_fifo_read_o : out std_logic;
+
         -- pragma translate_off
         debug_main_state : out main_state_et;
         debug_next_state : out main_state_et;
         debug_last_state : out main_state_et;
         
         debug_timestep_pending : out std_logic;
-
+        debug_current_event : out event_tensor_t;
+        debug_event_valid : out std_logic;
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
         -- pragma translate_on
 
@@ -148,6 +150,8 @@ begin
     debug_last_state <= main_last_state;
 
     debug_timestep_pending <= timestep_pending;
+    debug_current_event <= current_event;
+    debug_event_valid <= event_valid;
 
     debug_main_state_vec <= state_to_slv(main_state);
     debug_next_state_vec <= state_to_slv(main_next_state);
