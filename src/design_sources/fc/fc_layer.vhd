@@ -246,7 +246,6 @@ begin
     port map (
         i_reg_cfg_0         => i_synldr_reg_cfg_0,
         o_fifo_re           => synldr_fifo_re,
-        i_fifo_rvalid       => '1',                 -- unused
         i_fifo_rdata        => synldr_fifo_rdata,
         o_syn_weight        => synldr_weight,
         o_syn_valid         => synldr_valid,

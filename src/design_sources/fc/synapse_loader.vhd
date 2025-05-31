@@ -33,44 +33,48 @@ use ieee.math_real.all;
 --      SYN_MEM_WIDTH   =>
 --  )
 --  port map (
---      i_reg_cfg_0         =>
---      o_fifo_re           =>
---      i_fifo_rvalid       =>
---      i_fifo_rdata        =>
---      o_syn_weight        =>
---      o_syn_valid         =>
---      o_syn_valid_next    =>
---      o_syn_valid_last    =>
---      i_syn_goto_idle     =>
---      o_syn_addr          =>
---      i_syn_data          =>
---      i_start             =>
---      i_continue          =>
---      o_busy              =>
---      i_clk               =>
---      i_rst               =>
+--      -- configuration interface
+--      i_reg_cfg_0     =>
+--      -- FIFO interface
+--      o_fifo_re       =>
+--      i_fifo_rdata    =>
+--      -- LIF interface
+--      o_syn_weight    =>
+--      o_syn_valid     =>
+--      o_syn_valid_nex =>
+--      o_syn_valid_las =>
+--      i_goto_idle     =>
+--      -- synapse memory interface
+--      o_synmem_re     =>
+--      o_synmem_raddr  =>
+--      i_synmem_rdata  =>
+--      -- control signals
+--      i_start         =>
+--      i_continue      =>
+--      o_busy          =>
+--      i_clk           =>
+--      i_rst           =>
 --  );
 
 entity FC_SYNAPSE_LOADER is
     generic (
-        SYN_MEM_DEPTH   : integer; -- depth of the synapse memory
-        SYN_MEM_WIDTH   : integer  -- width of the synapse memory
+        SYN_MEM_DEPTH   : integer;
+        SYN_MEM_WIDTH   : integer
     );
     port (
         -- configuration interface
         i_reg_cfg_0         : in std_logic_vector(31 downto 0);
 
         -- FIFO interface
-        o_fifo_re           : out std_logic;                        -- read enable
-        i_fifo_rvalid       : in std_logic;                         -- read valid
-        i_fifo_rdata        : in std_logic_vector(11 downto 0);     -- read data
+        o_fifo_re           : out std_logic;
+        i_fifo_rdata        : in std_logic_vector(11 downto 0);
 
         -- LIF interface
-        o_syn_weight        : out std_logic_vector(7 downto 0);     -- synapse weight
-        o_syn_valid         : out std_logic;                        -- valid weight on ouptut
-        o_syn_valid_next    : out std_logic;                        -- next weight valid on output
+        o_syn_weight        : out std_logic_vector(7 downto 0);
+        o_syn_valid         : out std_logic;
+        o_syn_valid_next    : out std_logic;
         o_syn_valid_last    : out std_logic;
-        i_goto_idle     : in std_logic;
+        i_goto_idle         : in std_logic;
 
         -- synapse memory interface
         o_synmem_re         : out std_logic;
@@ -111,14 +115,14 @@ architecture Behavioral of FC_SYNAPSE_LOADER is
     signal counter_enable       : std_logic;
     signal counter_reset        : std_logic;
     -- maximum value should be maximum number of neurons in layer
-    signal syn_index            : integer range 0 to 1024;
+    signal syn_index            : integer range 0 to 2047;
     -- maximum value should be max number of neurons in layer / min number of weights per address
-    signal syn_addr_cntr        : integer range 0 to 512;
+    signal syn_addr_cntr        : integer range 0 to 2047;
 
     -- constants
-    signal weights_per_addr     : integer range 0 to 16;
-    signal bits_per_weight      : integer range 0 to 8;
-    signal addr_per_event       : integer range 0 to 16;
+    signal weights_per_addr     : integer range 0 to 2047;
+    signal bits_per_weight      : integer range 0 to 2047;
+    signal addr_per_event       : integer range 0 to 2047;
 
     constant SYN_MEM_ADDR_WIDTH : integer := integer(ceil(log2(real(SYN_MEM_DEPTH))));
 
@@ -128,25 +132,22 @@ begin
     cfg_layer_size      <= i_reg_cfg_0(10 downto 0);
     cfg_layer_offset    <= i_reg_cfg_0(21 downto 11);
     cfg_syn_bits        <= i_reg_cfg_0(23 downto 22);
-    
+
     addr_decoding : process(i_clk)
     begin
-        -- TODO: Fix the number of bits used for syn_addr_cntr
-        -- since syn_mem must know for instantation the size of o_syn_addr could be used. 
         if rising_edge(i_clk) then
             o_synmem_raddr <= std_logic_vector(to_unsigned(to_integer(unsigned(reg_event_buf)) * addr_per_event + syn_addr_cntr, SYN_MEM_ADDR_WIDTH));
         end if;
     end process;
 
-    -- determine how many weights per address
-    cfg_decode : process(i_clk)
+    cfg_decode : process(all)
     begin
         case cfg_syn_bits is
-            -- default invalid
+            -- 2 bits per synapse
             when "00"   =>
-                weights_per_addr <= 0;
+                weights_per_addr <= SYN_MEM_WIDTH / 2;
                 bits_per_weight  <= 2;
-                addr_per_event   <= 1;
+                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 2);
 
             -- 4 bits per synapse
             when "01"   =>
@@ -158,12 +159,13 @@ begin
             when "10"   =>
                 weights_per_addr <= SYN_MEM_WIDTH / 8;
                 bits_per_weight  <= 8;
-                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 4);
+                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 8);
 
+            -- default to 4 bits per synapse
             when others =>
-                weights_per_addr <= 0;
-                bits_per_weight  <= 0;
-                addr_per_event   <= 1;
+                weights_per_addr <= SYN_MEM_WIDTH / 4;
+                bits_per_weight  <= 4;
+                addr_per_event   <= to_integer(unsigned(cfg_layer_size)) / (SYN_MEM_WIDTH / 4);
         end case;
     end process;
 
@@ -221,11 +223,14 @@ begin
 
     -- output multiplexer
     output_mux : process(i_clk)
-        variable v_word_index : integer;
-        variable v_rev_index  : integer;
+        variable v_word_index : integer range 0 to 2047;
+        variable v_rev_index  : integer range 0 to 2047;
     begin
         if rising_edge(i_clk) then
-            if (weights_per_addr /= 0) and (i_rst = '0') then
+            if (i_rst = '1') then
+                o_synmem_re     <= '0';
+                o_syn_weight    <= (others => '0');
+            elsif (weights_per_addr /= 0) then
                 -- wrap around syn_index so we always extract one of the weights per address
                 v_word_index    := syn_index mod weights_per_addr;
                 v_rev_index     := weights_per_addr - 1 - v_word_index;
@@ -234,9 +239,6 @@ begin
                 o_syn_weight    <= (others => '0');
                 o_syn_weight(bits_per_weight - 1 downto 0) <=
                     i_synmem_rdata((v_rev_index + 1) * bits_per_weight - 1 downto v_rev_index * bits_per_weight);
-            else
-                o_synmem_re     <= '0';
-                o_syn_weight    <= (others => '0');
             end if;
         end if;
     end process;
@@ -254,10 +256,9 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(i_clk)
+    nxt_state : process(all)
     begin
         case present_state is
-
             when IDLE =>
                 if i_start = '1' then
                     next_state <= GET_EVENT;
@@ -269,7 +270,7 @@ begin
                 else
                     next_state  <= STORE_EVENT;
                 end if;
-            
+
             when STORE_EVENT =>
                 if (i_goto_idle = '1') then
                     next_state <= IDLE;
@@ -297,21 +298,31 @@ begin
                 elsif (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
                     next_state <= GET_WEIGHTS;
                 end if;
-
         end case;
     end process;
 
-    -- FSM output process
-    outputs : process(i_clk)
+    read_in_fifo : process(i_clk)
     begin
+        if rising_edge(i_clk) then
+            if i_rst = '1' then
+                reg_event_buf <= (others => '0');
+            else
+                if present_state = STORE_EVENT then
+                    reg_event_buf <= i_fifo_rdata;
+                end if;
+            end if;
+        end if;
+    end process;
 
-        case present_state is    
+    -- FSM output process
+    outputs : process(all)
+    begin
+        case present_state is
             when IDLE =>
                 o_busy          <= '0';
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
-                reg_event_buf   <= (others => '0');
 
             when GET_EVENT =>
                 o_busy          <= '1';
@@ -324,7 +335,6 @@ begin
                 o_fifo_re       <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
-                reg_event_buf   <= i_fifo_rdata;
 
             when GET_WEIGHTS =>
                 o_busy          <= '1';
