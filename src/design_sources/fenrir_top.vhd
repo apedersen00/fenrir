@@ -99,7 +99,7 @@ begin
         IS_LAST         => 1,
         SYN_MEM_WIDTH   => 40,
         BITS_PER_SYN    => 4,
-        SYN_INIT_FILE   => "data/fc1_syn.data",
+        SYN_INIT_FILE   => "../data/fc1_syn.data",
         NRN_INIT_FILE   => ""
     )
     port map (
