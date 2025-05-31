@@ -23,10 +23,17 @@ entity conv_pool is
         -- Control signals
         timestep_i : in std_logic;
 
+        -- Event signals
+        event_fifo_empty_i : in std_logic;
+        -- shape of event bus: [x_coord(8), y_coord(8), channel(1), ..., channel]
+        event_fifo_bus_i : in std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0);
+        event_fifo_read_o : out std_logic;
         -- pragma translate_off
         debug_main_state : out main_state_et;
         debug_next_state : out main_state_et;
         debug_last_state : out main_state_et;
+        
+        debug_timestep_pending : out std_logic;
 
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
         -- pragma translate_on
@@ -37,8 +44,17 @@ end entity conv_pool;
 architecture rtl of conv_pool is
 
     signal main_state, main_next_state, main_last_state : main_state_et := IDLE;
+    signal timestep_pending : std_logic := '0';
+    signal fifo_read_request : std_logic := '0';
+
+    signal current_event : event_tensor_t;
+    signal event_valid : std_logic := '0';
 
 begin
+
+    -- signals for output ports
+    event_fifo_read_o <= fifo_read_request;
+
 
     state_register_update : process (clk, rst_i)
     begin
@@ -83,10 +99,55 @@ begin
 
     end process state_machine_control;
 
+    timestep_buffer : process (clk, rst_i, timestep_i)
+    begin
+    if rising_edge(clk) then
+        if rst_i = '1' then 
+            timestep_pending <= '0';
+        else
+            if timestep_i = '1' then
+                timestep_pending <= '1';
+            elsif main_state = POOL then
+                timestep_pending <= '0';
+            end if;
+        end if;
+    end if;
+    end process timestep_buffer;
+
+    fifo_read_control : process (clk, rst_i)
+    begin
+    if rising_edge(clk) then
+        if rst_i = '1' then 
+            fifo_read_request <= '0';
+            event_valid <= '0';
+        else
+            
+            fifo_read_request <= '0'; -- default to no read request
+            event_valid <= '0'; -- default to no valid event
+
+            if main_state = IDLE and event_fifo_empty_i = '0' then
+                fifo_read_request <= '1'; -- request to read from FIFO
+            end if;
+
+            if fifo_read_request = '1' then
+                current_event <= bus_to_event_tensor(
+                    event_fifo_bus_i,
+                    BITS_PER_COORD,
+                    CHANNELS_IN
+                );
+                event_valid <= '1'; -- set event as valid
+            else 
+                event_valid <= '0';
+            end if;
+        end if;
+    end if;
+    end process fifo_read_control;
     -- pragma translate_off
     debug_main_state <= main_state;
     debug_next_state <= main_next_state;
     debug_last_state <= main_last_state;
+
+    debug_timestep_pending <= timestep_pending;
 
     debug_main_state_vec <= state_to_slv(main_state);
     debug_next_state_vec <= state_to_slv(main_next_state);
