@@ -96,8 +96,22 @@ def convert_testbench_to_vivado(input_file, output_file):
         flags=re.MULTILINE
     )
     
-    # Build new main process
-    new_main_process = "main : process\n    begin\n\n"
+    # FIXED: Extract variable declarations from the original main process
+    main_process_pattern = r'main\s*:\s*process\s*(.*?)\s*begin.*?end\s+process\s+main\s*;'
+    main_match = re.search(main_process_pattern, content, re.MULTILINE | re.DOTALL | re.IGNORECASE)
+    
+    variable_declarations = ""
+    if main_match:
+        potential_vars = main_match.group(1).strip()
+        # Check if there are actual variable declarations
+        if potential_vars and ('variable' in potential_vars.lower() or 'constant' in potential_vars.lower()):
+            variable_declarations = f"        {potential_vars}\n"
+    
+    # FIXED: Build new main process with proper formatting
+    new_main_process = "main : process\n"
+    if variable_declarations:
+        new_main_process += variable_declarations
+    new_main_process += "    begin\n\n"  # FIXED: begin on separate line!
     new_main_process += "        -- Initial stabilization\n"
     new_main_process += "        waitf(10);\n\n"
     
@@ -114,7 +128,6 @@ def convert_testbench_to_vivado(input_file, output_file):
     new_main_process += "    end process main;"
     
     # Replace the entire main process
-    main_process_pattern = r'main\s*:\s*process\s*begin.*?end\s+process\s+main\s*;'
     content = re.sub(
         main_process_pattern,
         new_main_process,

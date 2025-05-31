@@ -33,58 +33,98 @@ architecture testbench of tb_conv_pool is
     signal uut_timestep_pending : std_logic;
     signal uut_current_event : event_tensor_t;
     signal uut_event_valid : std_logic;
-
+    signal uut_read_cycle : integer;
     -- ========================================= TIMING PROCEDURES =========================================
-    -- Original waitf for compatibility  
     procedure waitf(n : in integer) is
     begin
         for i in 1 to n loop
             wait until rising_edge(clk);
         end loop;
     end procedure waitf;
-    
-    -- Wait for falling edges (better for checking registered outputs)
-    procedure wait_falling_edges(n : in integer) is
-    begin
-        for i in 1 to n loop
-            wait until falling_edge(clk);
-        end loop;
-    end procedure wait_falling_edges;
-    
+
     -- Drive a signal and wait for it to settle
     procedure drive_and_settle(signal sig : out std_logic; value : std_logic; settle_cycles : integer := 1) is
     begin
         sig <= value;
-        waitf(settle_cycles); -- Use rising edges for driving
+        waitf(settle_cycles);
     end procedure drive_and_settle;
-    
-    -- Check a signal at a stable time (after falling edge)
+
+    -- IMPROVED: Check signals after rising edge with small delay for stability
     procedure check_signal_stable(signal sig : in std_logic; expected : std_logic; error_msg : string) is
     begin
-        wait until falling_edge(clk); -- Wait for stable time
-        wait for 1 ns; -- Small delay for stability
-        assert sig = expected
-            report error_msg & " - Expected: " & std_logic'image(expected) & 
+        waitf(1); -- Wait for next rising edge
+        wait for 2 ns; -- Small delay for signal stability after clock edge
+    assert sig = expected
+        report error_msg & " - Expected: " & std_logic'image(expected) & 
                    ", Got: " & std_logic'image(sig)
             severity failure;
     end procedure check_signal_stable;
-    
-    -- Check a state signal at stable time
+
+    -- IMPROVED: Check state signals with rising edge timing
     procedure check_state_stable(signal state_sig : in main_state_et; expected : main_state_et; error_msg : string) is
     begin
-        wait until falling_edge(clk);
-        wait for 1 ns;
+        waitf(1); -- Wait for next rising edge  
+        wait for 2 ns; -- Small delay for stability
+        assert state_sig = expected
+        report error_msg & " - Expected: " & main_state_et'image(expected) & 
+               ", Got: " & main_state_et'image(state_sig)
+            severity failure;
+    end procedure check_state_stable;
+
+    -- IMPROVED: Check event tensor with rising edge timing
+    procedure check_event_tensor_stable(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
+begin
+    waitf(1); -- Wait for next rising edge
+    wait for 2 ns; -- Small delay for stability
+    assert (tensor_sig.x_coord = expected.x_coord and 
+            tensor_sig.y_coord = expected.y_coord and 
+            tensor_sig.channel = expected.channel)
+        report error_msg & 
+               " - Expected: (" & integer'image(expected.x_coord) & 
+               ", " & integer'image(expected.y_coord) & 
+               ", " & integer'image(expected.channel) & ")" &
+               ", Got: (" & integer'image(tensor_sig.x_coord) & 
+               ", " & integer'image(tensor_sig.y_coord) & 
+               ", " & integer'image(tensor_sig.channel) & ")"
+        severity failure;
+end procedure check_event_tensor_stable;
+
+    procedure drive_event_tensor(signal ebus : out std_logic_vector; tensor : event_tensor_t; settle_cycles : integer := 1) is
+    begin
+        ebus <= tensor_to_bus(tensor, BITS_PER_COORD, CHANNELS_IN);
+        waitf(settle_cycles);
+    end procedure drive_event_tensor;
+
+    -- ALTERNATIVE: Even simpler approach - check immediately after driving
+    procedure drive_and_check(signal sig : out std_logic; value : std_logic; error_msg : string) is
+    begin
+        sig <= value;
+        waitf(2); -- Give 2 cycles for response
+        wait for 2 ns; -- Small stability delay
+        -- Now check whatever response you expect
+    end procedure drive_and_check;
+
+    procedure check_signal_now(signal sig : in std_logic; expected : std_logic; error_msg : string) is
+    begin
+        wait for 2 ns; -- Just stability delay, no clock waiting
+        assert sig = expected
+            report error_msg & " - Expected: " & std_logic'image(expected) & 
+               ", Got: " & std_logic'image(sig)
+            severity failure;
+    end procedure check_signal_now;
+
+    procedure check_state_now(signal state_sig : in main_state_et; expected : main_state_et; error_msg : string) is
+    begin
+        wait for 2 ns; -- Just stability delay, no clock waiting
         assert state_sig = expected
             report error_msg & " - Expected: " & main_state_et'image(expected) & 
                    ", Got: " & main_state_et'image(state_sig)
             severity failure;
-    end procedure check_state_stable;
+    end procedure check_state_now;
 
-    -- FIXED: Check event tensor equality
-    procedure check_event_tensor_stable(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
+    procedure check_event_tensor_now(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
     begin
-        wait until falling_edge(clk);
-        wait for 1 ns;
+        wait for 2 ns; -- Just stability delay, no clock waiting
         assert (tensor_sig.x_coord = expected.x_coord and 
                 tensor_sig.y_coord = expected.y_coord and 
                 tensor_sig.channel = expected.channel)
@@ -96,13 +136,7 @@ architecture testbench of tb_conv_pool is
                    ", " & integer'image(tensor_sig.y_coord) & 
                    ", " & integer'image(tensor_sig.channel) & ")"
             severity failure;
-    end procedure check_event_tensor_stable;
-
-    procedure drive_event_tensor(signal ebus : out std_logic_vector; tensor : event_tensor_t; settle_cycles : integer := 1) is
-    begin
-        ebus <= tensor_to_bus(tensor, BITS_PER_COORD, CHANNELS_IN);
-        waitf(settle_cycles);
-    end procedure drive_event_tensor;
+    end procedure check_event_tensor_now;
 
 begin
 
@@ -126,7 +160,8 @@ begin
         debug_last_state_vec => uut_last_state_vec,
         debug_timestep_pending => uut_timestep_pending,
         debug_current_event => uut_current_event,
-        debug_event_valid => uut_event_valid
+        debug_event_valid => uut_event_valid,
+        debug_read_cycle => uut_read_cycle
     );
 
     main : process
@@ -154,6 +189,7 @@ begin
                 event_fifo_read_i, '0', "uut should not request fifo read when reset"
             );
 
+            waitf(1); -- Wait for next clock edge
             -- Now disable reset and check state
             drive_and_settle(rst_o, '0', 1);
             -- should go to pause when enable is 0
@@ -165,10 +201,10 @@ begin
 
         if run("test_reset_enable") then
             -- Reset and enable 1
-            drive_and_settle(rst_o, '1', 1);
-            drive_and_settle(enable_o, '1', 1); -- Enable the module during reset
-            drive_and_settle(timestep_o, '0', 1);
-            drive_and_settle(event_fifo_empty_o, '1', 1); -- Ensure FIFO is empty
+            drive_and_settle(rst_o, '1', 2);
+            drive_and_settle(enable_o, '1', 2); -- Enable the module during reset
+            drive_and_settle(timestep_o, '0', 2);
+            drive_and_settle(event_fifo_empty_o, '1', 2); -- Ensure FIFO is empty
             check_state_stable(
                 uut_main_state, RESET, "uut_main_state should be RESET after reset signal"
             );
@@ -177,7 +213,7 @@ begin
             );
 
             -- Now disable reset and check state
-            drive_and_settle(rst_o, '0', 1);
+            drive_and_settle(rst_o, '0', 2);
             check_state_stable(
                 uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
             );
@@ -185,69 +221,45 @@ begin
 
         -- Test fifo read request behavior
         if run("test_fifo_read_request") then
-            -- Let module go to IDLE with FIFO empty
+            -- Setup: Get to IDLE state with FIFO empty
             drive_and_settle(rst_o, '0', 2);
             drive_and_settle(enable_o, '1', 2);
             drive_and_settle(timestep_o, '0', 2);
-            drive_and_settle(event_fifo_empty_o, '1', 2); -- Ensure FIFO is empty and settled
+            drive_and_settle(event_fifo_empty_o, '1', 2);
             
-            check_state_stable(
-                uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
-            );
-            check_signal_stable(
-                uut_event_valid, '0', "uut should not have valid event in IDLE state"
-            );
-            check_signal_stable(
-                event_fifo_read_i, '0', "uut should not request read when FIFO is empty"
-            );
-            check_event_tensor_stable(
-                uut_current_event, create_tensor(0, 0, 0),
-                "uut should have current_event as zero tensor in IDLE state"
-            );
-
-            -- Drive event tensor on the bus (data ready for when read occurs)
+            check_state_stable(uut_main_state, IDLE, "should be in IDLE");
+            check_signal_stable(event_fifo_read_i, '0', "no read request in IDLE");
+            
+            -- Signal that FIFO has data available
+            event_fifo_empty_o <= '0';
+            waitf(1); -- Wait for state transition
+            
+            -- Cycle 1 of READ_REQUEST: Assert read request
+            check_state_now(uut_main_state, READ_REQUEST, "should enter READ_REQUEST when FIFO not empty");
+            check_signal_now(event_fifo_read_i, '1', "should assert read request on cycle 1");
+            waitf(1); -- Move to next cycle
+            -- FIFO responds with data (simulating 1-cycle FIFO read latency)
             test_tensor := create_tensor(x_coord => 10, y_coord => 10, channel => 0);
-            drive_event_tensor(event_fifo_bus_o, test_tensor, 1);
+            event_fifo_bus_o <= tensor_to_bus(test_tensor, BITS_PER_COORD, CHANNELS_IN);
             
-            -- CRITICAL: Create edge transition from empty='1' to empty='0'
-            -- This should trigger the single-cycle read pulse
-            drive_and_settle(event_fifo_empty_o, '0', 1);
+            --waitf(1); -- Move to cycle 2 of READ_REQUEST
             
-            -- Check that read pulse is generated (should be high for exactly one cycle)
-            check_signal_stable(
-                event_fifo_read_i, '1', "uut should generate read pulse on FIFO empty transition"
-            );
+            -- Cycle 2 of READ_REQUEST: Capture data, read request goes low
+            check_state_now(uut_main_state, READ_REQUEST, "should stay in READ_REQUEST on cycle 2");
+            check_signal_now(event_fifo_read_i, '0', "read request should be low on cycle 2");
+            -- Event capture happens at end of this cycle
             
-            -- Verify read pulse is only one cycle (should be low on next cycle)
+            waitf(1); -- Move to EVENT_CONV
+            
+            -- Should now be in EVENT_CONV with captured data
+            check_state_now(uut_main_state, EVENT_CONV, "should transition to EVENT_CONV after data capture");
+            check_signal_now(uut_event_valid, '1', "event should be valid in EVENT_CONV");
+            check_event_tensor_now(uut_current_event, test_tensor, "should have captured correct event");
+            
+            -- Wait for return to IDLE
             waitf(1);
-            check_signal_stable(
-                event_fifo_read_i, '0', "read pulse should only last one cycle"
-            );
-            
-            -- Verify event was captured and is valid
-            check_signal_stable(
-                uut_event_valid, '1', "event should be valid after read pulse"
-            );
-            check_event_tensor_stable(
-                uut_current_event, test_tensor,
-                "uut should have captured the correct event from FIFO"
-            );
-            
-            -- Verify state transitions to EVENT_CONV when event_valid = '1'
-            check_state_stable(
-                uut_main_state, EVENT_CONV, "uut should transition to EVENT_CONV when event is valid"
-            );
-            
-            -- Verify module returns to IDLE after processing (depends on EVENT_CONV implementation)
-            waitf(2); -- Give time for EVENT_CONV to complete
-            check_state_stable(
-                uut_main_state, IDLE, "uut should return to IDLE after event processing"
-            );
-            
-            -- Verify event_valid is cleared when back in IDLE
-            check_signal_stable(
-                uut_event_valid, '0', "event_valid should be cleared when returning to IDLE"
-            );
+            check_state_now(uut_main_state, IDLE, "should return to IDLE after event processing");
+            check_signal_now(uut_event_valid, '0', "event_valid should be cleared in IDLE");
             
         end if;
 

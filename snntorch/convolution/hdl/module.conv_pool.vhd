@@ -25,7 +25,6 @@ entity conv_pool is
 
         -- Event signals
         event_fifo_empty_i : in std_logic;
-        -- shape of event bus: [x_coord(8), y_coord(8), channel(1), ..., channel]
         event_fifo_bus_i : in std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0);
         event_fifo_read_o : out std_logic;
 
@@ -37,9 +36,9 @@ entity conv_pool is
         debug_timestep_pending : out std_logic;
         debug_current_event : out event_tensor_t;
         debug_event_valid : out std_logic;
+        debug_read_cycle : out integer; -- NEW: Debug signal to show which cycle we're in
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
         -- pragma translate_on
-
     );
 end entity conv_pool;
 
@@ -47,8 +46,7 @@ architecture rtl of conv_pool is
 
     signal main_state, main_next_state, main_last_state : main_state_et := IDLE;
     signal timestep_pending : std_logic := '0';
-    signal fifo_read_request : std_logic := '0';
-
+    
     signal current_event : event_tensor_t := (
         x_coord => 0,
         y_coord => 0,
@@ -56,13 +54,13 @@ architecture rtl of conv_pool is
     );
     signal event_valid : std_logic := '0';
     
-    signal fifo_empty_prev : std_logic := '1';  -- Previous state of FIFO empty
-    signal event_processing : std_logic := '0';  -- Flag to prevent multiple reads
+    -- NEW: Counter to track cycles within READ_REQUEST state
+    signal read_cycle_counter : integer range 1 to 2 := 1;
 
 begin
 
-    -- signals for output ports
-    event_fifo_read_o <= fifo_read_request;
+    -- UPDATED: Read request logic for 2-cycle protocol
+    event_fifo_read_o <= '1' when (main_state = READ_REQUEST and read_cycle_counter = 1) else '0';
 
     state_register_update : process (clk, rst_i)
     begin
@@ -86,47 +84,48 @@ begin
         end if;
     end process update_last_state;
 
+    -- UPDATED: State machine with 2-cycle READ_REQUEST handling
     state_machine_control : process (all)
     begin
+        main_next_state <= main_state; -- Default: stay in current state
 
-        main_next_state <= main_state; -- assign current state as next by default
-
-        -- check for enable signal
         if enable_i = '0' then
             main_next_state <= PAUSE;
         else
             case main_state is
             when IDLE =>
-                -- Priority 1: Check if we have a pending timestep to process
+                -- Priority 1: Check timestep
                 if timestep_pending = '1' then
                     main_next_state <= POOL;
-                -- Priority 2: Check if we have a valid event to process
-                elsif event_valid = '1' then
+                -- Priority 2: Check FIFO 
+                elsif event_fifo_empty_i = '0' then
+                    main_next_state <= READ_REQUEST;
+                end if;
+                
+            when READ_REQUEST =>
+                -- Stay in READ_REQUEST for 2 cycles, then go to EVENT_CONV
+                if read_cycle_counter = 2 then
                     main_next_state <= EVENT_CONV;
                 end if;
                 
             when EVENT_CONV => 
-                -- FIXED: Add logic to complete event processing
-                -- For now, return to IDLE after one cycle (you can extend this)
+                -- Process event, then back to IDLE
                 main_next_state <= IDLE;
                 
             when PAUSE => 
                 main_next_state <= main_last_state;
                 
             when POOL =>
-                -- FIXED: Add logic to complete pool processing
-                -- For now, return to IDLE after one cycle (you can extend this)
+                -- Pool processing, then back to IDLE
                 main_next_state <= IDLE;
                 
             when CONFIG =>
-                -- Configuration processing
                 main_next_state <= IDLE;
                 
             when RESET => 
                 main_next_state <= IDLE;
             end case;
         end if;
-
     end process state_machine_control;
 
     timestep_buffer : process (clk, rst_i)
@@ -144,71 +143,58 @@ begin
         end if;
     end process timestep_buffer;
 
-    -- FIXED: Proper FIFO read protocol
-    fifo_read_control : process (clk, rst_i)
+    -- NEW: Read cycle counter management
+    read_cycle_management : process (clk, rst_i)
+    begin
+        if rising_edge(clk) then
+            if rst_i = '1' then
+                read_cycle_counter <= 1;
+            else
+                if main_state = READ_REQUEST then
+                    if read_cycle_counter < 2 then
+                        read_cycle_counter <= read_cycle_counter + 1;
+                    end if;
+                else
+                    read_cycle_counter <= 1; -- Reset counter when leaving READ_REQUEST
+                end if;
+            end if;
+        end if;
+    end process read_cycle_management;
+
+    -- UPDATED: Event capture process with proper timing
+    event_capture : process (clk, rst_i)
     begin
         if rising_edge(clk) then
             if rst_i = '1' then 
-                fifo_read_request <= '0';
+                current_event <= (x_coord => 0, y_coord => 0, channel => 0);
                 event_valid <= '0';
-                fifo_empty_prev <= '1';
-                event_processing <= '0';
             else
-                -- Track previous FIFO empty state
-                fifo_empty_prev <= event_fifo_empty_i;
-                
-                -- Default: no read request
-                fifo_read_request <= '0';
-                
-                -- FIXED: Generate single-cycle read pulse
-                -- Only read when:
-                -- 1. In IDLE state (not processing anything)
-                -- 2. FIFO was empty and now is not empty (edge detection)
-                -- 3. Not already processing an event
-                if (main_state = IDLE and 
-                    fifo_empty_prev = '1' and 
-                    event_fifo_empty_i = '0' and 
-                    event_processing = '0') then
-                    
-                    fifo_read_request <= '1';  -- Single cycle pulse
-                    event_processing <= '1';   -- Mark that we're now processing
-                end if;
-                
-                -- FIXED: Capture event data when read request is active
-                if fifo_read_request = '1' then
+                -- Capture event on cycle 2 of READ_REQUEST (when FIFO data is valid)
+                if main_state = READ_REQUEST and read_cycle_counter = 2 then
                     current_event <= bus_to_event_tensor(
                         event_fifo_bus_i,
                         BITS_PER_COORD,
                         CHANNELS_IN
                     );
-                    event_valid <= '1';  -- Mark event as valid
+                    event_valid <= '1';
                 end if;
                 
-                -- FIXED: Clear processing flag when back in IDLE and event processed
-                if main_state = IDLE and main_next_state = IDLE and event_valid = '1' then
-                    event_valid <= '0';
-                    event_processing <= '0';
-                end if;
-                
-                -- FIXED: Also clear when transitioning from EVENT_CONV back to IDLE
+                -- Clear when returning to IDLE
                 if main_state = EVENT_CONV and main_next_state = IDLE then
                     event_valid <= '0';
-                    event_processing <= '0';
                 end if;
-                
             end if;
         end if;
-    end process fifo_read_control;
+    end process event_capture;
 
     -- pragma translate_off
     debug_main_state <= main_state;
     debug_next_state <= main_next_state;
     debug_last_state <= main_last_state;
-
     debug_timestep_pending <= timestep_pending;
     debug_current_event <= current_event;
     debug_event_valid <= event_valid;
-
+    debug_read_cycle <= read_cycle_counter; -- NEW: Debug the cycle counter
     debug_main_state_vec <= state_to_slv(main_state);
     debug_next_state_vec <= state_to_slv(main_next_state);
     debug_last_state_vec <= state_to_slv(main_last_state);

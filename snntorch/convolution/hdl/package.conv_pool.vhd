@@ -9,7 +9,8 @@ package conv_pool_pkg is
         PAUSE,
         POOL,
         CONFIG,
-        RESET
+        RESET,
+        READ_REQUEST
     );
 
     type event_tensor_t is record
