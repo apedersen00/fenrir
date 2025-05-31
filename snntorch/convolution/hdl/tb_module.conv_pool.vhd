@@ -80,13 +80,30 @@ architecture testbench of tb_conv_pool is
             severity failure;
     end procedure check_state_stable;
 
+    -- FIXED: Check event tensor equality
+    procedure check_event_tensor_stable(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
+    begin
+        wait until falling_edge(clk);
+        wait for 1 ns;
+        assert (tensor_sig.x_coord = expected.x_coord and 
+                tensor_sig.y_coord = expected.y_coord and 
+                tensor_sig.channel = expected.channel)
+            report error_msg & 
+                   " - Expected: (" & integer'image(expected.x_coord) & 
+                   ", " & integer'image(expected.y_coord) & 
+                   ", " & integer'image(expected.channel) & ")" &
+                   ", Got: (" & integer'image(tensor_sig.x_coord) & 
+                   ", " & integer'image(tensor_sig.y_coord) & 
+                   ", " & integer'image(tensor_sig.channel) & ")"
+            severity failure;
+    end procedure check_event_tensor_stable;
+
     procedure drive_event_tensor(signal ebus : out std_logic_vector; tensor : event_tensor_t; settle_cycles : integer := 1) is
     begin
         ebus <= tensor_to_bus(tensor, BITS_PER_COORD, CHANNELS_IN);
         waitf(settle_cycles);
     end procedure drive_event_tensor;
 
-    
 begin
 
     clk <= not clk after 10 ns;
@@ -176,28 +193,44 @@ begin
             check_state_stable(
                 uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
             );
-            check_signal_statble(
-                uut_event_valid, '0', "uut should not have valid event in IDLE state"
-            )
+            -- FIXED: Typo corrected
             check_signal_stable(
+                uut_event_valid, '0', "uut should not have valid event in IDLE state"
+            );
+            -- FIXED: Use proper tensor checking procedure
+            check_event_tensor_stable(
                 uut_current_event, create_tensor(0, 0, 0),
                 "uut should have current_event as zero tensor in IDLE state"
             );
 
-            -- Lets simulate fifo not emptyu
-            drive_and_settle(event_fifo_empty_o, '0', 1);
+            -- FIXED: Drive event tensor BEFORE making FIFO not empty
             test_tensor := create_tensor(x_coord => 10, y_coord => 10, channel => 0);
+            drive_event_tensor(event_fifo_bus_o, test_tensor, 1);
+            
+            -- Now make FIFO not empty
+            drive_and_settle(event_fifo_empty_o, '0', 1);
             check_signal_stable(
                 event_fifo_read_i, '1', "uut should request fifo read when not empty"
             );
-            drive_event_tensor(event_fifo_bus_o, test_tensor);
             
-
+            -- FIXED: Check that state transitions to EVENT_CONV
+            check_state_stable(
+                uut_main_state, EVENT_CONV, "uut should transition to EVENT_CONV when processing event"
+            );
             
+            -- FIXED: Check that the event was captured correctly
+            waitf(2); -- Give time for event to be captured
+            check_signal_stable(
+                uut_event_valid, '1', "uut should have valid event after reading from FIFO"
+            );
+            check_event_tensor_stable(
+                uut_current_event, test_tensor,
+                "uut should have captured the correct event from FIFO"
+            );
         end if;
-    
+
         test_runner_cleanup(runner);
-        wait for 100 ns; -- <-- Add this line!
+        wait for 100 ns;
         wait;
 
     end process main;

@@ -49,7 +49,11 @@ architecture rtl of conv_pool is
     signal timestep_pending : std_logic := '0';
     signal fifo_read_request : std_logic := '0';
 
-    signal current_event : event_tensor_t;
+    signal current_event : event_tensor_t := (
+        x_coord => 0,
+        y_coord => 0,
+        channel => 0
+    );
     signal event_valid : std_logic := '0';
 
 begin
