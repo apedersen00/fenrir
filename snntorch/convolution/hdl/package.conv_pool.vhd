@@ -23,7 +23,13 @@ package conv_pool_pkg is
         x : integer;
         y : integer;
     end record;
-
+    type conv_thread_t is record
+        start_idx : integer;
+        end_idx : integer;
+        last_result: std_logic_vector(107 downto 0);
+        last_address: std_logic_vector(9 downto 0);
+        next_address: std_logic_vector(9 downto 0);
+    end record;
     -- for testing purposes
     type coords_3x3_t is array (0 to 8) of vector2_t;
 
@@ -63,6 +69,12 @@ package conv_pool_pkg is
         membrane_potentials : std_logic_vector;
         bits_per_channel : integer;
         channels_out: integer
+    ) return std_logic_vector;
+
+    function fast_calc_address(
+        coord : vector2_t;
+        img_width: integer;
+        address_bits : integer := 10 -- for 1024 address space
     ) return std_logic_vector;
 
 end package conv_pool_pkg;
@@ -185,5 +197,14 @@ package body conv_pool_pkg is
 
     return result;
     end function convolution_1d;
+
+    function fast_calc_address(
+        coord : vector2_t;
+        img_width: integer;
+        address_bits : integer := 10 -- for 1024 address space
+    ) return std_logic_vector is
+    begin
+    return std_logic_vector(to_unsigned(coord.y * img_width + coord.x, address_bits));
+    end function fast_calc_address;
 
 end package body conv_pool_pkg;

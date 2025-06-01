@@ -1,13 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-library vunit_lib;
-context vunit_lib.vunit_context;
-
 use work.conv_pool_pkg.all;
 
 entity tb_conv_pool_fast is
-    generic(runner_cfg : string);
 end entity tb_conv_pool_fast;
 
 architecture testbench of tb_conv_pool_fast is
@@ -151,7 +147,13 @@ end procedure check_event_tensor_stable;
 
 begin
 
-    clk <= not clk after 10 ns;
+    clk_process: process
+    begin
+        clk <= '1';
+        wait for CLK_PERIOD/2;
+        clk <= '0';
+        wait for CLK_PERIOD/2;
+    end process;
 
     uut: entity work.conv_pool_fast
     generic map (
@@ -171,9 +173,6 @@ begin
         debug_main_state => uut_main_state,
         debug_next_state => uut_next_state,
         debug_last_state => uut_last_state,
-        debug_main_state_vec => uut_main_state_vec,
-        debug_next_state_vec => uut_next_state_vec,
-        debug_last_state_vec => uut_last_state_vec,
         debug_timestep_pending => uut_timestep_pending,
         debug_current_event => uut_current_event,
         debug_event_valid => uut_event_valid,
@@ -195,18 +194,15 @@ begin
     );
 
     main : process
-
         variable test_tensor : event_tensor_t;
-
     begin
 
-        test_runner_setup(runner, runner_cfg);
+        -- Initial stabilization
+        waitf(10);
 
-        waitf(10); -- Initial wait to ensure everything is stable
-
-        -- test reset
-        if run("test_reset_no_enable") then
-            -- Lets reset the module
+        -- Test: test_reset_no_enable
+        report "Running test: test_reset_no_enable";
+        -- Lets reset the module
             -- Reset and enable 0
             drive_and_settle(rst_o, '1', 1);
             drive_and_settle(enable_o, '0', 1); -- Disable the module during reset
@@ -226,11 +222,11 @@ begin
             check_state_stable(
                 uut_main_state, PAUSE, "uut_main_state should be PAUSE after reset and enable 0"
             );
-                        
-        end if;
+        report "Test test_reset_no_enable completed";
 
-        if run("test_reset_enable") then
-            -- Reset and enable 1
+        -- Test: test_reset_enable
+        report "Running test: test_reset_enable";
+        -- Reset and enable 1
             drive_and_settle(rst_o, '1', 2);
             drive_and_settle(enable_o, '1', 2); -- Enable the module during reset
             drive_and_settle(timestep_o, '0', 2);
@@ -247,11 +243,11 @@ begin
             check_state_stable(
                 uut_main_state, IDLE, "uut_main_state should be IDLE after reset and enable"
             );
-        end if;
+        report "Test test_reset_enable completed";
 
-        -- Test fifo read request behavior
-        if run("test_fifo_read_request") then
-            -- Setup: Get to IDLE state with FIFO empty
+        -- Test: test_fifo_read_request
+        report "Running test: test_fifo_read_request";
+        -- Setup: Get to IDLE state with FIFO empty
             drive_and_settle(rst_o, '0', 2);
             drive_and_settle(enable_o, '1', 2);
             drive_and_settle(timestep_o, '0', 2);
@@ -285,13 +281,9 @@ begin
             check_state_now(uut_main_state, EVENT_CONV, "should transition to EVENT_CONV after data capture");
             check_signal_now(uut_event_valid, '1', "event should be valid in EVENT_CONV");
             check_event_tensor_now(uut_current_event, test_tensor, "should have captured correct event");
-            
-            
-            
-        end if;
+        report "Test test_fifo_read_request completed";
 
-        test_runner_cleanup(runner);
-        wait for 100 ns;
+        report "All tests completed successfully";
         wait;
 
     end process main;
