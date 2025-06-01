@@ -72,19 +72,34 @@ package conv_pool_pkg is
     ) return std_logic_vector;
 
     function apply_decay(
-    membrane_data : std_logic_vector;
-    decay_values : std_logic_vector;
-    channels : integer;
-    bits_per_neuron : integer
-) return std_logic_vector;
+        membrane_data : std_logic_vector;
+        decay_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector;
 
--- Function 2: Add two multi-channel vectors
-function add_multichannel_vectors(
-    vector_a : std_logic_vector;
-    vector_b : std_logic_vector;
-    channels : integer;
-    bits_per_neuron : integer
-) return std_logic_vector;
+    -- Function 2: Add two multi-channel vectors
+    function add_multichannel_vectors(
+        vector_a : std_logic_vector;
+        vector_b : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector;
+
+    function check_threshold_and_reset(
+        membrane_data : std_logic_vector;
+        threshold_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer;
+        reset_value : integer := 0
+    ) return std_logic_vector;
+
+    function check_pooled_threshold(
+        pooled_data : std_logic_vector;
+        threshold_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector;
 
 end package conv_pool_pkg;
 
@@ -204,7 +219,7 @@ package body conv_pool_pkg is
 
         end loop;
 
-    return result;
+        return result;
     end function convolution_1d;
 
     function fast_calc_address(
@@ -213,68 +228,134 @@ package body conv_pool_pkg is
         address_bits : integer := 10 -- for 1024 address space
     ) return std_logic_vector is
     begin
-    return std_logic_vector(to_unsigned(coord.y * img_width + coord.x, address_bits));
+        return std_logic_vector(to_unsigned(coord.y * img_width + coord.x, address_bits));
     end function fast_calc_address;
 
     
-function apply_decay(
-    membrane_data : std_logic_vector;
-    decay_values : std_logic_vector;
-    channels : integer;
-    bits_per_neuron : integer
-) return std_logic_vector is
-    variable result : std_logic_vector(membrane_data'range);
-    variable temp_membrane : signed(bits_per_neuron - 1 downto 0);
-    variable temp_decay : signed(bits_per_neuron - 1 downto 0);
-    variable temp_result : signed(bits_per_neuron - 1 downto 0);
-begin
-    for i in 0 to channels - 1 loop
-        temp_membrane := signed(membrane_data((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
-        temp_decay := signed(decay_values((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
-        temp_result := temp_membrane - temp_decay;
-        
-        -- Clamp to prevent negative values (optional based on your model)
-        if temp_result < 0 then
-            temp_result := (others => '0');
-        end if;
-        
-        result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := std_logic_vector(temp_result);
-    end loop;
-    return result;
-end function apply_decay;
+    function apply_decay(
+        membrane_data : std_logic_vector;
+        decay_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector is
+        variable result : std_logic_vector(membrane_data'range);
+        variable temp_membrane : signed(bits_per_neuron - 1 downto 0);
+        variable temp_decay : signed(bits_per_neuron - 1 downto 0);
+        variable temp_result : signed(bits_per_neuron - 1 downto 0);
+    begin
+        for i in 0 to channels - 1 loop
+            temp_membrane := signed(membrane_data((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_decay := signed(decay_values((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_result := temp_membrane - temp_decay;
+            
+            -- Clamp to prevent negative values (optional based on your model)
+            if temp_result < 0 then
+                temp_result := (others => '0');
+            end if;
+            
+            result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := std_logic_vector(temp_result);
+        end loop;
+        return result;
+    end function apply_decay;
 
--- Function 2: Add two multi-channel vectors together
-function add_multichannel_vectors(
-    vector_a : std_logic_vector;
-    vector_b : std_logic_vector;
-    channels : integer;
-    bits_per_neuron : integer
-) return std_logic_vector is
-    variable result : std_logic_vector(vector_a'range);
-    variable temp_a : signed(bits_per_neuron - 1 downto 0);
-    variable temp_b : signed(bits_per_neuron - 1 downto 0);
-    variable temp_sum : signed(bits_per_neuron downto 0); -- Extra bit for overflow
-    variable max_value : signed(bits_per_neuron - 1 downto 0);
-begin
-    max_value := to_signed(2**(bits_per_neuron - 1) - 1, bits_per_neuron);
-    
-    for i in 0 to channels - 1 loop
-        temp_a := signed(vector_a((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
-        temp_b := signed(vector_b((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
-        temp_sum := resize(temp_a, bits_per_neuron + 1) + resize(temp_b, bits_per_neuron + 1);
+    -- Function 2: Add two multi-channel vectors together
+    function add_multichannel_vectors(
+        vector_a : std_logic_vector;
+        vector_b : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector is
+        variable result : std_logic_vector(vector_a'range);
+        variable temp_a : signed(bits_per_neuron - 1 downto 0);
+        variable temp_b : signed(bits_per_neuron - 1 downto 0);
+        variable temp_sum : signed(bits_per_neuron downto 0); -- Extra bit for overflow
+        variable max_value : signed(bits_per_neuron - 1 downto 0);
+    begin
+        max_value := to_signed(2**(bits_per_neuron - 1) - 1, bits_per_neuron);
         
-        -- Saturate on overflow
-        if temp_sum > max_value then
-            result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := std_logic_vector(max_value);
-        else
-            result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := 
-                std_logic_vector(temp_sum(bits_per_neuron - 1 downto 0));
-        end if;
-    end loop;
-    return result;
-end function add_multichannel_vectors;
+        for i in 0 to channels - 1 loop
+            temp_a := signed(vector_a((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_b := signed(vector_b((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_sum := resize(temp_a, bits_per_neuron + 1) + resize(temp_b, bits_per_neuron + 1);
+            
+            -- Saturate on overflow
+            if temp_sum > max_value then
+                result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := std_logic_vector(max_value);
+            else
+                result((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := 
+                    std_logic_vector(temp_sum(bits_per_neuron - 1 downto 0));
+            end if;
+        end loop;
+        return result;
+    end function add_multichannel_vectors;
 
-    
+    function check_threshold_and_reset(
+        membrane_data : std_logic_vector;
+        threshold_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer;
+        reset_value : integer := 0
+    ) return std_logic_vector is
+        variable result_membrane : std_logic_vector(membrane_data'range);
+        variable spike_vector : std_logic_vector(channels - 1 downto 0);
+        variable temp_membrane : signed(bits_per_neuron - 1 downto 0);
+        variable temp_threshold : signed(bits_per_neuron - 1 downto 0);
+        variable reset_val : signed(bits_per_neuron - 1 downto 0);
+    begin
+        reset_val := to_signed(reset_value, bits_per_neuron);
+        
+        for i in 0 to channels - 1 loop
+            temp_membrane := signed(membrane_data((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_threshold := signed(threshold_values((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            
+            if temp_membrane >= temp_threshold then
+                spike_vector(i) := '1';
+                -- Reset this neuron
+                result_membrane((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := std_logic_vector(reset_val);
+            else
+                spike_vector(i) := '0';
+                -- Keep original value
+                result_membrane((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron) := 
+                    std_logic_vector(temp_membrane);
+            end if;
+        end loop;
+        
+        -- Pack spike vector into upper bits of result for return
+        -- Lower bits = updated membrane, upper bits = spike vector
+        -- Note: This is a hack - better to have separate outputs, but VHDL functions can only return one value
+        -- Alternative: use a procedure instead of function
+        return result_membrane;
+    end function check_threshold_and_reset;
 
+    function check_pooled_threshold(
+        pooled_data : std_logic_vector;
+        threshold_values : std_logic_vector;
+        channels : integer;
+        bits_per_neuron : integer
+    ) return std_logic_vector is
+        variable spike_vector : std_logic_vector(channels - 1 downto 0);
+        variable temp_pooled : signed(bits_per_neuron - 1 downto 0);
+        variable temp_threshold : signed(bits_per_neuron - 1 downto 0);
+        variable spike_detected : boolean := false;
+        variable first_spike_channel : integer := 0;
+    begin
+        spike_vector := (others => '0');
+        
+        -- Check all channels for threshold crossing
+        for i in 0 to channels - 1 loop
+            temp_pooled := signed(pooled_data((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            temp_threshold := signed(threshold_values((i+1) * bits_per_neuron - 1 downto i * bits_per_neuron));
+            
+            if temp_pooled >= temp_threshold and not spike_detected then
+                spike_vector(i) := '1';
+                spike_detected := true;
+                first_spike_channel := i;
+                -- One-hot: only first channel that crosses threshold gets to spike
+                exit; -- Exit loop after first spike
+            end if;
+        end loop;
+        
+        return spike_vector;
+    end function check_pooled_threshold;
 
 end package body conv_pool_pkg;

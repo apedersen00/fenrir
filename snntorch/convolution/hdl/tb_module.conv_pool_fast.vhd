@@ -43,6 +43,7 @@ architecture testbench of tb_conv_pool_fast is
     signal uut_total_coords_to_update : integer;  -- ADD: Missing signal
 
     signal uut_conv_in_progress : std_logic;  -- ADD: Missing conv in progress signal
+    signal uut_pooling_in_progress : std_logic;  -- ADD: Missing pooling in progress signal
 
     -- ========================================= TIMING PROCEDURES =========================================
     procedure waitf(n : in integer) is
@@ -64,10 +65,10 @@ architecture testbench of tb_conv_pool_fast is
     begin
         waitf(1); -- Wait for next rising edge
         wait for 2 ns; -- Small delay for signal stability after clock edge
-    assert sig = expected
-        report error_msg & " - Expected: " & std_logic'image(expected) & 
-                   ", Got: " & std_logic'image(sig)
-            severity failure;
+        assert sig = expected
+            report error_msg & " - Expected: " & std_logic'image(expected) & 
+                       ", Got: " & std_logic'image(sig)
+                severity failure;
     end procedure check_signal_stable;
 
     -- IMPROVED: Check state signals with rising edge timing
@@ -76,28 +77,28 @@ architecture testbench of tb_conv_pool_fast is
         waitf(1); -- Wait for next rising edge  
         wait for 2 ns; -- Small delay for stability
         assert state_sig = expected
-        report error_msg & " - Expected: " & main_state_et'image(expected) & 
-               ", Got: " & main_state_et'image(state_sig)
-            severity failure;
+            report error_msg & " - Expected: " & main_state_et'image(expected) & 
+                   ", Got: " & main_state_et'image(state_sig)
+                severity failure;
     end procedure check_state_stable;
 
     -- IMPROVED: Check event tensor with rising edge timing
     procedure check_event_tensor_stable(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
-begin
-    waitf(1); -- Wait for next rising edge
-    wait for 2 ns; -- Small delay for stability
-    assert (tensor_sig.x_coord = expected.x_coord and 
-            tensor_sig.y_coord = expected.y_coord and 
-            tensor_sig.channel = expected.channel)
-        report error_msg & 
-               " - Expected: (" & integer'image(expected.x_coord) & 
-               ", " & integer'image(expected.y_coord) & 
-               ", " & integer'image(expected.channel) & ")" &
-               ", Got: (" & integer'image(tensor_sig.x_coord) & 
-               ", " & integer'image(tensor_sig.y_coord) & 
-               ", " & integer'image(tensor_sig.channel) & ")"
-        severity failure;
-end procedure check_event_tensor_stable;
+    begin
+        waitf(1); -- Wait for next rising edge
+        wait for 2 ns; -- Small delay for stability
+        assert (tensor_sig.x_coord = expected.x_coord and 
+                tensor_sig.y_coord = expected.y_coord and 
+                tensor_sig.channel = expected.channel)
+            report error_msg & 
+                   " - Expected: (" & integer'image(expected.x_coord) & 
+                   ", " & integer'image(expected.y_coord) & 
+                   ", " & integer'image(expected.channel) & ")" &
+                   ", Got: (" & integer'image(tensor_sig.x_coord) & 
+                   ", " & integer'image(tensor_sig.y_coord) & 
+                   ", " & integer'image(tensor_sig.channel) & ")"
+                severity failure;
+    end procedure check_event_tensor_stable;
 
     procedure drive_event_tensor(signal ebus : out std_logic_vector; tensor : event_tensor_t; settle_cycles : integer := 1) is
     begin
@@ -119,8 +120,8 @@ end procedure check_event_tensor_stable;
         wait for 2 ns; -- Just stability delay, no clock waiting
         assert sig = expected
             report error_msg & " - Expected: " & std_logic'image(expected) & 
-               ", Got: " & std_logic'image(sig)
-            severity failure;
+                   ", Got: " & std_logic'image(sig)
+                severity failure;
     end procedure check_signal_now;
 
     procedure check_int_now(signal sig : in integer; expected : integer; error_msg : string) is
@@ -128,8 +129,8 @@ end procedure check_event_tensor_stable;
         wait for 2 ns; -- Just stability delay, no clock waiting
         assert sig = expected
             report error_msg & " - Expected: " & integer'image(expected) & 
-                   ", Got: " & integer'image(sig)
-            severity failure;
+                       ", Got: " & integer'image(sig)
+                severity failure;
     end procedure check_int_now;
 
     procedure check_state_now(signal state_sig : in main_state_et; expected : main_state_et; error_msg : string) is
@@ -137,8 +138,8 @@ end procedure check_event_tensor_stable;
         wait for 2 ns; -- Just stability delay, no clock waiting
         assert state_sig = expected
             report error_msg & " - Expected: " & main_state_et'image(expected) & 
-                   ", Got: " & main_state_et'image(state_sig)
-            severity failure;
+                       ", Got: " & main_state_et'image(state_sig)
+                severity failure;
     end procedure check_state_now;
 
     procedure check_event_tensor_now(signal tensor_sig : in event_tensor_t; expected : event_tensor_t; error_msg : string) is
@@ -148,13 +149,13 @@ end procedure check_event_tensor_stable;
                 tensor_sig.y_coord = expected.y_coord and 
                 tensor_sig.channel = expected.channel)
             report error_msg & 
-                   " - Expected: (" & integer'image(expected.x_coord) & 
-                   ", " & integer'image(expected.y_coord) & 
-                   ", " & integer'image(expected.channel) & ")" &
-                   ", Got: (" & integer'image(tensor_sig.x_coord) & 
-                   ", " & integer'image(tensor_sig.y_coord) & 
-                   ", " & integer'image(tensor_sig.channel) & ")"
-            severity failure;
+                       " - Expected: (" & integer'image(expected.x_coord) & 
+                       ", " & integer'image(expected.y_coord) & 
+                       ", " & integer'image(expected.channel) & ")" &
+                       ", Got: (" & integer'image(tensor_sig.x_coord) & 
+                       ", " & integer'image(tensor_sig.y_coord) & 
+                       ", " & integer'image(tensor_sig.channel) & ")"
+                severity failure;
     end procedure check_event_tensor_now;
 
 begin
@@ -197,7 +198,8 @@ begin
         debug_mem_neuron_doa => uut_mem_neuron_doa,
         debug_mem_neuron_dob => uut_mem_neuron_dob,
         debug_total_coords_to_update => uut_total_coords_to_update,
-        debug_convolution_in_progress => uut_conv_in_progress
+        debug_convolution_in_progress => uut_conv_in_progress,
+        debug_pooling_in_progress => uut_pooling_in_progress  -- FIXED: Added missing signal
     );
 
     main : process
@@ -296,18 +298,43 @@ begin
         end if;
 
         if run("test_convolution") then
-
-
-
+            -- Setup: Get to IDLE state
+            drive_and_settle(rst_o, '0', 2);
+            drive_and_settle(enable_o, '1', 2);
+            drive_and_settle(timestep_o, '0', 2);
+            drive_and_settle(event_fifo_empty_o, '1', 2);
+            
+            -- Send an event to trigger convolution
+            test_tensor := create_tensor(x_coord => 5, y_coord => 5, channel => 0);
+            event_fifo_empty_o <= '0';
+            event_fifo_bus_o <= tensor_to_bus(test_tensor, BITS_PER_COORD, 1);
+            
+            -- Wait for READ_REQUEST and then EVENT_CONV
+            waitf(3); -- Allow time for state transitions
+            
+            -- Should be in EVENT_CONV state now
+            check_state_now(uut_main_state, EVENT_CONV, "should be in EVENT_CONV");
+            check_signal_now(uut_conv_in_progress, '1', "convolution should be in progress");
+            
         end if;
 
         if run("test_timestep") then
-            waitf(20);
-            -- set timestep to 1
+            -- Setup: Get to IDLE state
+            drive_and_settle(rst_o, '0', 2);
+            drive_and_settle(enable_o, '1', 2);
+            drive_and_settle(timestep_o, '0', 2);
+            drive_and_settle(event_fifo_empty_o, '1', 2);
+            
+            check_state_stable(uut_main_state, IDLE, "should be in IDLE");
+            
+            -- Trigger timestep
             drive_and_settle(timestep_o, '1', 1);
-
+            drive_and_settle(timestep_o, '0', 1);
+            -- Should transition to POOL state
+            check_state_stable(uut_main_state, POOL, "should enter POOL state on timestep");
+            check_signal_stable(uut_pooling_in_progress, '1', "pooling should be in progress");
+            
         end if;
-
 
         test_runner_cleanup(runner);
         wait for 100 ns;
