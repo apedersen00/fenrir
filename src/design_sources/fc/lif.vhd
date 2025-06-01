@@ -88,6 +88,8 @@ end FC_LIF_NEURON;
 
 architecture Behavioral of FC_LIF_NEURON is
 
+    attribute MARK_DEBUG : string;
+
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
@@ -99,7 +101,19 @@ architecture Behavioral of FC_LIF_NEURON is
     signal idx_reg          : std_logic_vector(11 downto 0);
     signal reg_valid        : std_logic;
 
+    signal dbg_continue     : std_logic;
+    signal dbg_goto_idle    : std_logic;
+    attribute MARK_DEBUG of syn_reg: signal is "TRUE";
+    attribute MARK_DEBUG of nrn_reg: signal is "TRUE";
+    attribute MARK_DEBUG of idx_reg: signal is "TRUE";
+    attribute MARK_DEBUG of reg_valid: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_continue: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_goto_idle: signal is "TRUE";
+
 begin
+
+    o_continue <= dbg_continue;
+    o_goto_idle <= dbg_goto_idle;
 
     -- configuration decoding
     cfg_threshold       <= i_reg_cfg_0(11 downto 0);
@@ -108,8 +122,8 @@ begin
     cfg_bits_per_syn    <= 4;
 
     -- lockstep the neuron and synapse loader
-    o_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
-    o_goto_idle <= i_nrn_valid_last and (i_syn_valid_last or i_timestep);
+    dbg_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
+    dbg_goto_idle <= i_nrn_valid_last and (i_syn_valid_last or i_timestep);
 
     out_val : process(i_clk)
     begin

@@ -91,6 +91,9 @@ entity FC_SYNAPSE_LOADER is
 end FC_SYNAPSE_LOADER;
 
 architecture Behavioral of FC_SYNAPSE_LOADER is
+
+    attribute MARK_DEBUG : string;
+
     -- fsm
     type state is (
         IDLE,
@@ -126,7 +129,36 @@ architecture Behavioral of FC_SYNAPSE_LOADER is
 
     constant SYN_MEM_ADDR_WIDTH : integer := integer(ceil(log2(real(SYN_MEM_DEPTH))));
 
+    signal dbg_syn_state    : std_logic_vector(3 downto 0);
+    signal dbg_o_weight     : std_logic_vector(7 downto 0);
+    signal dbg_syn_index    : std_logic_vector(11 downto 0);
+    signal dbg_syn_valid    : std_logic;
+    signal dbg_syn_valid_next : std_logic;
+    signal dbg_syn_valid_last : std_logic;
+
+    attribute MARK_DEBUG of reg_event_buf: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_syn_state: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_o_weight: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_syn_index: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_syn_valid: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_syn_valid_next: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_syn_valid_last: signal is "TRUE";
+
 begin
+
+    o_syn_valid_last <= dbg_syn_valid_last;
+    o_syn_valid <= dbg_syn_valid;
+    o_syn_valid_next <= dbg_syn_valid_next;
+    o_syn_weight <= dbg_o_weight;
+    dbg_syn_index <= std_logic_vector(to_unsigned(syn_index, dbg_syn_index'length));
+
+    with present_state select dbg_syn_state <=
+        "0000" when IDLE,
+        "0001" when GET_EVENT,
+        "0010" when STORE_EVENT,
+        "0011" when GET_WEIGHTS,
+        "0100" when WAIT_FOR_BRAM,
+        "0101" when ITERATE;
 
     -- configuration decoding
     cfg_layer_size      <= i_reg_cfg_0(10 downto 0);
@@ -191,31 +223,31 @@ begin
     begin
         if rising_edge(i_clk) then
 
-            o_syn_valid <= ('1' and not i_goto_idle) when present_state = ITERATE else '0';
+            dbg_syn_valid <= ('1' and not i_goto_idle) when present_state = ITERATE else '0';
 
             -- if fetching in BRAM the next immediate value is always valid
             if (present_state = WAIT_FOR_BRAM) then
-                o_syn_valid_next <= '1';
+                dbg_syn_valid_next <= '1';
             elsif (present_state = ITERATE) then
                 if (syn_index /= 0) and ((syn_index + 1) mod weights_per_addr = 0) then
-                    o_syn_valid_next <= '0';
+                    dbg_syn_valid_next <= '0';
                 elsif (syn_index /= 0) and ((syn_index + 1) >= unsigned(cfg_layer_size)) then
-                    o_syn_valid_next <= '0';
+                    dbg_syn_valid_next <= '0';
                 else
-                    o_syn_valid_next <= '1';
+                    dbg_syn_valid_next <= '1';
                 end if;
             else
-                o_syn_valid_next <= '0';
+                dbg_syn_valid_next <= '0';
             end if;
 
             if (present_state = ITERATE) then
                 if (syn_index /= 0) and (syn_index + 1 >= unsigned(cfg_layer_size)) then
-                    o_syn_valid_last <= '1';
+                    dbg_syn_valid_last <= '1';
                 else
-                    o_syn_valid_last <= '0';
+                    dbg_syn_valid_last <= '0';
                 end if;
             else
-                o_syn_valid_last <= '0';
+                dbg_syn_valid_last <= '0';
             end if;
 
         end if;
@@ -229,15 +261,15 @@ begin
         if rising_edge(i_clk) then
             if (i_rst = '1') then
                 o_synmem_re     <= '0';
-                o_syn_weight    <= (others => '0');
+                dbg_o_weight    <= (others => '0');
             elsif (weights_per_addr /= 0) then
                 -- wrap around syn_index so we always extract one of the weights per address
                 v_word_index    := syn_index mod weights_per_addr;
                 v_rev_index     := weights_per_addr - 1 - v_word_index;
 
                 o_synmem_re     <= '1';
-                o_syn_weight    <= (others => '0');
-                o_syn_weight(bits_per_weight - 1 downto 0) <=
+                dbg_o_weight    <= (others => '0');
+                dbg_o_weight(bits_per_weight - 1 downto 0) <=
                     i_synmem_rdata((v_rev_index + 1) * bits_per_weight - 1 downto v_rev_index * bits_per_weight);
             end if;
         end if;
@@ -258,6 +290,7 @@ begin
     -- FSM next state process
     nxt_state : process(all)
     begin
+        next_state <= present_state;
         case present_state is
             when IDLE =>
                 if i_start = '1' then

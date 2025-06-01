@@ -69,6 +69,8 @@ end FC_SCHEDULER;
 
 architecture Behavioral of FC_SCHEDULER is
 
+    attribute MARK_DEBUG : string;
+
     -- fsm
     type state is (
         IDLE,
@@ -87,7 +89,43 @@ architecture Behavioral of FC_SCHEDULER is
     signal event_buf        : std_logic_vector(12 downto 0);
     signal tstep_buf        : std_logic;
 
+    -- debug
+    signal dbg_synldr_start : std_logic;
+    signal dbg_nrnldr_start : std_logic;
+    signal dbg_timestep     : std_logic;
+    signal dbg_state        : std_logic_vector(3 downto 0);
+    signal dbg_synldr_busy  : std_logic;
+    signal dbg_nrnldr_busy  : std_logic;
+    signal dbg_rst          : std_logic;
+
+    attribute MARK_DEBUG of event_buf: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_synldr_start: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_nrnldr_start: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_timestep: signal is "TRUE";        
+    attribute MARK_DEBUG of dbg_state: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_synldr_busy: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_nrnldr_busy: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_rst: signal is "TRUE";
+    
 begin
+
+    o_timestep      <= dbg_timestep;
+    o_nrnldr_start  <= dbg_nrnldr_start;
+    o_synldr_start  <= dbg_synldr_start;
+    dbg_synldr_busy <= i_synldr_busy;
+    dbg_nrnldr_busy <= i_nrnldr_busy;
+    dbg_rst         <= i_rst;
+
+    with present_state select dbg_state <=
+        "0000" when IDLE,
+        "0001" when READ_FIFO,
+        "0010" when WAIT_FIFO,
+        "0011" when PROCESS_FIFO,
+        "0100" when PROCESS_EVENT,
+        "0101" when PROCESS_EVENT_BUSY,
+        "0111" when PROPAGATE_TIMESTEP,
+        "1000" when TIMESTEP,
+        "1001" when TIMESTEP_BUSY;
 
     o_busy      <= i_synldr_busy or i_nrnldr_busy;
     tstep_buf   <= event_buf(12);
@@ -122,6 +160,7 @@ begin
     -- FSM next state process
     nxt_state : process(all)
     begin
+        next_state <= present_state;
         case present_state is
             when IDLE =>
                 if  (i_enable           = '1')  and
@@ -190,65 +229,65 @@ begin
     begin
         case present_state is    
             when IDLE =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when READ_FIFO =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '1';
                 o_write_timestep    <= '0';
 
             when WAIT_FIFO =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when PROCESS_FIFO =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when PROCESS_EVENT =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '1';
-                o_nrnldr_start      <= '1';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '1';
+                dbg_nrnldr_start    <= '1';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when PROCESS_EVENT_BUSY =>
-                o_timestep          <= '0';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '0';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when PROPAGATE_TIMESTEP =>
-                o_timestep          <= '1';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '1';
+                dbg_timestep        <= '1';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '1';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '1';
 
             when TIMESTEP =>
-                o_timestep          <= '1';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '1';
+                dbg_timestep        <= '1';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '1';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
 
             when TIMESTEP_BUSY =>
-                o_timestep          <= '1';
-                o_synldr_start      <= '0';
-                o_nrnldr_start      <= '0';
+                dbg_timestep        <= '1';
+                dbg_synldr_start    <= '0';
+                dbg_nrnldr_start    <= '0';
                 o_fifo_re           <= '0';
                 o_write_timestep    <= '0';
         end case;

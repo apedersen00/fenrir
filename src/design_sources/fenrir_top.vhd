@@ -60,7 +60,7 @@ architecture behavior of FENRIR_TOP is
     signal next_state           : state;
 
     -- general
-    signal reset        : std_logic;
+    signal reset                : std_logic;
 
     -- fc1
     signal fc1_en               : std_logic;
@@ -77,7 +77,12 @@ architecture behavior of FENRIR_TOP is
     signal out_fifo_rdata       : std_logic_vector(12 downto 0);
     signal out_fifo_rvalid      : std_logic;
 
+    -- debug
+    signal in_fifo_fill_count   : std_logic_vector(7 downto 0);
+
 begin
+
+    -- o_class_count_2 <= "000000000000000000000000" & in_fifo_fill_count;
 
     FIFO_IN_ADAPTER : entity work.FIFO_ADAPTER
     generic map (
@@ -202,8 +207,9 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(sysclk)
+    nxt_state : process(present_state, ctrl)
     begin
+        next_state <= present_state;
         case ctrl is
             when "0001" =>
                 next_state <= IDLE;
@@ -216,7 +222,7 @@ begin
         end case;
     end process;
 
-    outputs : process(sysclk)
+    outputs : process(present_state)
     begin
         case present_state is    
             when IDLE =>

@@ -163,15 +163,13 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(i_clk)
+    nxt_state : process(all)
     begin
+        next_state <= present_state;
         case present_state is
-
             when IDLE =>
                 if i_fifo_empty = '0' then
                     next_state <= GET_EVENT;
-                else
-                    next_state <= IDLE;
                 end if;
 
             when GET_EVENT =>
@@ -180,15 +178,12 @@ begin
             when WRITE_COUNTER =>
                 if i_fifo_rvalid = '1' then
                     next_state <= IDLE;
-                else
-                    next_state <= WRITE_COUNTER;
                 end if;
-
         end case;
     end process;
 
     -- FSM output process
-    outputs : process(i_clk)
+    outputs : process(all)
     begin
         case present_state is    
 

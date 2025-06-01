@@ -85,6 +85,9 @@ entity FC_NEURON_LOADER is
 end FC_NEURON_LOADER;
 
 architecture Behavioral of FC_NEURON_LOADER is
+
+    attribute MARK_DEBUG : string;
+
     -- fsm
     type state is (
         IDLE,
@@ -227,6 +230,7 @@ begin
     -- FSM next state process
     nxt_state : process(all)
     begin
+        next_state <= present_state;
         case present_state is
             when IDLE =>
                 if i_start = '1' then
