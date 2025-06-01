@@ -94,7 +94,6 @@ architecture Behavioral of FC_LIF_NEURON is
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
     signal cfg_weight_scale : std_logic_vector(7 downto 0);
-    signal cfg_bits_per_syn : integer;
 
     signal syn_reg          : std_logic_vector(7 downto 0);
     signal nrn_reg          : std_logic_vector(11 downto 0);
@@ -103,15 +102,23 @@ architecture Behavioral of FC_LIF_NEURON is
 
     signal dbg_continue     : std_logic;
     signal dbg_goto_idle    : std_logic;
+    signal dbg_nrn_state_nxt: std_logic_vector(11 downto 0);
     attribute MARK_DEBUG of syn_reg: signal is "TRUE";
     attribute MARK_DEBUG of nrn_reg: signal is "TRUE";
     attribute MARK_DEBUG of idx_reg: signal is "TRUE";
     attribute MARK_DEBUG of reg_valid: signal is "TRUE";
     attribute MARK_DEBUG of dbg_continue: signal is "TRUE";
     attribute MARK_DEBUG of dbg_goto_idle: signal is "TRUE";
+    attribute MARK_DEBUG of dbg_nrn_state_nxt: signal is "TRUE";
+    attribute MARK_DEBUG of cfg_threshold: signal is "TRUE";
+    attribute MARK_DEBUG of cfg_beta: signal is "TRUE";
+    attribute MARK_DEBUG of cfg_weight_scale: signal is "TRUE";
+
+    constant cfg_bits_per_syn : integer := 4;
 
 begin
 
+    o_nrn_state_next <= dbg_nrn_state_nxt;
     o_continue <= dbg_continue;
     o_goto_idle <= dbg_goto_idle;
 
@@ -119,7 +126,6 @@ begin
     cfg_threshold       <= i_reg_cfg_0(11 downto 0);
     cfg_beta            <= i_reg_cfg_0(23 downto 12);
     cfg_weight_scale    <= i_reg_cfg_0(31 downto 24);
-    cfg_bits_per_syn    <= 4;
 
     -- lockstep the neuron and synapse loader
     dbg_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
@@ -192,19 +198,19 @@ begin
                 end if;
 
                 if (i_timestep = '1') and (v_cur_state >= to_integer(unsigned(cfg_threshold))) then
-                    o_nrn_state_next <= (others => '0');
+                    dbg_nrn_state_nxt <= (others => '0');
                     o_event_fifo_out <= std_logic_vector(to_unsigned(0, 12)) when unsigned(idx_reg) = 0 else
                                         std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
                     o_event_fifo_we  <= '1';
                 else
-                    o_nrn_state_next <= std_logic_vector(to_signed(v_next_state, o_nrn_state_next'length));
+                    dbg_nrn_state_nxt <= std_logic_vector(to_signed(v_next_state, dbg_nrn_state_nxt'length));
                     o_event_fifo_out <= (others => '0');
                     o_event_fifo_we  <= '0';
                 end if;
 
             else
                 o_event_fifo_we     <= '0';
-                o_nrn_state_next    <= (others => '0');
+                dbg_nrn_state_nxt    <= (others => '0');
                 o_event_fifo_out    <= (others => '0');
                 o_event_fifo_we     <= '0';
             end if;

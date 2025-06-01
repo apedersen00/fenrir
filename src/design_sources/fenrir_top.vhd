@@ -49,6 +49,8 @@ end FENRIR_TOP;
 
 architecture behavior of FENRIR_TOP is
 
+    attribute MARK_DEBUG : string;
+
     -- fsm
     type state is (
         IDLE,
@@ -77,8 +79,14 @@ architecture behavior of FENRIR_TOP is
     signal out_fifo_rdata       : std_logic_vector(12 downto 0);
     signal out_fifo_rvalid      : std_logic;
 
-    -- debug
-    signal in_fifo_fill_count   : std_logic_vector(7 downto 0);
+    -- attribute MARK_DEBUG of fc1_en: signal is "TRUE";
+    attribute MARK_DEBUG of fc1_in_we: signal is "TRUE";
+    attribute MARK_DEBUG of fc1_in_wdata: signal is "TRUE";    
+    attribute MARK_DEBUG of fc1_out_we: signal is "TRUE";
+    attribute MARK_DEBUG of fc1_out_wdata: signal is "TRUE";
+    attribute MARK_DEBUG of out_fifo_re: signal is "TRUE";
+    attribute MARK_DEBUG of out_fifo_rdata: signal is "TRUE";
+    attribute MARK_DEBUG of out_fifo_rvalid: signal is "TRUE";
 
 begin
 
@@ -236,6 +244,8 @@ begin
                 fc1_en  <= '1';
             when INVALID =>
                 led <= "0000";
+            when others =>
+                fc1_en <= '0';
         end case;
     end process;
 
