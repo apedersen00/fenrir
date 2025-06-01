@@ -4,6 +4,7 @@
 --
 --  File: fc_layer.vhd
 --  Description: A single-layer fully-connected spiking neural network. Contains input FIFO.
+--  VHDL Version: VHDL-2008
 --
 --  Author(s):
 --      - A. Pedersen, Aarhus University
