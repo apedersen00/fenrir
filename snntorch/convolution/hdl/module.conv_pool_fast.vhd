@@ -5,9 +5,8 @@ use ieee.math_real.all;
 
 use work.conv_pool_pkg.all;
 
-entity conv_pool is
+entity conv_pool_fast is
     generic(
-        CHANNELS_IN : integer := 1;
         CHANNELS_OUT : integer := 1;
         BITS_PER_NEURON : integer := 6;
         BITS_PER_WEIGHT : integer := 6;
@@ -27,7 +26,7 @@ entity conv_pool is
 
         -- Event signals
         event_fifo_empty_i : in std_logic;
-        event_fifo_bus_i : in std_logic_vector(2 * BITS_PER_COORD + CHANNELS_IN - 1 downto 0);
+        event_fifo_bus_i : in std_logic_vector(2 * BITS_PER_COORD downto 0);
         event_fifo_read_o : out std_logic;
 
         -- pragma translate_off
@@ -50,9 +49,9 @@ entity conv_pool is
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
         -- pragma translate_on
     );
-end entity conv_pool;
+end entity conv_pool_fast;
 
-architecture rtl of conv_pool is
+architecture rtl of conv_pool_fast is
 
     signal main_state, main_next_state, main_last_state : main_state_et := IDLE;
     signal timestep_pending : std_logic := '0';
@@ -77,12 +76,6 @@ architecture rtl of conv_pool is
     signal mem_neuron_addra_o, mem_neuron_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
     signal mem_neuron_dia_o, mem_neuron_dib_o : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
     signal mem_neuron_doa_i, mem_neuron_dob_i : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
-
-    -- Kernel Memory
-    signal mem_kernel_wea_o, mem_kernel_web_o, mem_kernel_ena_o, mem_kernel_enb_o : std_logic := '0';
-    signal mem_kernel_addra_o, mem_kernel_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
-    signal mem_kernel_dia_o, mem_kernel_dib_o : std_logic_vector((CHANNELS_IN * BITS_PER_WEIGHT) - 1 downto 0) := (others => '0');
-    signal mem_kernel_doa_i, mem_kernel_dob_i : std_logic_vector((CHANNELS_IN * BITS_PER_WEIGHT) - 1 downto 0) := (others => '0');
 
 begin
 
@@ -206,7 +199,7 @@ begin
                     temp_event := bus_to_event_tensor(
                         event_fifo_bus_i,
                         BITS_PER_COORD,
-                        CHANNELS_IN
+                        1
                     );
                     event_valid <= '1';
                     current_event <= temp_event;
@@ -262,30 +255,7 @@ begin
         doa => mem_neuron_doa_i, -- Output not used
         dob => mem_neuron_dob_i  -- Output not used
     );
-    MEM_KERNELS : entity work.TRUE_DUAL_PORT_READ_FIRST
-    generic map(
-        RAM_DEPTH => KERNEL_SIZE * KERNEL_SIZE * CHANNELS_OUT,
-        DATA_WIDTH => CHANNELS_IN * BITS_PER_WEIGHT,
-        ADDR_WIDTH => 10
-    )
-    port map(
-        clka => clk,
-        clkb => clk,
-        ena => mem_kernel_ena_o,
-        enb => mem_kernel_enb_o,
-        wea => mem_kernel_wea_o,
-        web => mem_kernel_web_o,
-        addra => mem_kernel_addra_o,
-        addrb => mem_kernel_addrb_o,
-        dia => mem_kernel_dia_o,
-        dib => mem_kernel_dib_o,
-        doa => mem_kernel_doa_i,
-        dob => mem_kernel_dob_i 
-    );
-
     
-
-
     -- pragma translate_off
     debug_main_state <= main_state;
     debug_next_state <= main_next_state;
