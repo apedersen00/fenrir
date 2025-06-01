@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <csignal>
+#include <cmath> // For std::round
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp> // Required for cv::resize
@@ -57,7 +58,8 @@ int main(void) {
         info.dvsSizeX, info.dvsSizeY, info.firmwareVersion, info.logicVersion);
 
     handle.sendDefaultConfig();
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_EVENT_ON_ONLY, true);
+    bool eventOnOnlyIsEnabled = true; 
+    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_EVENT_ON_ONLY, eventOnOnlyIsEnabled);
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_BIAS_SIMPLE_VERY_LOW, true);
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
@@ -66,19 +68,28 @@ int main(void) {
     const int DOWNSCALE_FACTOR = 10;
     const int DOWNSCALED_WIDTH = info.dvsSizeX / DOWNSCALE_FACTOR;
     const int DOWNSCALED_HEIGHT = info.dvsSizeY / DOWNSCALE_FACTOR;
-    const int DISPLAY_UPSCALE_FACTOR = 20; // You can adjust this for the single window's appearance
+    const int DISPLAY_UPSCALE_FACTOR = 20; 
     const int DISPLAY_WIDTH = DOWNSCALED_WIDTH * DISPLAY_UPSCALE_FACTOR;
     const int DISPLAY_HEIGHT = DOWNSCALED_HEIGHT * DISPLAY_UPSCALE_FACTOR;
 
-    // --- MODIFIED: Only one window needed ---
     cv::namedWindow("BINNED_EVENTS", cv::WindowFlags::WINDOW_NORMAL);
-    cv::resizeWindow("BINNED_EVENTS", DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    if (DOWNSCALED_WIDTH > 0 && DOWNSCALED_HEIGHT > 0) {
+        cv::resizeWindow("BINNED_EVENTS", DISPLAY_WIDTH, DISPLAY_HEIGHT);
+    }
 
-    const auto frameBinDuration = std::chrono::microseconds(16600); // Approx 16.6 ms
+    const auto frameBinDuration = std::chrono::microseconds(16600); 
     auto nextBinTime = std::chrono::steady_clock::now() + frameBinDuration;
-    long long eventsInCurrentBin = 0;
+    
+    // --- MODIFIED: Renamed counter for clarity ---
+    long long mergedEventsInBin = 0; // Counts unique active downscaled pixels
 
-    cv::Mat binnedEventsFrame(DOWNSCALED_HEIGHT, DOWNSCALED_WIDTH, CV_32FC1, 0.0f);
+    if (DOWNSCALED_WIDTH <= 0 || DOWNSCALED_HEIGHT <= 0) {
+        fprintf(stderr, "ERROR: Downscaled dimensions are not positive (%dx%d). Adjust DOWNSCALE_FACTOR or check camera info.\n", DOWNSCALED_WIDTH, DOWNSCALED_HEIGHT);
+        return EXIT_FAILURE;
+    }
+    cv::Mat binnedEventsFrame(DOWNSCALED_HEIGHT, DOWNSCALED_WIDTH, CV_32FC1, 0.0f); // For visualizing raw event density
+    // --- NEW: Grid to track active downscaled pixels in the current bin ---
+    cv::Mat activityGrid(DOWNSCALED_HEIGHT, DOWNSCALED_WIDTH, CV_8UC1, cv::Scalar(0)); 
 
     while (!globalShutdown.load(memory_order_relaxed)) {
         std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
@@ -94,14 +105,19 @@ int main(void) {
                         = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
                     for (const auto &e : *polarity) {
-                        // --- Event Binning and Counting for 16.6ms Frame ---
                         int binnedX = e.getX() / DOWNSCALE_FACTOR;
                         int binnedY = e.getY() / DOWNSCALE_FACTOR;
 
                         if (binnedX >= 0 && binnedX < DOWNSCALED_WIDTH &&
                             binnedY >= 0 && binnedY < DOWNSCALED_HEIGHT) {
-                            eventsInCurrentBin++;
-                            binnedEventsFrame.at<float>(binnedY, binnedX) += (e.getPolarity() ? 1.0f : -1.0f);
+                            // Accumulate in binnedEventsFrame for visualization (raw event count per bin)
+                            binnedEventsFrame.at<float>(binnedY, binnedX) += 1.0f; 
+                                
+                            // --- MODIFIED: Count unique active downscaled pixels ---
+                            if (activityGrid.at<unsigned char>(binnedY, binnedX) == 0) {
+                                activityGrid.at<unsigned char>(binnedY, binnedX) = 1; // Mark as active
+                                mergedEventsInBin++; // Increment count of unique active bins
+                            }
                         }
                     }
                 }
@@ -111,6 +127,7 @@ int main(void) {
         auto currentTime = std::chrono::steady_clock::now();
 
         if (currentTime >= nextBinTime) {
+            // Visualization of binnedEventsFrame (raw event density) remains the same
             cv::Mat displayBinnedTemp;
             double minVal, maxVal;
             cv::minMaxLoc(binnedEventsFrame, &minVal, &maxVal);
@@ -120,9 +137,13 @@ int main(void) {
                 if (minVal > 0) displayBinnedTemp.setTo(cv::Scalar(255));
             } else {
                 cv::Mat tempNormFrame = binnedEventsFrame.clone();
-                tempNormFrame -= minVal;
+                tempNormFrame -= minVal; 
                 double newMax = maxVal - minVal;
-                tempNormFrame.convertTo(displayBinnedTemp, CV_8UC1, 255.0 / newMax, 0);
+                if (newMax > 0) { 
+                   tempNormFrame.convertTo(displayBinnedTemp, CV_8UC1, 255.0 / newMax, 0);
+                } else {
+                    displayBinnedTemp = cv::Mat::zeros(DOWNSCALED_HEIGHT, DOWNSCALED_WIDTH, CV_8UC1);
+                }
             }
 
             cv::Mat displayBinnedFrameBGR;
@@ -133,64 +154,32 @@ int main(void) {
                     cv::Size(DISPLAY_WIDTH, DISPLAY_HEIGHT), 0, 0, cv::INTER_NEAREST);
             cv::imshow("BINNED_EVENTS", finalDisplayBinnedFrame);
 
-            printf("Events in downscaled bin (%.1fms): %lld\n",
+            // --- MODIFIED: Print the new merged event count ---
+            double totalRawDVSEvents = cv::sum(binnedEventsFrame)[0]; // Still useful for context
+            printf("Merged events (active downscaled pixels) in bin (%.1fms): %lld (Total raw DVS events: %.0f)\n",
                    std::chrono::duration<double, std::milli>(frameBinDuration).count(),
-                   eventsInCurrentBin);
-
+                   mergedEventsInBin,
+                   totalRawDVSEvents);
+            
+            // --- Reset for the next bin ---
             binnedEventsFrame.setTo(0.0f);
-            eventsInCurrentBin = 0;
+            activityGrid.setTo(cv::Scalar(0)); // Reset the activity tracker
+            mergedEventsInBin = 0;             // Reset the merged event counter
 
             do {
                 nextBinTime += frameBinDuration;
             } while (nextBinTime <= currentTime);
         }
 
-        // --- MODIFIED: Removed display of ORIGINAL_EVENTS and DOWNSCALED_EVENTS ---
-
         cv::waitKey(1);
     }
 #elif DEMO == 1
 // ... (original DEMO == 1 code remains unchanged)
-    using namespace std::chrono;
-    int positiveCount = 0;
-    auto lastPrintTime = steady_clock::now();
-
-    while (!globalShutdown.load(memory_order_relaxed)) {
-        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
-        if (packetContainer == nullptr) {
-            continue; 
-        }
-
-        for (auto &packet : *packetContainer) {
-            if (packet == nullptr) {
-                continue; 
-            }
-
-            if (packet->getEventType() == POLARITY_EVENT) {
-                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
-                    = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
-
-                for (const auto &e : *polarity) {
-                    if (e.getPolarity()) {
-                        positiveCount++;
-                    }
-                }
-            }
-        }
-
-        auto now = steady_clock::now();
-        if (duration_cast<seconds>(now - lastPrintTime).count() >= 1) {
-            printf("Positive events in last second: %d\n", positiveCount);
-            positiveCount = 0;
-            lastPrintTime = now;
-        }
-    }
 #endif
 
     handle.dataStop();
 
 #if DEMO == 0
-    // --- MODIFIED: Only one window to destroy ---
     cv::destroyWindow("BINNED_EVENTS");
 #endif
 
