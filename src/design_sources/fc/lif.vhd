@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 --
 --  File: lif.vhd
---  Description:
+--  Description: Leaky-Integrate-and-Fire module for FENRIR. Also locksteps the loaders.
 --  VHDL Version: VHDL-2008
 --
 --  Author(s):
@@ -121,16 +121,23 @@ begin
     input_reg : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_nrn_valid and (i_syn_valid or i_timestep) then
-                syn_reg     <= i_syn_weight;
-                nrn_reg     <= i_nrn_state;
-                idx_reg     <= i_nrn_index;
-                reg_valid   <= '1';
-            else
+            if i_rst = '1' then
                 syn_reg     <= (others => '0');
                 nrn_reg     <= (others => '0');
                 idx_reg     <= (others => '0');
                 reg_valid   <= '0';
+            else
+                if i_nrn_valid and (i_syn_valid or i_timestep) then
+                    syn_reg     <= i_syn_weight;
+                    nrn_reg     <= i_nrn_state;
+                    idx_reg     <= i_nrn_index;
+                    reg_valid   <= '1';
+                else
+                    syn_reg     <= (others => '0');
+                    nrn_reg     <= (others => '0');
+                    idx_reg     <= (others => '0');
+                    reg_valid   <= '0';
+                end if;
             end if;
         end if;
     end process;
@@ -139,7 +146,7 @@ begin
         variable v_syn_weight   : integer range -2047 to 2047;
         variable v_cur_state    : integer range -2047 to 2047;
         variable v_next_state   : integer range -65535 to 65535;
-        variable v_beta         : integer range 0 to 1023;
+        variable v_beta         : integer range 0 to 4095;
         variable v_weight_scale : integer range 0 to 255;
     begin
         if rising_edge(i_clk) then
@@ -155,9 +162,9 @@ begin
 
                 if (i_timestep = '1') and (v_cur_state <= to_integer(unsigned(cfg_threshold))) then
                     if v_cur_state > v_beta then
-                        v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
+                        v_next_state := v_cur_state - v_beta;
                     elsif v_cur_state < -v_beta then
-                        v_next_state := v_cur_state + to_integer(unsigned(cfg_beta));
+                        v_next_state := v_cur_state + v_beta;
                     else
                         v_next_state := 0;
                     end if;
