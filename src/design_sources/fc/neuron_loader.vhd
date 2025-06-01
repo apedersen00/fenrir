@@ -51,7 +51,7 @@ use ieee.math_real.all;
 
 entity FC_NEURON_LOADER is
     generic (
-        NRN_MEM_DEPTH   : integer;                           -- depth of the neuron memory
+        NRN_MEM_DEPTH   : integer;
         OUT_FIFO_DEPTH  : integer
     );
     port (
@@ -59,24 +59,24 @@ entity FC_NEURON_LOADER is
         i_reg_cfg_0             : in std_logic_vector(31 downto 0);
 
         -- neuron memory interface
-        o_nrn_re                : out std_logic;                        -- neuron memory read enable
+        o_nrn_re                : out std_logic;
         o_nrn_addr              : out std_logic_vector(integer(ceil(log2(real(NRN_MEM_DEPTH))))-1 downto 0);
-        i_nrn_data              : in std_logic_vector(35 downto 0);     -- neuron memory data in (3x12b)
+        i_nrn_data              : in std_logic_vector(35 downto 0);
 
         -- fc layer output fifo
         i_out_fifo_fill_count   : in std_logic_vector(integer(ceil(log2(real(OUT_FIFO_DEPTH))))-1 downto 0);
 
         -- output
-        o_nrn_state             : out std_logic_vector(11 downto 0);    -- multiplexed output for LIF
-        o_nrn_index             : out std_logic_vector(11 downto 0);    -- index of outputtet neuron
-        o_nrn_valid             : out std_logic;                        -- output valid
-        o_nrn_valid_next        : out std_logic;                        -- next output is valid
+        o_nrn_state             : out std_logic_vector(11 downto 0);
+        o_nrn_index             : out std_logic_vector(11 downto 0);
+        o_nrn_valid             : out std_logic;
+        o_nrn_valid_next        : out std_logic;
         o_nrn_valid_last        : out std_logic;
 
         -- control signals
-        i_start                 : in std_logic;                         -- start signal
-        i_continue              : in std_logic;                         -- continue iteration
-        o_busy                  : out std_logic;                        -- busy signal
+        i_start                 : in std_logic;
+        i_continue              : in std_logic;
+        o_busy                  : out std_logic;
         i_goto_idle             : in std_logic;
 
         i_clk                   : in std_logic;
@@ -100,27 +100,21 @@ architecture Behavioral of FC_NEURON_LOADER is
 
     -- configuration
     signal cfg_layer_size       : std_logic_vector(10 downto 0);    -- number of neurons in the layer
-    signal cfg_layer_offset     : std_logic_vector(10 downto 0);    -- neuron address layer offset
 
     -- counters
     signal counter_enable       : std_logic;
     signal counter_reset        : std_logic;
-    signal nrn_index            : integer range 0 to 1024;
-    signal nrn_addr_cntr        : integer range 0 to 512;
+    signal nrn_index            : integer range 0 to 2047;
+    signal nrn_addr_cntr        : integer range 0 to 1023;
 
     -- constants
-    signal neurons_per_addr     : integer range 0 to 3;
-    signal bits_per_neuron      : integer range 0 to 12;
+    constant neurons_per_addr   : integer := 3;
+    constant bits_per_neuron    : integer := 12;
 
 begin
 
     -- configuration decoding
     cfg_layer_size      <= i_reg_cfg_0(10 downto 0);
-    cfg_layer_offset    <= i_reg_cfg_0(21 downto 11);
-    
-    -- constants
-    neurons_per_addr    <= 3;
-    bits_per_neuron     <= 12;
 
     fifo_not_full : process(i_clk)
     begin
@@ -139,8 +133,6 @@ begin
             o_nrn_index <= std_logic_vector(to_unsigned(nrn_index, o_nrn_index'length));
         end if;
     end process;
-
-    -- o_nrn_index         <= (others => '0') when nrn_index = 0 else std_logic_vector(to_unsigned(nrn_index - 1, o_nrn_index'length));
 
     addr_decoding : process(i_clk)
     begin
@@ -233,10 +225,9 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(i_clk)
+    nxt_state : process(all)
     begin
         case present_state is
-
             when IDLE =>
                 if i_start = '1' then
                     next_state <= GET_NEURONS;
@@ -262,33 +253,31 @@ begin
                 elsif (nrn_index /= 0) and ((nrn_index + 1) mod neurons_per_addr = 0) then
                     next_state <= GET_NEURONS;
                 end if;
-
         end case;
     end process;
 
-    outputs: process(i_clk)
+    outputs: process(all)
     begin
-
-        case present_state is    
-            when IDLE =>
+        case present_state is
+            when IDLE           =>
                 o_busy          <= '0';
                 counter_enable  <= '0';
                 counter_reset   <= '1';
                 o_nrn_re        <= '0';
 
-            when GET_NEURONS =>
+            when GET_NEURONS    =>
                 o_busy          <= '1';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
                 o_nrn_re        <= '1';
 
-            when WAIT_FOR_BRAM =>
+            when WAIT_FOR_BRAM  =>
                 o_busy          <= '1';
                 counter_enable  <= '0';
                 counter_reset   <= '0';
                 o_nrn_re        <= '1';
 
-            when ITERATE    =>
+            when ITERATE        =>
                 o_busy          <= '1';
                 counter_enable  <= '1' when i_continue = '1' else '0';
                 counter_reset   <= '0';
