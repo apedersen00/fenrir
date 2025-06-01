@@ -13,8 +13,8 @@ entity conv_pool_fast is
         IMG_WIDTH : integer := 32;
         IMG_HEIGHT : integer := 32;
         BITS_PER_COORD : integer := 8;
-        KERNEL_SIZE : integer := 3;
-        RAM_FILE : string := "ram_init.mem"  -- Default RAM initialization file
+        KERNEL_SIZE : integer := 3
+        --RAM_FILE : string
     );
     port(
         -- Standard ports needed for digital components
@@ -82,9 +82,10 @@ architecture rtl of conv_pool_fast is
     -- pooling signals
     signal pooling_in_progress : std_logic := '0';
     signal pooling_counter : integer := 0;
-    signal pooling_window_counter : integer range 1 to 4 := 0;
+    signal pooling_window_counter : integer range 1 to 4 := 1;
     signal temp_pooling_window : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
     signal pooling_anchor : vector2_t := (x => 0, y => 0);
+    signal update_neurons : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0'); -- Updated neurons after pooling
     -- Neuron Memory
     signal mem_neuron_wea_o, mem_neuron_web_o, mem_neuron_ena_o, mem_neuron_enb_o : std_logic := '0';
     signal mem_neuron_addra_o, mem_neuron_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
@@ -167,9 +168,10 @@ begin
     end process state_machine_control;
 
     pooling_control : process (clk, rst_i)
-
-        -- variable pool_anchor : vector2_t := pooling_anchor;
-
+        -- temp pooling sum is always the pooling window
+        variable temp_pooling_sum : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := temp_pooling_window;
+        variable next_read_address : std_logic_vector(9 downto 0) := (others => '0');
+        variable pooling_anchor_temp : vector2_t := pooling_anchor;
     begin
     if rising_edge(clk) then
     if rst_i = '1' then
@@ -178,12 +180,29 @@ begin
     else
         case main_state is
         WHEN POOL =>
+            -- reset pooling if the last pixel was processed
+            if pooling_counter = IMG_HEIGHT * IMG_WIDTH then
+                pooling_in_progress <= '0'; -- Reset pooling in progress
+                pooling_counter <= 0; -- Reset pooling counter
+                pooling_window_counter <= 1; -- Reset pooling window counter
+            else 
+            -- pooling in progress
+            pooling_counter <= pooling_counter + 1;
+            end if;
+
+            -- add the current bus reading to the pooling window
+            temp_pooling_sum := add_multichannel_vectors(mem_neuron_doa_i, temp_pooling_sum, BITS_PER_NEURON, CHANNELS_OUT);
 
                 case pooling_window_counter is
                 when 1 =>
+                    -- no need to update pooling anchor, just read the first pixel
                 when 2 =>
+                    pooling_anchor_temp.x := pooling_anchor.x + 1;
                 when 3 => 
+                    pooling_anchor_temp.y := pooling_anchor.y + 1;
                 when 4 =>
+                    pooling_anchor_temp.x := pooling_anchor.x + 1;
+                    pooling_anchor_temp.y := pooling_anchor.y + 1;
 
 
                 -- update pooling anchor
@@ -203,9 +222,11 @@ begin
             if pooling_counter = 4 then 
             pooling_counter <= 1; 
             else
-            
+            pooling_counter <= pooling_counter + 1; 
             end if;
             
+            -- read next address
+            next_read_address := fast_calc_address(pooling_anchor_temp, IMG_WIDTH);
 
         WHEN OTHERS => 
         if timestep_pending = '1' then 
@@ -394,8 +415,8 @@ begin
     generic map(
         RAM_DEPTH => IMG_WIDTH * IMG_HEIGHT,
         DATA_WIDTH => CHANNELS_OUT * BITS_PER_NEURON,
-        ADDR_WIDTH => integer(ceil(log2(real(IMG_WIDTH * IMG_HEIGHT)))),
-        RAM_FILE => RAM_FILE  -- Use the provided RAM initialization file
+        ADDR_WIDTH => integer(ceil(log2(real(IMG_WIDTH * IMG_HEIGHT))))
+        --RAM_FILE => RAM_FILE  -- Use the provided RAM initialization file
     )
     port map(
         clka => clk,

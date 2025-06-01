@@ -302,8 +302,9 @@ begin
         end if;
 
         if run("test_timestep") then
-
-            
+            waitf(20);
+            -- set timestep to 1
+            drive_and_settle(timestep_o, '1', 1);
 
         end if;
 

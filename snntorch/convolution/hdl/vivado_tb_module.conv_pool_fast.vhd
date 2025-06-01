@@ -289,6 +289,18 @@ begin
             check_event_tensor_now(uut_current_event, test_tensor, "should have captured correct event");
         report "Test test_fifo_read_request completed";
 
+        -- Test: test_convolution
+        report "Running test: test_convolution";
+        
+        report "Test test_convolution completed";
+
+        -- Test: test_timestep
+        report "Running test: test_timestep";
+        waitf(20);
+            -- set timestep to 1
+            drive_and_settle(timestep_o, '1', 1);
+        report "Test test_timestep completed";
+
         report "All tests completed successfully";
         wait;
 
