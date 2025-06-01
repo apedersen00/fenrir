@@ -15,7 +15,7 @@ architecture testbench of tb_conv_pool_fast is
     constant CLK_PERIOD : time := 10 ns;
     constant BITS_PER_COORD : integer := 8;
     constant CHANNELS_OUT : integer := 12;
-    constant BITS_PER_NEURON : integer := 6;
+    constant BITS_PER_NEURON : integer := 9;
     -- control signals
     signal clk : std_logic := '1';
     signal rst_o, enable_o, timestep_o : std_logic := '0';
@@ -42,7 +42,6 @@ architecture testbench of tb_conv_pool_fast is
     signal uut_mem_neuron_doa, uut_mem_neuron_dob : std_logic_vector(CHANNELS_OUT * BITS_PER_NEURON - 1 downto 0);  -- FIXED: CHANNELS_OUT
     signal uut_total_coords_to_update : integer;  -- ADD: Missing signal
 
-    signal uut_conv_thread_1, uut_conv_thread_2 : conv_thread_t;  -- ADD: Missing conv threads
     signal uut_conv_in_progress : std_logic;  -- ADD: Missing conv in progress signal
 
     -- ========================================= TIMING PROCEDURES =========================================
@@ -124,6 +123,15 @@ end procedure check_event_tensor_stable;
             severity failure;
     end procedure check_signal_now;
 
+    procedure check_int_now(signal sig : in integer; expected : integer; error_msg : string) is
+    begin
+        wait for 2 ns; -- Just stability delay, no clock waiting
+        assert sig = expected
+            report error_msg & " - Expected: " & integer'image(expected) & 
+                   ", Got: " & integer'image(sig)
+            severity failure;
+    end procedure check_int_now;
+
     procedure check_state_now(signal state_sig : in main_state_et; expected : main_state_et; error_msg : string) is
     begin
         wait for 2 ns; -- Just stability delay, no clock waiting
@@ -189,8 +197,6 @@ begin
         debug_mem_neuron_doa => uut_mem_neuron_doa,
         debug_mem_neuron_dob => uut_mem_neuron_dob,
         debug_total_coords_to_update => uut_total_coords_to_update,
-        debug_conv_thread_1 => uut_conv_thread_1,
-        debug_conv_thread_2 => uut_conv_thread_2,
         debug_convolution_in_progress => uut_conv_in_progress
     );
 
@@ -285,10 +291,22 @@ begin
             check_state_now(uut_main_state, EVENT_CONV, "should transition to EVENT_CONV after data capture");
             check_signal_now(uut_event_valid, '1', "event should be valid in EVENT_CONV");
             check_event_tensor_now(uut_current_event, test_tensor, "should have captured correct event");
-            
-            
+    
             
         end if;
+
+        if run("test_convolution") then
+
+
+
+        end if;
+
+        if run("test_timestep") then
+
+            
+
+        end if;
+
 
         test_runner_cleanup(runner);
         wait for 100 ns;

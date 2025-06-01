@@ -9,11 +9,12 @@ entity conv_pool_fast is
     generic(
         CHANNELS_OUT : integer := 12;
         BITS_PER_NEURON : integer := 9;
-        BITS_PER_WEIGHT : integer := 6;
+        BITS_PER_WEIGHT : integer := 9;
         IMG_WIDTH : integer := 32;
         IMG_HEIGHT : integer := 32;
         BITS_PER_COORD : integer := 8;
-        KERNEL_SIZE : integer := 3
+        KERNEL_SIZE : integer := 3;
+        RAM_FILE : string := "ram_init.mem"  -- Default RAM initialization file
     );
     port(
         -- Standard ports needed for digital components
@@ -45,7 +46,7 @@ entity conv_pool_fast is
         debug_mem_neuron_dia, debug_mem_neuron_dib : out std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0);  -- FIXED: Use CHANNELS_OUT
         debug_mem_neuron_doa, debug_mem_neuron_dob : out std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0);  -- FIXED: Use CHANNELS_OUT
         -- expose thread signals
-        debug_conv_thread_1, debug_conv_thread_2 : out conv_thread_t;
+        
         debug_convolution_in_progress : out std_logic;
         debug_total_coords_to_update : out integer;
         debug_main_state_vec, debug_next_state_vec, debug_last_state_vec : out std_logic_vector(2 downto 0)
@@ -68,21 +69,22 @@ architecture rtl of conv_pool_fast is
 
     type coords_to_update_t is array (0 to (KERNEL_SIZE ** 2) - 1) of vector2_t;
     signal coords_to_update : coords_to_update_t := (others => (x => 0, y => 0));
-    signal total_coords_to_update : integer range 0 to (KERNEL_SIZE ** 2) := 0;
+    signal total_coords_to_update : integer range 0 to (KERNEL_SIZE ** 2) := 0; -- 0 indexed 
     type kernel_weights_t is array (0 to (KERNEL_SIZE ** 2) -1) of std_logic_vector((CHANNELS_OUT * BITS_PER_WEIGHT) - 1 downto 0);
     signal kernel_weights : kernel_weights_t := (others => (others => '0'));
-    
+    signal tresholds_weights : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0'); -- Tresholds for each channel
+    signal decay_weights : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0'); -- Decay weights for each channel
+
     -- Convolution signals
     signal convolution_in_progress : std_logic := '0';
-    signal conv_types_assigned : std_logic := '0';
-
-    signal conv_thread_1, conv_thread_2 : conv_thread_t := (
-        start_idx => 0, 
-        end_idx => 0, 
-        last_result => (others => '0'),
-        last_address => (others => '0'), 
-        next_address => (others => '0')
-    );
+    signal conv_counter : integer range 0 to (KERNEL_SIZE ** 2) := 0; -- Counter for convolution operations
+    
+    -- pooling signals
+    signal pooling_in_progress : std_logic := '0';
+    signal pooling_counter : integer := 0;
+    signal pooling_window_counter : integer range 1 to 4 := 0;
+    signal temp_pooling_window : std_logic_vector((CHANNELS_OUT * BITS_PER_NEURON) - 1 downto 0) := (others => '0');
+    signal pooling_anchor : vector2_t := (x => 0, y => 0);
     -- Neuron Memory
     signal mem_neuron_wea_o, mem_neuron_web_o, mem_neuron_ena_o, mem_neuron_enb_o : std_logic := '0';
     signal mem_neuron_addra_o, mem_neuron_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
@@ -151,7 +153,9 @@ begin
                 
             when POOL =>
                 -- Pool processing, then back to IDLE
-                main_next_state <= IDLE;
+                if pooling_in_progress = '0' then
+                    main_next_state <= IDLE;
+                end if;
                 
             when CONFIG =>
                 main_next_state <= IDLE;
@@ -161,6 +165,63 @@ begin
             end case;
         end if;
     end process state_machine_control;
+
+    pooling_control : process (clk, rst_i)
+
+        -- variable pool_anchor : vector2_t := pooling_anchor;
+
+    begin
+    if rising_edge(clk) then
+    if rst_i = '1' then
+    
+    
+    else
+        case main_state is
+        WHEN POOL =>
+
+                case pooling_window_counter is
+                when 1 =>
+                when 2 =>
+                when 3 => 
+                when 4 =>
+
+
+                -- update pooling anchor
+                if pooling_anchor.x < IMG_WIDTH - 1 then
+                    pooling_anchor.x <= pooling_anchor.x + 2; --stride by 2
+                else
+                    pooling_anchor.x <= 0;
+                    if pooling_anchor.y < IMG_HEIGHT - 1 then
+                        pooling_anchor.y <= pooling_anchor.y + 2;
+                    else
+                        pooling_anchor.y <= 0; -- Reset to top-left corner
+                    end if;
+                end if;
+                end case;
+
+            -- update ppooling window counter
+            if pooling_counter = 4 then 
+            pooling_counter <= 1; 
+            else
+            
+            end if;
+            
+
+        WHEN OTHERS => 
+        if timestep_pending = '1' then 
+        pooling_in_progress <= '1'; 
+        pooling_counter <= 0;
+        pooling_window_counter <= 1;
+        -- enable neuron memory read
+        mem_neuron_ena_o <= '1';
+        mem_neuron_addra_o <= (others => '0'); -- first address
+        
+        end if;
+        end case;
+
+    end if;
+    end if;
+    end process pooling_control;
 
     timestep_buffer : process (clk, rst_i)
     begin
@@ -248,6 +309,10 @@ begin
     end process event_capture;
 
     convolution_control : process (clk, rst_i)
+
+        variable previous_address : std_logic_vector(9 downto 0) := (others => '0');
+        variable current_address : std_logic_vector(9 downto 0) := (others => '0');
+
     begin
     if rising_edge(clk) then
     if rst_i = '1' then
@@ -257,24 +322,67 @@ begin
         WHEN READ_REQUEST => 
             if read_cycle_counter = 2 then
                 convolution_in_progress <= '1';
+                conv_counter <= 0;
             end if;
         WHEN EVENT_CONV =>
-            if conv_types_assigned = '0' then
+            -- write on b, read on a
+            if conv_counter = 0 then
+                mem_neuron_ena_o <= '1'; 
+                mem_neuron_enb_o <= '1'; 
+
+                -- set read address 
+                mem_neuron_addra_o <= fast_calc_address(
+                    coords_to_update(conv_counter),
+                    IMG_WIDTH
+                );
+
                 
-                -- assign start and end indx for conv threads
-                conv_thread_1.start_idx <= 0;
-                conv_thread_1.end_idx <= total_coords_to_update / 2;
-                conv_thread_2.start_idx <= (total_coords_to_update / 2) + 1;
-                conv_thread_2.end_idx <= total_coords_to_update;
-                -- calculate first address
-                conv_thread_1.next_address <= fast_calc_address(coords_to_update(0), IMG_WIDTH, 10);
-                conv_thread_2.next_address <= fast_calc_address(coords_to_update((total_coords_to_update / 2) + 1), IMG_WIDTH, 10);
+            elsif conv_counter < total_coords_to_update then
 
-                )
+                mem_neuron_web_o <= '1'; -- Enable write on b port
+                mem_neuron_addrb_o <= fast_calc_address(
+                    coords_to_update(conv_counter - 1),
+                    IMG_WIDTH
+                );
+                mem_neuron_addra_o <= fast_calc_address(
+                    coords_to_update(conv_counter),
+                    IMG_WIDTH
+                );
+                mem_neuron_dib_o <= convolution_1d(
+                    kernel_weights(conv_counter - 1),
+                    mem_neuron_doa_i,
+                    BITS_PER_NEURON,
+                    CHANNELS_OUT
+                );
 
-                conv_types_assigned <= '1';
+            elsif conv_counter = total_coords_to_update then
+                --update last address
+                mem_neuron_addrb_o <= fast_calc_address(
+                    coords_to_update(conv_counter - 1),
+                    IMG_WIDTH
+                );
+                mem_neuron_dib_o <= convolution_1d(
+                    kernel_weights(conv_counter - 1),
+                    mem_neuron_doa_i,
+                    BITS_PER_NEURON,
+                    CHANNELS_OUT
+                );
+            else 
+                convolution_in_progress <= '0';
+                mem_neuron_ena_o <= '0'; -- Disable neuron memory read
+                mem_neuron_enb_o <= '0'; -- Disable neuron memory write
+                mem_neuron_wea_o <= '0'; -- Disable write on a port
+                mem_neuron_web_o <= '0'; -- Disable write on b port
+                mem_neuron_addra_o <= (others => '0'); -- Reset address for a port
+                mem_neuron_addrb_o <= (others => '0'); -- Reset address for b port
+                mem_neuron_dia_o <= (others => '0'); -- Reset data input for a port
+                mem_neuron_dib_o <= (others => '0'); -- Reset data input for b port
             end if;
+
+            conv_counter <= conv_counter + 1;
+
         WHEN OTHERS =>
+            
         end case;    
     end if;
     end if;
@@ -286,21 +394,22 @@ begin
     generic map(
         RAM_DEPTH => IMG_WIDTH * IMG_HEIGHT,
         DATA_WIDTH => CHANNELS_OUT * BITS_PER_NEURON,
-        ADDR_WIDTH => integer(ceil(log2(real(IMG_WIDTH * IMG_HEIGHT))))
+        ADDR_WIDTH => integer(ceil(log2(real(IMG_WIDTH * IMG_HEIGHT)))),
+        RAM_FILE => RAM_FILE  -- Use the provided RAM initialization file
     )
     port map(
         clka => clk,
         clkb => clk,
-        ena => mem_neuron_ena_o, -- Enable for neuron memory
-        enb => mem_neuron_enb_o, -- Enable for neuron memory
-        wea => mem_neuron_wea_o, -- Enable for neuron memory -- Write enable for neuron memory
-        web => mem_neuron_web_o, -- Enable for neuron memory -- Write enable for neuron memory
-        addra => mem_neuron_addra_o, -- Address for neuron memory
-        addrb => mem_neuron_addrb_o, -- Address for neuron memory
-        dia => mem_neuron_dia_o, -- No write data for neuron memory
-        dib => mem_neuron_dib_o, -- No write data for neuron memory
-        doa => mem_neuron_doa_i, -- Output not used
-        dob => mem_neuron_dob_i  -- Output not used
+        ena => mem_neuron_ena_o, 
+        enb => mem_neuron_enb_o, 
+        wea => mem_neuron_wea_o, 
+        web => mem_neuron_web_o, 
+        addra => mem_neuron_addra_o, 
+        addrb => mem_neuron_addrb_o, 
+        dia => mem_neuron_dia_o, 
+        dib => mem_neuron_dib_o, 
+        doa => mem_neuron_doa_i, 
+        dob => mem_neuron_dob_i  
     );
     
     -- pragma translate_off
@@ -324,8 +433,6 @@ begin
     debug_mem_neuron_doa <= mem_neuron_doa_i;
     debug_mem_neuron_dob <= mem_neuron_dob_i;
 
-    debug_conv_thread_1 <= conv_thread_1;
-    debug_conv_thread_2 <= conv_thread_2;
     debug_convolution_in_progress <= convolution_in_progress;
 
     debug_main_state_vec <= state_to_slv(main_state);
