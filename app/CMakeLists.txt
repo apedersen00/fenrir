@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 4.0)
+
+# Set full RPATH
+SET(CMAKE_INSTALL_RPATH ${USER_LOCAL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/caer/examples)
+
+IF(ENABLE_OPENCV)
+	FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui)
+	IF(OpenCV_VERSION VERSION_LESS "3.1.0")
+		MESSAGE(FATAL_ERROR "Cannot find OpenCV 3.1.0 or newer.")
+	ENDIF()
+
+	ADD_EXECUTABLE(dvxplorer src/dvxplorer.cpp)
+	TARGET_LINK_LIBRARIES(dvxplorer PRIVATE caer ${OpenCV_LIBS})
+	INSTALL(TARGETS dvxplorer DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/caer/examples)
+ENDIF()
