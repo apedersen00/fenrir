@@ -35,7 +35,6 @@ package conv_pool_pkg is
         bits_per_channel : integer
     ) return event_tensor_t;
 
-    -- Helper functions for channel manipulation
     function int_to_channel_vector(
         channel_int : integer;
         channels_out : integer
@@ -45,18 +44,25 @@ package conv_pool_pkg is
         channel_vec : std_logic_vector
     ) return integer;
 
-    -- FIXED: Easy tensor creation for simulation
+    
     function create_tensor(
         x_coord : integer;
         y_coord : integer;
         channel : integer
     ) return event_tensor_t;
 
-    -- FIXED: Flexible tensor to bus conversion
+    
     function tensor_to_bus(
         tensor : event_tensor_t;
         bits_per_coord : integer;
         bits_per_channel : integer
+    ) return std_logic_vector;
+
+    function convolution_1d(
+        kernel_weights : std_logic_vector;
+        membrane_potentials : std_logic_vector;
+        bits_per_channel : integer;
+        channels_out: integer
     ) return std_logic_vector;
 
 end package conv_pool_pkg;
@@ -138,5 +144,46 @@ package body conv_pool_pkg is
             std_logic_vector(to_unsigned(tensor.channel, bits_per_channel));
         return result;
     end function;
+
+    function convolution_1d(
+        kernel_weights : std_logic_vector;
+        membrane_potentials : std_logic_vector;
+        bits_per_channel : integer;
+        channels_out: integer
+    ) return std_logic_vector is
+        variable result : std_logic_vector(channels_out * bits_per_channel - 1 downto 0);
+        variable temp_sum : signed(bits_per_channel downto 0); -- Extra bit for overflow detection
+        variable temp_kernel : signed(bits_per_channel - 1 downto 0);
+        variable temp_membrane : signed(bits_per_channel - 1 downto 0);
+        variable max_value : signed(bits_per_channel - 1 downto 0);
+        variable min_value : signed(bits_per_channel - 1 downto 0);
+    begin
+        -- Pre-calculate bounds
+        max_value := to_signed(2**(bits_per_channel - 1) - 1, bits_per_channel); -- Max positive for signed
+        min_value := to_signed(0, bits_per_channel); -- Minimum (could be negative if needed)
+
+        for i in 0 to channels_out - 1 loop
+            -- Extract the kernel and membrane potentials for the current channel
+            temp_kernel := signed(kernel_weights(i * bits_per_channel + bits_per_channel - 1 downto i * bits_per_channel));
+            temp_membrane := signed(membrane_potentials(i * bits_per_channel + bits_per_channel - 1 downto i * bits_per_channel));
+            
+            -- Perform the convolution operation with extra bit for overflow detection
+            temp_sum := resize(temp_membrane, bits_per_channel + 1) + resize(temp_kernel, bits_per_channel + 1);
+            
+            -- Check for overflow/underflow and clamp
+            if temp_sum > max_value then
+                temp_sum(bits_per_channel - 1 downto 0) := max_value;
+            elsif temp_sum < min_value then
+                temp_sum(bits_per_channel - 1 downto 0) := min_value;
+            end if;
+
+            -- Assign the result to the output vector
+            result(i * bits_per_channel + bits_per_channel - 1 downto i * bits_per_channel) := 
+                std_logic_vector(temp_sum(bits_per_channel - 1 downto 0));
+
+        end loop;
+
+    return result;
+    end function convolution_1d;
 
 end package body conv_pool_pkg;

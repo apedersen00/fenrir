@@ -14,7 +14,7 @@ architecture testbench of tb_conv_pool_fast is
 
     constant CLK_PERIOD : time := 10 ns;
     constant BITS_PER_COORD : integer := 8;
-    constant CHANNELS_OUT : integer := 1;
+    constant CHANNELS_OUT : integer := 12;
     constant BITS_PER_NEURON : integer := 6;
     -- control signals
     signal clk : std_logic := '1';

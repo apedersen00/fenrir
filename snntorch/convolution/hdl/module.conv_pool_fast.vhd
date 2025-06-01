@@ -7,7 +7,7 @@ use work.conv_pool_pkg.all;
 
 entity conv_pool_fast is
     generic(
-        CHANNELS_OUT : integer := 1;
+        CHANNELS_OUT : integer := 12;
         BITS_PER_NEURON : integer := 6;
         BITS_PER_WEIGHT : integer := 6;
         IMG_WIDTH : integer := 32;
@@ -62,15 +62,14 @@ architecture rtl of conv_pool_fast is
         channel => 0
     );
     signal event_valid : std_logic := '0';
-    
-    -- NEW: Counter to track cycles within READ_REQUEST state
     signal read_cycle_counter : integer range 1 to 2 := 1;
 
     type coords_to_update_t is array (0 to (KERNEL_SIZE ** 2) - 1) of vector2_t;
     signal coords_to_update : coords_to_update_t := (others => (x => 0, y => 0));
     signal total_coords_to_update : integer range 0 to (KERNEL_SIZE ** 2) := 0;
-
-    -- ram signals
+    type kernel_weights_t is array (0 to (KERNEL_SIZE ** 2) -1) of std_logic_vector((CHANNELS_OUT * BITS_PER_WEIGHT) - 1 downto 0);
+    signal kernel_weights : kernel_weights_t := (others => (others => '0'));
+    
     -- Neuron Memory
     signal mem_neuron_wea_o, mem_neuron_web_o, mem_neuron_ena_o, mem_neuron_enb_o : std_logic := '0';
     signal mem_neuron_addra_o, mem_neuron_addrb_o : std_logic_vector(9 downto 0) := (others => '0');
@@ -232,6 +231,21 @@ begin
             end if;
         end if;
     end process event_capture;
+
+    convolution_control : process (clk, rst_i)
+    begin
+    if rising_edge(clk) then
+    if rst_i = '1' then
+
+    else
+        case main_state is
+        WHEN EVENT_CONV =>
+
+        WHEN OTHERS =>
+        end case;    
+    end if;
+    end if;
+    end process convolution_control;
 
     -- ram instances
     
