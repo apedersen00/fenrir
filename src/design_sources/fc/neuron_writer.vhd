@@ -30,31 +30,31 @@ use ieee.math_real.all;
 --      NRN_MEM_DEPTH   =>
 --  )
 --  port map (
---      i_cfg_en    =>
---      i_cfg_addr  =>
---      i_cfg_val   =>
+--      i_reg_cfg_0 =>
+--      -- neuron memory interface
 --      o_nrn_we    =>
 --      o_nrn_addr  =>
 --      o_nrn_data  =>
+--      -- lif interface
 --      i_nrn_state =>
 --      i_valid     =>
---      i_last      =>
+--      -- neuron loader interface
 --      i_nrn_data  =>
+--      -- control signals
 --      i_clk       =>
 --      i_rst       =>
---      o_fault     =>
 --  );
 
 entity FC_NEURON_WRITER is
     generic (
-        NRN_MEM_DEPTH   : integer                           -- depth of the neuron memory
+        NRN_MEM_DEPTH   : integer
     );
     port (
         -- configuration interface
         i_reg_cfg_0 : in std_logic_vector(31 downto 0);
 
         -- neuron memory interface
-        o_nrn_we    : out std_logic;                        -- neuron memory read enable
+        o_nrn_we    : out std_logic;
         o_nrn_addr  : out std_logic_vector(integer(ceil(log2(real(NRN_MEM_DEPTH))))-1 downto 0);
         o_nrn_data  : out std_logic_vector(35 downto 0);     -- neuron memory data out (3x12b)
 
@@ -75,7 +75,6 @@ architecture Behavioral of FC_NEURON_WRITER is
 
     -- configuration
     signal cfg_layer_size       : std_logic_vector(10 downto 0);    -- number of neurons in the layer
-    signal cfg_layer_offset     : std_logic_vector(10 downto 0);    -- neuron address layer offset
 
     signal reg_nrn_valid_0      : std_logic;
     signal reg_nrn_valid_1      : std_logic;
@@ -88,14 +87,13 @@ architecture Behavioral of FC_NEURON_WRITER is
     signal nrn_we               : std_logic;
     signal nrn_data             : std_logic_vector(35 downto 0);    -- packed vector of neuron data for output
 
-    signal nrn_index            : integer range -1 to 1024;
-    signal nrn_addr_cntr        : integer range 0 to 512;
+    signal nrn_index            : integer range -1 to 2047;
+    signal nrn_addr_cntr        : integer range 0 to 1024;
 
 begin
 
     -- configuration decoding
     cfg_layer_size      <= i_reg_cfg_0(10 downto 0);
-    cfg_layer_offset    <= i_reg_cfg_0(21 downto 11);
 
     o_nrn_we            <= nrn_we;
     o_nrn_addr          <= std_logic_vector(to_unsigned(nrn_addr_cntr, o_nrn_addr'length));
@@ -104,11 +102,15 @@ begin
     addr_incr : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if (nrn_we = '1') then
-                if (nrn_addr_cntr >= NRN_MEM_DEPTH - 1) then
-                    nrn_addr_cntr <= 0;
-                else
-                    nrn_addr_cntr <= nrn_addr_cntr + 1;
+            if (i_rst = '1') then
+                nrn_addr_cntr <= 0;
+            else
+                if (nrn_we = '1') then
+                    if (nrn_addr_cntr >= NRN_MEM_DEPTH - 1) then
+                        nrn_addr_cntr <= 0;
+                    else
+                        nrn_addr_cntr <= nrn_addr_cntr + 1;
+                    end if;
                 end if;
             end if;
         end if;
