@@ -1,0 +1,5 @@
+# Input events: hex format XXYY
+0202
+0D02
+020D
+0D0D

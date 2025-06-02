@@ -1,0 +1,3 @@
+# Expected spike events: XXYY SS (coordinates and spike vector in hex)
+0101 05
+0606 0A

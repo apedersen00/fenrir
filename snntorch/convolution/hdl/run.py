@@ -31,6 +31,16 @@ test_top_module.add_source_files("dp_bram.vhd")
 test_top_module.add_source_files("snn_processor_top.vhd")
 test_top_module.add_source_files("tb_snn_processor_top.vhd")
 
+# File-based verification tests
+test_verification = vu.add_library("test_verification")
+test_verification.add_source_files("conv_pool_pkg.vhd")
+test_verification.add_source_files("event_capture.vhd")
+test_verification.add_source_files("convolution.vhd")
+test_verification.add_source_files("pooling.vhd")
+test_verification.add_source_files("dp_bram.vhd")
+test_verification.add_source_files("snn_processor_top.vhd")
+test_verification.add_source_files("tb_snn_verification.vhd")
+
 # Add this line to enable VCD export
 vu.set_sim_option("ghdl.sim_flags", ["--vcd=wave.vcd"])
 #vu.set_compile_option("ghdl.a_flags", ["--std=08"])

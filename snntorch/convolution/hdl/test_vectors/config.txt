@@ -1,0 +1,5 @@
+# Test configuration
+IMG_WIDTH=16
+IMG_HEIGHT=16
+CHANNELS_OUT=4
+NUM_EVENTS=4
