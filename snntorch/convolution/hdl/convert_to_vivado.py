@@ -113,7 +113,7 @@ def convert_testbench_to_vivado(input_file, output_file):
         new_main_process += variable_declarations
     new_main_process += "    begin\n\n"  # FIXED: begin on separate line!
     new_main_process += "        -- Initial stabilization\n"
-    new_main_process += "        waitf(10);\n\n"
+    new_main_process += "        wait_cycles(10);\n\n"
     
     # Add each test sequentially
     for test_name in test_cases:
