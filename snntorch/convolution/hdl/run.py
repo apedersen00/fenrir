@@ -1,6 +1,7 @@
 from vunit import VUnit
 
-vu = VUnit.from_argv()
+vu = VUnit.from_argv(compile_builtins=False)
+vu.add_vhdl_builtins()
 
 # Event capture tests
 test_event_capture = vu.add_library("test_event_capture")
@@ -13,6 +14,22 @@ test_convolution = vu.add_library("test_convolution")
 test_convolution.add_source_files("conv_pool_pkg.vhd")
 test_convolution.add_source_files("convolution.vhd")
 test_convolution.add_source_files("tb_convolution.vhd")
+
+# Pooling tests
+test_pooling = vu.add_library("test_pooling")
+test_pooling.add_source_files("conv_pool_pkg.vhd")
+test_pooling.add_source_files("pooling.vhd")
+test_pooling.add_source_files("tb_pooling.vhd")
+
+# Top module integration tests
+test_top_module = vu.add_library("test_top_module")
+test_top_module.add_source_files("conv_pool_pkg.vhd")
+test_top_module.add_source_files("event_capture.vhd")
+test_top_module.add_source_files("convolution.vhd")
+test_top_module.add_source_files("pooling.vhd")
+test_top_module.add_source_files("dp_bram.vhd")
+test_top_module.add_source_files("snn_processor_top.vhd")
+test_top_module.add_source_files("tb_snn_processor_top.vhd")
 
 # Add this line to enable VCD export
 vu.set_sim_option("ghdl.sim_flags", ["--vcd=wave.vcd"])
