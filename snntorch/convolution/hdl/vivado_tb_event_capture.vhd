@@ -38,7 +38,6 @@ architecture testbench of tb_event_capture is
     signal data_valid : std_logic;
     signal data_out : vector2_t;
     signal data_consumed : std_logic := '0';
-    signal invalid_coords : std_logic;
     
     -- Debug signals
     signal debug_state : std_logic_vector(1 downto 0);
@@ -75,6 +74,32 @@ architecture testbench of tb_event_capture is
         fifo_bus_sig <= coord_bus;
         fifo_empty_sig <= '0';
         wait_cycles(1);
+    end procedure;
+    
+    -- Procedure that simulates FIFO advancing after read
+    procedure send_coordinates_and_advance(
+        x : integer; 
+        y : integer;
+        signal fifo_bus_sig : out std_logic_vector(2 * BITS_PER_COORD - 1 downto 0);
+        signal fifo_empty_sig : out std_logic;
+        signal fifo_read_sig : in std_logic
+    ) is
+        variable coord_bus : std_logic_vector(2 * BITS_PER_COORD - 1 downto 0);
+    begin
+        -- Pack coordinates: [x_coord(MSBs)][y_coord(LSBs)]
+        coord_bus(BITS_PER_COORD - 1 downto 0) := std_logic_vector(to_unsigned(y, BITS_PER_COORD));
+        coord_bus(2 * BITS_PER_COORD - 1 downto BITS_PER_COORD) := std_logic_vector(to_unsigned(x, BITS_PER_COORD));
+        
+        fifo_bus_sig <= coord_bus;
+        fifo_empty_sig <= '0';
+        
+        -- Wait for read request
+        wait until fifo_read_sig = '1';
+        wait_cycles(1);
+        
+        -- Simulate FIFO advancing - make it empty (was the last entry)
+        fifo_empty_sig <= '1';
+        fifo_bus_sig <= (others => '0');
     end procedure;
     
     procedure clear_fifo(
@@ -115,7 +140,6 @@ begin
         data_valid_o => data_valid,
         data_out_o => data_out,
         data_consumed_i => data_consumed,
-        invalid_coords_o => invalid_coords,
         debug_state_o => debug_state
     );
 
@@ -285,24 +309,30 @@ begin
             wait_cycles(2);
             
             -- Test invalid coordinates (255,255 for 32x32 image)
-            send_coordinates(255, 255, fifo_bus, fifo_empty);
+            -- Use the new procedure that simulates FIFO advancing
+            send_coordinates_and_advance(255, 255, fifo_bus, fifo_empty, fifo_read);
             wait_cycles(3);  -- Give time for processing
             
-            -- Should reject invalid coordinates
+            -- Should reject invalid coordinates and stay in IDLE
             assert data_valid = '0' report "Invalid coordinates should not be accepted";
-            assert invalid_coords = '1' report "Invalid coords flag should be set";
-            assert debug_state = "00" report "Should return to IDLE after rejecting invalid coords";
+            assert debug_state = "00" report "Should be in IDLE after rejecting invalid coords";
             
-            clear_fifo(fifo_empty, fifo_bus);
             wait_cycles(2);
             
-            -- Test coordinates outside Y boundary
-            send_coordinates(10, 32, fifo_bus, fifo_empty);  -- y=32 is invalid for 32x32
+            -- Test coordinates outside Y boundary (10, 32 for 32x32 image)
+            send_coordinates_and_advance(10, 32, fifo_bus, fifo_empty, fifo_read);
             wait_cycles(3);
             
             assert data_valid = '0' report "Invalid Y coordinate should not be accepted";
-            assert invalid_coords = '1' report "Invalid coords flag should be set for Y boundary";
+            assert debug_state = "00" report "Should be in IDLE after rejecting invalid Y coord";
             
+            -- Now test that valid coordinates still work after rejecting invalid ones
+            send_coordinates(15, 20, fifo_bus, fifo_empty);
+            wait_cycles(2);
+            assert data_valid = '1' report "Valid coordinates should be accepted after invalid ones";
+            assert data_out.x = 15 and data_out.y = 20 report "Should capture valid coordinates correctly";
+            
+            consume_data(data_consumed);
             clear_fifo(fifo_empty, fifo_bus);
         report "Test test_invalid_coordinates completed";
 

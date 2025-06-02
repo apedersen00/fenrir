@@ -26,9 +26,6 @@ entity event_capture is
         data_out_o      : out vector2_t;
         data_consumed_i : in  std_logic;
         
-        -- Error signaling
-        invalid_coords_o : out std_logic;
-        
         -- Debug signals
         debug_state_o   : out std_logic_vector(1 downto 0)
     );
@@ -46,7 +43,6 @@ architecture rtl of event_capture is
     signal current_state, next_state : capture_state_t := IDLE;
     signal captured_data : vector2_t := (x => 0, y => 0);
     signal data_valid_reg : std_logic := '0';
-    signal invalid_coords_reg : std_logic := '0';
 
     -- Helper function to convert state to std_logic_vector for debug
     function state_to_slv(state : capture_state_t) return std_logic_vector is
@@ -88,7 +84,6 @@ begin
     -- Output assignments
     data_valid_o <= data_valid_reg;
     data_out_o <= captured_data;
-    invalid_coords_o <= invalid_coords_reg;
     debug_state_o <= state_to_slv(current_state);
     
     -- FIFO read signal - only high for one cycle during READ_REQUEST state
@@ -151,22 +146,11 @@ begin
 
     -- Data capture and valid flag management
     data_capture : process(clk, rst_i)
-        variable temp_coords : vector2_t;
     begin
         if rst_i = '1' then
             captured_data <= (x => 0, y => 0);
             data_valid_reg <= '0';
-            invalid_coords_reg <= '0';
         elsif rising_edge(clk) then
-            -- Clear invalid coords flag after one cycle
-            invalid_coords_reg <= '0';
-            
-            -- Handle invalid coordinate detection
-            if current_state = READ_REQUEST and next_state = IDLE then
-                -- This means coordinates were invalid
-                invalid_coords_reg <= '1';
-            end if;
-            
             -- Handle data capture - only when going to DATA_READY (which means valid coords)
             if current_state = READ_REQUEST and next_state = DATA_READY then
                 -- Capture the data from FIFO bus (coordinates are already validated)
