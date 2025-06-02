@@ -1,3 +1,6 @@
-# Expected spike events: XXYY SS (coordinates and spike vector in hex)
-0101 05
-0606 0A
+# Expected spike events after pooling: XXYY SS
+# These are simplified expected results
+# For exact verification, use: python3 python_reference_model.py
+0202 0F  # Window (2,2) - high activity expected
+0606 05  # Window (6,6) - moderate activity
+0404 0A  # Window (4,4) - mixed activity

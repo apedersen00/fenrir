@@ -1,0 +1,17 @@
+{
+  "weight_type": "sparse_random",
+  "shape": [
+    3,
+    3,
+    4
+  ],
+  "min_weight": -63,
+  "max_weight": 60,
+  "mean_weight": 1.0,
+  "std_weight": 29.008619408720573,
+  "num_zeros": 12,
+  "sparsity": 0.3333333333333333,
+  "generation_params": {
+    "sparsity": 0.3
+  }
+}

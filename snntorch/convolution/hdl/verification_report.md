@@ -1,6 +1,6 @@
 # SNN Processor Verification Report
 
-Generated: Mon Jun  2 12:19:06 UTC 2025
+Generated: Mon Jun  2 12:49:57 UTC 2025
 
 ## Test Summary
 
@@ -35,8 +35,18 @@ Generated: Mon Jun  2 12:19:06 UTC 2025
 ## Files Verified
 ./conv_pool_pkg.vhd
 ./convolution.vhd
+./convolution_configurable.vhd
 ./dp_bram.vhd
 ./event_capture.vhd
+./generated_weights/k_test_pkg.vhd
+./generated_weights/kernel_weights_pkg.vhd
+./kernel_weight_results/config_1_edge_detection/kernel_weights_pkg.vhd
+./kernel_weight_results/config_2_gabor/kernel_weights_pkg.vhd
+./kernel_weight_results/config_3_sparse_random/kernel_weights_pkg.vhd
+./kernel_weight_results/config_4_gaussian/kernel_weights_pkg.vhd
+./kernel_weight_results/config_custom/kernel_weights_pkg.vhd
+./kernel_weights_pkg.vhd
+./kernel_weights_pkg_template.vhd
 ./old/dp_bram.vhd
 ./old/module.conv_pool.vhd
 ./old/module.conv_pool_fast.vhd
@@ -45,20 +55,26 @@ Generated: Mon Jun  2 12:19:06 UTC 2025
 ./snn_processor_top.vhd
 ./vunit_out/ghdl/libraries/test_convolution/93cff0759d67a8cb357b867acda2dc247ddce0db/conv_pool_pkg.vhd
 ./vunit_out/ghdl/libraries/test_convolution/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution.vhd
+./vunit_out/ghdl/libraries/test_convolution/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution_configurable.vhd
+./vunit_out/ghdl/libraries/test_convolution/93cff0759d67a8cb357b867acda2dc247ddce0db/kernel_weights_pkg.vhd
 ./vunit_out/ghdl/libraries/test_event_capture/93cff0759d67a8cb357b867acda2dc247ddce0db/conv_pool_pkg.vhd
 ./vunit_out/ghdl/libraries/test_event_capture/93cff0759d67a8cb357b867acda2dc247ddce0db/event_capture.vhd
 ./vunit_out/ghdl/libraries/test_pooling/93cff0759d67a8cb357b867acda2dc247ddce0db/conv_pool_pkg.vhd
 ./vunit_out/ghdl/libraries/test_pooling/93cff0759d67a8cb357b867acda2dc247ddce0db/pooling.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/conv_pool_pkg.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution.vhd
+./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution_configurable.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/dp_bram.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/event_capture.vhd
+./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/kernel_weights_pkg.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/pooling.vhd
 ./vunit_out/ghdl/libraries/test_top_module/93cff0759d67a8cb357b867acda2dc247ddce0db/snn_processor_top.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/conv_pool_pkg.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution.vhd
+./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/convolution_configurable.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/dp_bram.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/event_capture.vhd
+./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/kernel_weights_pkg.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/pooling.vhd
 ./vunit_out/ghdl/libraries/test_verification/93cff0759d67a8cb357b867acda2dc247ddce0db/snn_processor_top.vhd
 ./vunit_out/ghdl/libraries/vunit_lib/15ea140d680063a1c33ad130bf43f14beecb0505/dictionary.vhd

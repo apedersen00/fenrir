@@ -1,0 +1,15 @@
+{
+  "weight_type": "edge_detection",
+  "shape": [
+    3,
+    3,
+    4
+  ],
+  "min_weight": -31,
+  "max_weight": 31,
+  "mean_weight": 0.0,
+  "std_weight": 25.311394008759507,
+  "num_zeros": 12,
+  "sparsity": 0.3333333333333333,
+  "generation_params": {}
+}

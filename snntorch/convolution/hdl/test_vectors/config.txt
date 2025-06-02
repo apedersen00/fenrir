@@ -1,5 +1,13 @@
-# Test configuration
+# Simple test configuration
 IMG_WIDTH=16
 IMG_HEIGHT=16
 CHANNELS_OUT=4
-NUM_EVENTS=4
+NUM_EVENTS=120
+POOL_SIZE=2
+KERNEL_SIZE=3
+# Processing flow:
+#   1. Load all events into FIFO
+#   2. Assert timestep_flag
+#   3. Events processed through convolution
+#   4. Pooling automatically starts after convolution
+#   5. Spike events generated for active windows

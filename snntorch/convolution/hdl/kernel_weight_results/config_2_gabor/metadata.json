@@ -1,0 +1,15 @@
+{
+  "weight_type": "gabor",
+  "shape": [
+    3,
+    3,
+    4
+  ],
+  "min_weight": -2,
+  "max_weight": 63,
+  "mean_weight": 8.11111111111111,
+  "std_weight": 19.592767625067076,
+  "num_zeros": 8,
+  "sparsity": 0.2222222222222222,
+  "generation_params": {}
+}

@@ -1,0 +1,17 @@
+{
+  "weight_type": "gaussian",
+  "shape": [
+    3,
+    3,
+    4
+  ],
+  "min_weight": 10,
+  "max_weight": 34,
+  "mean_weight": 16.11111111111111,
+  "std_weight": 6.176918405455451,
+  "num_zeros": 0,
+  "sparsity": 0.0,
+  "generation_params": {
+    "sigma": 1.0
+  }
+}

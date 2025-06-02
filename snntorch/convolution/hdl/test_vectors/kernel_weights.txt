@@ -1,0 +1,18 @@
+# Kernel weights configuration
+# These match the VHDL implementation pattern
+# Weight(pos, ch) = -(pos+ch+1) if (pos+ch)%3==0 else (pos+ch+1)
+# Kernel size: 3x3, Channels: 4
+#
+# Position mapping (3x3 kernel):
+# 0 1 2
+# 3 4 5
+# 6 7 8
+# Pos 0 (0,0): ch0= -1 ch1=  2 ch2=  3 ch3= -4 
+# Pos 1 (0,1): ch0=  2 ch1=  3 ch2= -4 ch3=  5 
+# Pos 2 (0,2): ch0=  3 ch1= -4 ch2=  5 ch3=  6 
+# Pos 3 (1,0): ch0= -4 ch1=  5 ch2=  6 ch3= -7 
+# Pos 4 (1,1): ch0=  5 ch1=  6 ch2= -7 ch3=  8 
+# Pos 5 (1,2): ch0=  6 ch1= -7 ch2=  8 ch3=  9 
+# Pos 6 (2,0): ch0= -7 ch1=  8 ch2=  9 ch3=-10 
+# Pos 7 (2,1): ch0=  8 ch1=  9 ch2=-10 ch3= 11 
+# Pos 8 (2,2): ch0=  9 ch1=-10 ch2= 11 ch3= 12 

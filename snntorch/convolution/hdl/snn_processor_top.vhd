@@ -379,7 +379,7 @@ begin
     );
 
     -- Convolution Module
-    convolution_inst : entity work.convolution
+    convolution_inst : entity work.convolution_configurable
     generic map (
         IMG_WIDTH        => IMG_WIDTH,
         IMG_HEIGHT       => IMG_HEIGHT,

@@ -1,0 +1,15 @@
+{
+  "weight_type": "random",
+  "shape": [
+    3,
+    3,
+    10
+  ],
+  "min_weight": -63,
+  "max_weight": 63,
+  "mean_weight": -0.7,
+  "std_weight": 36.42997849756891,
+  "num_zeros": 0,
+  "sparsity": 0.0,
+  "generation_params": {}
+}
