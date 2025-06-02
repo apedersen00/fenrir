@@ -21,7 +21,7 @@ architecture testbench of tb_convolution is
     constant ADDR_WIDTH      : integer := 10;
     constant BITS_PER_WEIGHT : integer := 9;
     
-    -- Test state enum for Vivado debugging
+    -- Test state enum for debugging
     type test_state_t is (
         TEST_IDLE,
         TEST_RESET,
@@ -29,7 +29,8 @@ architecture testbench of tb_convolution is
         TEST_EDGE_COORDINATES,
         TEST_ENABLE_DISABLE,
         TEST_MULTIPLE_CONVOLUTIONS,
-        TEST_MEMORY_INTERFACE
+        TEST_MEMORY_INTERFACE,
+        TEST_SINGLE_CYCLE_COORDS
     );
     
     -- Clock and control signals
@@ -208,6 +209,43 @@ begin
             
         end if;
         
+        if run("test_single_cycle_coords") then
+            current_test <= TEST_SINGLE_CYCLE_COORDS;
+            report "Testing single-cycle coordinate calculation";
+            
+            reset_system(rst);
+            enable <= '1';
+            wait_cycles(2);
+            
+            -- Check initial state
+            assert debug_state = "000" report "Should start in IDLE state";
+            assert busy = '0' report "Should not be busy initially";
+            
+            -- Send event at coordinate (10, 10) - well within image bounds
+            report "Sending event at (10, 10) to test single-cycle coordinate calculation";
+            send_event(10, 10, event_coord, data_valid);
+            
+            -- Should immediately transition to PIPELINE state (no CALC_COORDS state)
+            wait_cycles(1);
+            assert busy = '1' report "Should be busy after receiving valid event. State=" & integer'image(to_integer(unsigned(debug_state)));
+            assert debug_state = "010" report "Should be in PIPELINE state immediately. Got state=" & integer'image(to_integer(unsigned(debug_state)));
+            
+            -- Should have calculated valid coordinates count immediately
+            assert debug_valid_count > 0 report "Should have valid coordinates immediately. count=" & integer'image(debug_valid_count);
+            
+            -- For a 3x3 kernel at (10,10) on a 32x32 image, all 9 coordinates should be valid
+            assert debug_valid_count = 9 report "Should have all 9 coordinates valid for center position. Got=" & integer'image(debug_valid_count);
+            
+            -- Let convolution complete
+            report "Waiting for convolution to complete...";
+            wait until busy = '0' for 200 ns;
+            assert busy = '0' report "Convolution should complete";
+            assert data_consumed = '1' report "Should signal data consumed";
+            
+            report "Single-cycle coordinate calculation test completed successfully";
+            
+        end if;
+        
         if run("test_basic_convolution") then
             current_test <= TEST_BASIC_CONVOLUTION;
             report "Testing basic convolution operation";
@@ -227,29 +265,14 @@ begin
             -- Should become busy and start processing
             wait_cycles(1);
             assert busy = '1' report "Should be busy after receiving valid event. State=" & integer'image(to_integer(unsigned(debug_state)));
-            assert debug_state = "001" report "Should be in CALC_COORDS state. Got state=" & integer'image(to_integer(unsigned(debug_state)));
-            
-            -- Wait for coordinate calculation to complete - need at least 9 cycles for 3x3 kernel
-            report "Waiting for coordinate calculation (need " & integer'image(KERNEL_SIZE**2) & " cycles)...";
-            for i in 0 to KERNEL_SIZE**2 + 2 loop
-                wait_cycles(1);
-                report "Cycle " & integer'image(i) & ": calc_idx=" & integer'image(debug_calc_idx) & " valid_count=" & integer'image(debug_valid_count) & " state=" & integer'image(to_integer(unsigned(debug_state)));
-                if debug_calc_idx >= KERNEL_SIZE**2 then
-                    exit;
-                end if;
-            end loop;
-            
-            assert debug_calc_idx >= KERNEL_SIZE**2 report "Coordinate calculation should complete. calc_idx=" & integer'image(debug_calc_idx) & " expected>=" & integer'image(KERNEL_SIZE**2);
-            assert debug_valid_count > 0 report "Should have some valid coordinates. count=" & integer'image(debug_valid_count);
-            
-            -- Should transition to PIPELINE state
-            wait_cycles(2);
-            report "After coord calc: state=" & integer'image(to_integer(unsigned(debug_state))) & " calc_idx=" & integer'image(debug_calc_idx) & " valid_count=" & integer'image(debug_valid_count);
             assert debug_state = "010" report "Should be in PIPELINE state. Got state=" & integer'image(to_integer(unsigned(debug_state)));
+            
+            -- Should have valid coordinates
+            assert debug_valid_count > 0 report "Should have some valid coordinates. count=" & integer'image(debug_valid_count);
             
             -- Let convolution complete
             report "Waiting for convolution to complete...";
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "Convolution should complete";
             assert data_consumed = '1' report "Should signal data consumed";
             
@@ -268,15 +291,31 @@ begin
             -- Test corner coordinate (0, 0)
             report "Testing corner coordinate (0, 0)";
             send_event(0, 0, event_coord, data_valid);
-            wait until busy = '0' for 500 ns;  -- Increased timeout
-            assert busy = '0' report "Should handle corner coordinate (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
+            
+            -- Should transition to PIPELINE or DONE depending on valid coordinates
+            wait_cycles(1);
+            if debug_valid_count > 0 then
+                assert debug_state = "010" report "Should be in PIPELINE state for corner (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
+                -- For corner (0,0), only 4 coordinates should be valid (bottom-right quadrant of kernel)
+                assert debug_valid_count = 4 report "Corner (0,0) should have 4 valid coordinates. Got=" & integer'image(debug_valid_count);
+                wait until busy = '0' for 200 ns;
+            else
+                assert debug_state = "011" report "Should be in DONE state if no valid coordinates. State=" & integer'image(to_integer(unsigned(debug_state)));
+            end if;
+            assert busy = '0' report "Should complete corner coordinate (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
             
             wait_cycles(5);
             
             -- Test edge coordinate (31, 15) for 32x32 image
             report "Testing edge coordinate (31, 15)";
             send_event(31, 15, event_coord, data_valid);
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait_cycles(1);
+            if debug_valid_count > 0 then
+                assert debug_state = "010" report "Should be in PIPELINE state for edge (31,15). State=" & integer'image(to_integer(unsigned(debug_state)));
+                -- For right edge (31,15), only 6 coordinates should be valid (left column of kernel)
+                assert debug_valid_count = 6 report "Right edge (31,15) should have 6 valid coordinates. Got=" & integer'image(debug_valid_count);
+                wait until busy = '0' for 200 ns;
+            end if;
             assert busy = '0' report "Should handle edge coordinate (31,15). State=" & integer'image(to_integer(unsigned(debug_state)));
             
         end if;
@@ -304,7 +343,7 @@ begin
             
             -- Re-enable and let it complete
             enable <= '1';
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "Should complete after re-enabling. State=" & integer'image(to_integer(unsigned(debug_state)));
             
         end if;
@@ -320,7 +359,7 @@ begin
             -- First convolution
             report "Starting first convolution at (8, 8)";
             send_event(8, 8, event_coord, data_valid);
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "First convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
             
             wait_cycles(3);
@@ -328,7 +367,7 @@ begin
             -- Second convolution
             report "Starting second convolution at (15, 20)";
             send_event(15, 20, event_coord, data_valid);
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "Second convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
             
             wait_cycles(3);
@@ -336,7 +375,7 @@ begin
             -- Third convolution
             report "Starting third convolution at (25, 10)";
             send_event(25, 10, event_coord, data_valid);
-            wait until busy = '0' for 500 ns;  -- Increased timeout
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "Third convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
             
         end if;
@@ -353,26 +392,19 @@ begin
             report "Sending event at (10, 10) to test memory interface";
             send_event(10, 10, event_coord, data_valid);
             
-            -- Wait for coordinate calculation first
-            for i in 0 to KERNEL_SIZE**2 + 2 loop
-                wait_cycles(1);
-                if debug_calc_idx >= KERNEL_SIZE**2 then
-                    exit;
-                end if;
-            end loop;
+            -- Should immediately go to PIPELINE state
+            wait_cycles(1);
+            assert debug_state = "010" report "Should enter PIPELINE state immediately. State=" & integer'image(to_integer(unsigned(debug_state)));
             
             -- Should start reading memory locations around (10,10) once in PIPELINE state
-            wait until debug_state = "010" for 100 ns;  -- Wait for PIPELINE state
-            assert debug_state = "010" report "Should enter PIPELINE state. State=" & integer'image(to_integer(unsigned(debug_state))) & " calc_idx=" & integer'image(debug_calc_idx);
-            
             wait until mem_read_en = '1' for 50 ns;
-            assert mem_read_en = '1' report "Should start reading memory in PIPELINE state. State=" & integer'image(to_integer(unsigned(debug_state))) & " calc_idx=" & integer'image(debug_calc_idx);
+            assert mem_read_en = '1' report "Should start reading memory in PIPELINE state. State=" & integer'image(to_integer(unsigned(debug_state)));
             
             -- Continue until completion, checking for write operations
-            wait until mem_write_en = '1' for 200 ns;
+            wait until mem_write_en = '1' for 100 ns;
             assert mem_write_en = '1' report "Should write back results. State=" & integer'image(to_integer(unsigned(debug_state)));
             
-            wait until busy = '0' for 500 ns;
+            wait until busy = '0' for 200 ns;
             assert busy = '0' report "Memory operations should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
             
         end if;

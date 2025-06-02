@@ -2,9 +2,12 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use work.conv_pool_pkg.all;
+
 entity tb_convolution is
 end entity tb_convolution;
+
 architecture testbench of tb_convolution is
+
     constant CLK_PERIOD      : time := 10 ns;
     constant IMG_WIDTH       : integer := 32;
     constant IMG_HEIGHT      : integer := 32;
@@ -13,7 +16,8 @@ architecture testbench of tb_convolution is
     constant CHANNELS_OUT    : integer := 4;  -- Smaller for easier testing
     constant ADDR_WIDTH      : integer := 10;
     constant BITS_PER_WEIGHT : integer := 9;
-    -- Test state enum for Vivado debugging
+    
+    -- Test state enum for debugging
     type test_state_t is (
         TEST_IDLE,
         TEST_RESET,
@@ -21,23 +25,29 @@ architecture testbench of tb_convolution is
         TEST_EDGE_COORDINATES,
         TEST_ENABLE_DISABLE,
         TEST_MULTIPLE_CONVOLUTIONS,
-        TEST_MEMORY_INTERFACE
+        TEST_MEMORY_INTERFACE,
+        TEST_SINGLE_CYCLE_COORDS
     );
+    
     -- Clock and control signals
     signal clk : std_logic := '0';
     signal rst : std_logic := '0';
     signal enable : std_logic := '0';
+    
     -- Input signals
     signal data_valid : std_logic := '0';
     signal event_coord : vector2_t := (x => 0, y => 0);
     signal data_consumed : std_logic;
+    
     -- Memory interface signals
     signal mem_read_addr : std_logic_vector(ADDR_WIDTH-1 downto 0);
     signal mem_read_en : std_logic;
     signal mem_read_data : std_logic_vector(CHANNELS_OUT * NEURON_BIT_WIDTH - 1 downto 0) := (others => '0');
+    
     signal mem_write_addr : std_logic_vector(ADDR_WIDTH-1 downto 0);
     signal mem_write_en : std_logic;
     signal mem_write_data : std_logic_vector(CHANNELS_OUT * NEURON_BIT_WIDTH - 1 downto 0);
+    
     -- Status and debug signals
     signal busy : std_logic;
     signal debug_state : std_logic_vector(2 downto 0);
@@ -45,8 +55,10 @@ architecture testbench of tb_convolution is
     signal debug_calc_idx : integer range 0 to KERNEL_SIZE**2;
     signal debug_valid_count : integer range 0 to KERNEL_SIZE**2;
     signal current_test : test_state_t := TEST_IDLE;
+    
     -- Simple memory model for testing
     type memory_t is array (0 to 2**ADDR_WIDTH - 1) of std_logic_vector(CHANNELS_OUT * NEURON_BIT_WIDTH - 1 downto 0);
+    
     -- Function to create initial memory pattern
     function create_test_memory return memory_t is
         variable memory : memory_t;
@@ -55,6 +67,7 @@ architecture testbench of tb_convolution is
     begin
         -- Initialize all to zero first
         memory := (others => (others => '0'));
+        
         -- Create simple test pattern
         for addr_idx in 0 to 1023 loop  -- Smaller subset for testing
             if addr_idx < IMG_WIDTH * IMG_HEIGHT then
@@ -65,9 +78,12 @@ architecture testbench of tb_convolution is
                 memory(addr_idx) := test_value;
             end if;
         end loop;
+        
         return memory;
     end function;
+    
     signal test_memory : memory_t := create_test_memory;
+    
     -- Test procedures
     procedure wait_cycles(n : integer) is
     begin
@@ -75,6 +91,7 @@ architecture testbench of tb_convolution is
             wait until rising_edge(clk);
         end loop;
     end procedure;
+    
     procedure reset_system(signal rst_sig : out std_logic) is
     begin
         rst_sig <= '1';
@@ -82,6 +99,7 @@ architecture testbench of tb_convolution is
         rst_sig <= '0';
         wait_cycles(1);
     end procedure;
+    
     procedure send_event(
         x : integer;
         y : integer;
@@ -94,6 +112,7 @@ architecture testbench of tb_convolution is
         wait_cycles(1);
         valid_sig <= '0';
     end procedure;
+    
     procedure check_memory_access(
         expected_addr : integer;
         expected_read : std_logic;
@@ -110,9 +129,18 @@ architecture testbench of tb_convolution is
         assert mem_write_en = expected_write 
             report error_msg & " - Write enable mismatch";
     end procedure;
+
 begin
+
     -- Clock generation
-    clk <= not clk after CLK_PERIOD/2;
+    clk_process: process
+    begin
+        clk <= '1';
+        wait for CLK_PERIOD/2;
+        clk <= '0';
+        wait for CLK_PERIOD/2;
+    end process;
+
     -- Simple memory model
     memory_model : process(clk)
     begin
@@ -121,12 +149,14 @@ begin
             if mem_read_en = '1' then
                 mem_read_data <= test_memory(to_integer(unsigned(mem_read_addr)));
             end if;
+            
             -- Handle memory writes
             if mem_write_en = '1' then
                 test_memory(to_integer(unsigned(mem_write_addr))) <= mem_write_data;
             end if;
         end if;
     end process memory_model;
+
     -- Unit under test
     uut: entity work.convolution
     generic map (
@@ -157,131 +187,231 @@ begin
         debug_calc_idx_o => debug_calc_idx,
         debug_valid_count_o => debug_valid_count
     );
+
     main : process
     begin
         -- Initial stabilization
         wait_cycles(10);
+
         -- Test: test_reset
         report "Running test: test_reset";
         current_test <= TEST_RESET;
-                    report "Testing reset functionality";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- Check initial state
-                    assert debug_state = "000" report "Should be in IDLE state after reset";
-                    assert busy = '0' report "Busy should be low after reset";
-                    assert mem_read_en = '0' report "Memory read should be disabled after reset";
-                    assert mem_write_en = '0' report "Memory write should be disabled after reset";
+        report "Testing reset functionality";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Check initial state
+        assert debug_state = "000" report "Should be in IDLE state after reset";
+        assert busy = '0' report "Busy should be low after reset";
+        assert mem_read_en = '0' report "Memory read should be disabled after reset";
+        assert mem_write_en = '0' report "Memory write should be disabled after reset";
         report "Test test_reset completed";
+
+        -- Test: test_single_cycle_coords
+        report "Running test: test_single_cycle_coords";
+        current_test <= TEST_SINGLE_CYCLE_COORDS;
+        report "Testing single-cycle coordinate calculation";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Check initial state
+        assert debug_state = "000" report "Should start in IDLE state";
+        assert busy = '0' report "Should not be busy initially";
+        
+        -- Send event at coordinate (10, 10) - well within image bounds
+        report "Sending event at (10, 10) to test single-cycle coordinate calculation";
+        send_event(10, 10, event_coord, data_valid);
+        
+        -- Should immediately transition to PIPELINE state (no CALC_COORDS state)
+        wait_cycles(1);
+        assert busy = '1' report "Should be busy after receiving valid event. State=" & integer'image(to_integer(unsigned(debug_state)));
+        assert debug_state = "010" report "Should be in PIPELINE state immediately. Got state=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        -- Should have calculated valid coordinates count immediately
+        assert debug_valid_count > 0 report "Should have valid coordinates immediately. count=" & integer'image(debug_valid_count);
+        
+        -- For a 3x3 kernel at (10,10) on a 32x32 image, all 9 coordinates should be valid
+        assert debug_valid_count = 9 report "Should have all 9 coordinates valid for center position. Got=" & integer'image(debug_valid_count);
+        
+        -- Let convolution complete
+        report "Waiting for convolution to complete...";
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Convolution should complete";
+        assert data_consumed = '1' report "Should signal data consumed";
+        
+        report "Single-cycle coordinate calculation test completed successfully";
+        report "Test test_single_cycle_coords completed";
+
         -- Test: test_basic_convolution
         report "Running test: test_basic_convolution";
         current_test <= TEST_BASIC_CONVOLUTION;
-                    report "Testing basic convolution operation";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- Check initial state
-                    assert debug_state = "000" report "Should start in IDLE state";
-                    assert busy = '0' report "Should not be busy initially";
-                    -- Send event at coordinate (5, 5) - well within image bounds
-                    report "Sending event at (5, 5)";
-                    send_event(5, 5, event_coord, data_valid);
-                    -- Should become busy and start processing
-                    wait_cycles(1);
-                    assert busy = '1' report "Should be busy after receiving valid event. State=" & integer'image(to_integer(unsigned(debug_state)));
-                    assert debug_state = "001" report "Should be in CALC_COORDS state. Got state=" & integer'image(to_integer(unsigned(debug_state)));
-                    -- Wait for coordinate calculation to complete - need at least 9 cycles for 3x3 kernel
-                    report "Waiting for coordinate calculation (need " & integer'image(KERNEL_SIZE**2) & " cycles)...";
-                    for i in 0 to KERNEL_SIZE**2 + 2 loop
-                        wait_cycles(1);
-                        report "Cycle " & integer'image(i) & ": calc_idx=" & integer'image(debug_calc_idx) & " valid_count=" & integer'image(debug_valid_count) & " state=" & integer'image(to_integer(unsigned(debug_state)));
-                        if debug_calc_idx >= KERNEL_SIZE**2 then
-                            exit;
+        report "Testing basic convolution operation";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Check initial state
+        assert debug_state = "000" report "Should start in IDLE state";
+        assert busy = '0' report "Should not be busy initially";
+        
+        -- Send event at coordinate (5, 5) - well within image bounds
+        report "Sending event at (5, 5)";
+        send_event(5, 5, event_coord, data_valid);
+        
+        -- Should become busy and start processing
+        wait_cycles(1);
+        assert busy = '1' report "Should be busy after receiving valid event. State=" & integer'image(to_integer(unsigned(debug_state)));
+        assert debug_state = "010" report "Should be in PIPELINE state. Got state=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        -- Should have valid coordinates
+        assert debug_valid_count > 0 report "Should have some valid coordinates. count=" & integer'image(debug_valid_count);
+        
+        -- Let convolution complete
+        report "Waiting for convolution to complete...";
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Convolution should complete";
+        assert data_consumed = '1' report "Should signal data consumed";
+        
+        report "Basic convolution test completed successfully";
         report "Test test_basic_convolution completed";
+
         -- Test: test_edge_coordinates
         report "Running test: test_edge_coordinates";
         current_test <= TEST_EDGE_COORDINATES;
-                    report "Testing convolution near image edges";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- Test corner coordinate (0, 0)
-                    report "Testing corner coordinate (0, 0)";
-                    send_event(0, 0, event_coord, data_valid);
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "Should handle corner coordinate (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
-                    wait_cycles(5);
-                    -- Test edge coordinate (31, 15) for 32x32 image
-                    report "Testing edge coordinate (31, 15)";
-                    send_event(31, 15, event_coord, data_valid);
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "Should handle edge coordinate (31,15). State=" & integer'image(to_integer(unsigned(debug_state)));
+        report "Testing convolution near image edges";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Test corner coordinate (0, 0)
+        report "Testing corner coordinate (0, 0)";
+        send_event(0, 0, event_coord, data_valid);
+        
+        -- Should transition to PIPELINE or DONE depending on valid coordinates
+        wait_cycles(1);
+        if debug_valid_count > 0 then
+            assert debug_state = "010" report "Should be in PIPELINE state for corner (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
+            -- For corner (0,0), only 4 coordinates should be valid (bottom-right quadrant of kernel)
+            assert debug_valid_count = 4 report "Corner (0,0) should have 4 valid coordinates. Got=" & integer'image(debug_valid_count);
+            wait until busy = '0' for 200 ns;
+        else
+            assert debug_state = "011" report "Should be in DONE state if no valid coordinates. State=" & integer'image(to_integer(unsigned(debug_state)));
+        end if;
+        assert busy = '0' report "Should complete corner coordinate (0,0). State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        wait_cycles(5);
+        
+        -- Test edge coordinate (31, 15) for 32x32 image
+        report "Testing edge coordinate (31, 15)";
+        send_event(31, 15, event_coord, data_valid);
+        wait_cycles(1);
+        if debug_valid_count > 0 then
+            assert debug_state = "010" report "Should be in PIPELINE state for edge (31,15). State=" & integer'image(to_integer(unsigned(debug_state)));
+            -- For right edge (31,15), only 6 coordinates should be valid (left column of kernel)
+            assert debug_valid_count = 6 report "Right edge (31,15) should have 6 valid coordinates. Got=" & integer'image(debug_valid_count);
+            wait until busy = '0' for 200 ns;
+        end if;
+        assert busy = '0' report "Should handle edge coordinate (31,15). State=" & integer'image(to_integer(unsigned(debug_state)));
         report "Test test_edge_coordinates completed";
+
         -- Test: test_enable_disable
         report "Running test: test_enable_disable";
         current_test <= TEST_ENABLE_DISABLE;
-                    report "Testing enable/disable (pause) functionality";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- Start convolution
-                    send_event(10, 10, event_coord, data_valid);
-                    wait_cycles(2);
-                    assert busy = '1' report "Should be busy";
-                    -- Disable (pause) the module
-                    enable <= '0';
-                    wait_cycles(5);
-                    -- State should not change while disabled
-                    report "Module disabled - state should not progress";
-                    assert busy = '1' report "Should remain busy while disabled";
-                    -- Re-enable and let it complete
-                    enable <= '1';
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "Should complete after re-enabling. State=" & integer'image(to_integer(unsigned(debug_state)));
+        report "Testing enable/disable (pause) functionality";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Start convolution
+        send_event(10, 10, event_coord, data_valid);
+        wait_cycles(2);
+        assert busy = '1' report "Should be busy";
+        
+        -- Disable (pause) the module
+        enable <= '0';
+        wait_cycles(5);
+        
+        -- State should not change while disabled
+        report "Module disabled - state should not progress";
+        assert busy = '1' report "Should remain busy while disabled";
+        
+        -- Re-enable and let it complete
+        enable <= '1';
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Should complete after re-enabling. State=" & integer'image(to_integer(unsigned(debug_state)));
         report "Test test_enable_disable completed";
+
         -- Test: test_multiple_convolutions
         report "Running test: test_multiple_convolutions";
         current_test <= TEST_MULTIPLE_CONVOLUTIONS;
-                    report "Testing multiple sequential convolutions";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- First convolution
-                    report "Starting first convolution at (8, 8)";
-                    send_event(8, 8, event_coord, data_valid);
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "First convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
-                    wait_cycles(3);
-                    -- Second convolution
-                    report "Starting second convolution at (15, 20)";
-                    send_event(15, 20, event_coord, data_valid);
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "Second convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
-                    wait_cycles(3);
-                    -- Third convolution
-                    report "Starting third convolution at (25, 10)";
-                    send_event(25, 10, event_coord, data_valid);
-                    wait until busy = '0' for 500 ns;  -- Increased timeout
-                    assert busy = '0' report "Third convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
+        report "Testing multiple sequential convolutions";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- First convolution
+        report "Starting first convolution at (8, 8)";
+        send_event(8, 8, event_coord, data_valid);
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "First convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        wait_cycles(3);
+        
+        -- Second convolution
+        report "Starting second convolution at (15, 20)";
+        send_event(15, 20, event_coord, data_valid);
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Second convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        wait_cycles(3);
+        
+        -- Third convolution
+        report "Starting third convolution at (25, 10)";
+        send_event(25, 10, event_coord, data_valid);
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Third convolution should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
         report "Test test_multiple_convolutions completed";
+
         -- Test: test_memory_interface
         report "Running test: test_memory_interface";
         current_test <= TEST_MEMORY_INTERFACE;
-                    report "Testing memory read/write interface";
-                    reset_system(rst);
-                    enable <= '1';
-                    wait_cycles(2);
-                    -- Send event and monitor memory accesses
-                    report "Sending event at (10, 10) to test memory interface";
-                    send_event(10, 10, event_coord, data_valid);
-                    -- Wait for coordinate calculation first
-                    for i in 0 to KERNEL_SIZE**2 + 2 loop
-                        wait_cycles(1);
-                        if debug_calc_idx >= KERNEL_SIZE**2 then
-                            exit;
+        report "Testing memory read/write interface";
+        
+        reset_system(rst);
+        enable <= '1';
+        wait_cycles(2);
+        
+        -- Send event and monitor memory accesses
+        report "Sending event at (10, 10) to test memory interface";
+        send_event(10, 10, event_coord, data_valid);
+        
+        -- Should immediately go to PIPELINE state
+        wait_cycles(1);
+        assert debug_state = "010" report "Should enter PIPELINE state immediately. State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        -- Should start reading memory locations around (10,10) once in PIPELINE state
+        wait until mem_read_en = '1' for 50 ns;
+        assert mem_read_en = '1' report "Should start reading memory in PIPELINE state. State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        -- Continue until completion, checking for write operations
+        wait until mem_write_en = '1' for 100 ns;
+        assert mem_write_en = '1' report "Should write back results. State=" & integer'image(to_integer(unsigned(debug_state)));
+        
+        wait until busy = '0' for 200 ns;
+        assert busy = '0' report "Memory operations should complete. State=" & integer'image(to_integer(unsigned(debug_state)));
         report "Test test_memory_interface completed";
+
         report "All tests completed successfully";
         wait;
+
     end process main;
+
 end testbench;

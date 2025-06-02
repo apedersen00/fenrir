@@ -50,7 +50,6 @@ architecture rtl of convolution is
 
     type conv_state_t is (
         IDLE,
-        CALC_COORDS,
         PIPELINE,
         DONE
     );
@@ -61,7 +60,6 @@ architecture rtl of convolution is
     type coords_array_t is array (0 to KERNEL_SIZE**2 - 1) of vector2_t;
     signal kernel_coords : coords_array_t := (others => (x => 0, y => 0));
     signal valid_coords_count : integer range 0 to KERNEL_SIZE**2 := 0;
-    signal coord_calc_index : integer range 0 to KERNEL_SIZE**2 := 0;
     
     -- Pipeline counters
     signal read_index : integer range 0 to KERNEL_SIZE**2 := 0;
@@ -107,7 +105,6 @@ architecture rtl of convolution is
     begin
         case state is
             when IDLE         => return "000";
-            when CALC_COORDS  => return "001";
             when PIPELINE     => return "010";
             when DONE         => return "011";
             when others       => return "111";
@@ -136,6 +133,63 @@ architecture rtl of convolution is
     begin
         return (coord.x >= 0 and coord.x < IMG_WIDTH and 
                 coord.y >= 0 and coord.y < IMG_HEIGHT);
+    end function;
+
+    -- Single-cycle coordinate calculation function
+    function calculate_all_kernel_coords(
+        center_coord : vector2_t;
+        kernel_size : integer
+    ) return coords_array_t is
+        variable coords : coords_array_t;
+        variable offset : vector2_t;
+        variable kernel_coord : vector2_t;
+    begin
+        -- Calculate all kernel coordinates in one combinational operation
+        for i in 0 to kernel_size**2 - 1 loop
+            offset := index_to_kernel_offset(i);
+            kernel_coord.x := center_coord.x + offset.x;
+            kernel_coord.y := center_coord.y + offset.y;
+            coords(i) := kernel_coord;
+        end loop;
+        return coords;
+    end function;
+
+    -- Single-cycle valid coordinate filtering function
+    function filter_valid_coords(
+        all_coords : coords_array_t;
+        kernel_size : integer
+    ) return coords_array_t is
+        variable valid_coords : coords_array_t;
+        variable valid_count : integer range 0 to kernel_size**2;
+    begin
+        valid_count := 0;
+        valid_coords := (others => (x => 0, y => 0));
+        
+        -- Pack valid coordinates to the beginning of the array
+        for i in 0 to kernel_size**2 - 1 loop
+            if is_valid_coord(all_coords(i)) then
+                valid_coords(valid_count) := all_coords(i);
+                valid_count := valid_count + 1;
+            end if;
+        end loop;
+        
+        return valid_coords;
+    end function;
+
+    -- Single-cycle valid coordinate counting function
+    function count_valid_coords(
+        all_coords : coords_array_t;
+        kernel_size : integer
+    ) return integer is
+        variable count : integer range 0 to kernel_size**2;
+    begin
+        count := 0;
+        for i in 0 to kernel_size**2 - 1 loop
+            if is_valid_coord(all_coords(i)) then
+                count := count + 1;
+            end if;
+        end loop;
+        return count;
     end function;
 
     -- Event-based convolution computation function (spike input + weight addition)
@@ -188,7 +242,7 @@ begin
     data_consumed_o <= data_consumed_reg;
     debug_state_o <= state_to_slv(current_state);
     debug_coord_idx_o <= write_index;  -- Show write progress
-    debug_calc_idx_o <= coord_calc_index;
+    debug_calc_idx_o <= 0;  -- No longer used since calculation is single-cycle
     debug_valid_count_o <= valid_coords_count;
     
     -- Memory interface assignments
@@ -218,13 +272,8 @@ begin
         case current_state is
             when IDLE =>
                 if data_valid_i = '1' then
-                    next_state <= CALC_COORDS;
-                end if;
-                
-            when CALC_COORDS =>
-                -- Wait until all coordinates are calculated
-                if coord_calc_index >= KERNEL_SIZE**2 then
-                    if valid_coords_count > 0 then
+                    -- Calculate coordinates immediately in combinational logic
+                    if count_valid_coords(calculate_all_kernel_coords(event_coord_i, KERNEL_SIZE), KERNEL_SIZE) > 0 then
                         next_state <= PIPELINE;
                     else
                         next_state <= DONE;  -- No valid coordinates found
@@ -245,14 +294,13 @@ begin
 
     -- Main control process
     control_process : process(clk, rst_i)
-        variable offset : vector2_t;
-        variable kernel_coord : vector2_t;
+        variable all_coords : coords_array_t;
+        variable filtered_coords : coords_array_t;
         variable valid_count : integer range 0 to KERNEL_SIZE**2;
     begin
         if rst_i = '1' then
             busy_reg <= '0';
             data_consumed_reg <= '0';
-            coord_calc_index <= 0;
             valid_coords_count <= 0;
             read_index <= 0;
             write_index <= 0;
@@ -272,45 +320,27 @@ begin
             case current_state is
                 when IDLE =>
                     if data_valid_i = '1' then
-                        busy_reg <= '1';
-                        coord_calc_index <= 0;
-                        valid_coords_count <= 0;
+                        -- Single-cycle coordinate calculation
+                        all_coords := calculate_all_kernel_coords(event_coord_i, KERNEL_SIZE);
+                        filtered_coords := filter_valid_coords(all_coords, KERNEL_SIZE);
+                        valid_count := count_valid_coords(all_coords, KERNEL_SIZE);
+                        
+                        -- Store results
+                        kernel_coords <= filtered_coords;
+                        valid_coords_count <= valid_count;
+                        
+                        -- Initialize pipeline counters
                         read_index <= 0;
                         write_index <= 0;
-                        kernel_coords <= (others => (x => 0, y => 0));
+                        
+                        -- Set busy if we have valid coordinates
+                        if valid_count > 0 then
+                            busy_reg <= '1';
+                        else
+                            busy_reg <= '0';  -- Will go to DONE next cycle
+                        end if;
                     else
                         busy_reg <= '0';
-                    end if;
-                    
-                when CALC_COORDS =>
-                    -- Use variable for valid count to avoid timing issues
-                    valid_count := valid_coords_count;
-                    
-                    -- Calculate kernel coordinates one per clock cycle
-                    if coord_calc_index < KERNEL_SIZE**2 then
-                        -- Get kernel offset for this index
-                        offset := index_to_kernel_offset(coord_calc_index);
-                        
-                        -- Calculate actual coordinate
-                        kernel_coord.x := event_coord_i.x + offset.x;
-                        kernel_coord.y := event_coord_i.y + offset.y;
-                        
-                        -- Check if coordinate is valid and store it
-                        if is_valid_coord(kernel_coord) then
-                            kernel_coords(valid_count) <= kernel_coord;
-                            valid_count := valid_count + 1;
-                        end if;
-                        
-                        coord_calc_index <= coord_calc_index + 1;
-                    end if;
-                    
-                    -- Update the signal with the variable value
-                    valid_coords_count <= valid_count;
-                    
-                    -- Initialize pipeline counters when calculation is complete
-                    if coord_calc_index = KERNEL_SIZE**2 - 1 then
-                        read_index <= 0;
-                        write_index <= 0;
                     end if;
                     
                 when PIPELINE =>
