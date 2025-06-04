@@ -58,17 +58,22 @@ class DebileClassifier(nn.Module):
 class NetUtils():
     @staticmethod
     def beta_clamp(mem, beta):
-        mem = torch.where(
-            mem > 0,
-            torch.clamp(mem - torch.abs(beta), min=0.0),
-            mem
-        )
-        mem = torch.where(
-            mem < 0,
-            torch.clamp(mem + torch.abs(beta), max=0.0),
-            mem
-        )
-        return mem
+        """
+        Soft-clamping of beta to allow gradients.
+        """
+        beta_abs = torch.abs(beta)
+        # Positive side: approximate clamp(mem - beta_abs, min=0)
+        pos_mask = (mem > 0)
+        pos_val = F.relu(mem - beta_abs)  # ReLU is differentiable everywhere except 0 (and better than clamp)
+
+        # Negative side: approximate clamp(mem + beta_abs, max=0)
+        neg_mask = (mem < 0)
+        neg_val = -F.relu(-(mem + beta_abs))  # negative ReLU for negative side
+
+        mem_new = torch.where(pos_mask, pos_val, mem)
+        mem_new = torch.where(neg_mask, neg_val, mem_new)
+
+        return mem_new
 
     @staticmethod
     def mem_clamp(mem, scale, multiplier, bits=12):
