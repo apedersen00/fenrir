@@ -1,0 +1,34 @@
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\interfaces
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/4/2025  12:10 PM           1360 fifo_if.sv
+-a----          6/4/2025  12:55 PM            700 snn_control_if.sv
+-a----          6/4/2025   1:14 PM           1078 snn_event_if.sv
+
+
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\modules
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/4/2025   1:34 PM           5301 capture_event.sv
+-a----          6/4/2025  10:34 AM           2293 fifo.sv
+
+
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\packages
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/4/2025  12:10 PM           1066 snn_interfaces_pkg.sv
+
+
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\testbenches
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/4/2025   1:20 PM           6966 tb_capture_event.sv
+-a----          6/4/2025  11:27 AM          11692 tb_fifo.sv
