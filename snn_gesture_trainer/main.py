@@ -5,6 +5,8 @@ import argparse
 import os
 import time
 import numpy as np
+from snntorch import functional as SF
+from src.model import FenrirNet
 from src.data_utils import get_dataloaders
 from src.trainer import train_epoch, test_model
 from src.utils import plot_loss_lr, setup_gradient_log_file, get_device
@@ -17,14 +19,6 @@ def load_config(config_path):
 def main(args):
     # --- Load Configuration ---
     config = load_config(args.config_file)
-
-    # --- Override config with command-line arguments if provided ---
-    if args.epochs: config['num_epochs'] = args.epochs
-    if args.batch_size: config['batch_size'] = args.batch_size
-    if args.lr: config['lr'] = args.lr
-    if args.data_dir: config['data_dir'] = args.data_dir
-    if args.log_dir: config['log_dir'] = args.log_dir
-    if args.model_dir: config['model_dir'] = args.model_dir
     
     # Create directories if they don't exist
     os.makedirs(config['log_dir'], exist_ok=True)
@@ -121,19 +115,6 @@ def main(args):
 
         # --- Save Model (best and/or periodically) ---
         if args.save_model_name:
-            # Save checkpoint periodically
-            checkpoint_name = f"{args.save_model_name}_epoch_{epoch}.pth"
-            checkpoint_path = os.path.join(config['model_dir'], checkpoint_name)
-            torch.save({
-                'epoch': epoch,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'scheduler_state_dict': scheduler.state_dict() if scheduler else None,
-                'loss': avg_train_loss,
-                'test_accuracy': test_accuracy
-            }, checkpoint_path)
-            print(f"Checkpoint saved to {checkpoint_path}")
-
             if test_accuracy > best_test_accuracy:
                 best_test_accuracy = test_accuracy
                 best_model_name = f"{args.save_model_name}_best.pth"
@@ -160,12 +141,6 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="SNN Gesture Training Script")
     parser.add_argument('--config_file', type=str, default='config.yaml', help='Path to the configuration YAML file.')
-    parser.add_argument('--epochs', type=int, help='Override number of training epochs.')
-    parser.add_argument('--batch_size', type=int, help='Override batch size.')
-    parser.add_argument('--lr', type=float, help='Override learning rate.')
-    parser.add_argument('--data_dir', type=str, help='Override data directory.')
-    parser.add_argument('--log_dir', type=str, help='Override log directory.')
-    parser.add_argument('--model_dir', type=str, help='Override model saving directory.')
     
     parser.add_argument('--load_model_path', type=str, default=None, help='Path to load a pre-trained model state_dict from.')
     parser.add_argument('--save_model_name', type=str, default="fenrir_dvsgesture", help='Base name for saving the trained model. "_best.pth" will be appended.')
