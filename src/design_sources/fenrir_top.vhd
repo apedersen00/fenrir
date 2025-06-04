@@ -106,13 +106,13 @@ begin
 
     FC1 : entity work.FC_LAYER
     generic map (
-        IN_SIZE         => 256,
-        OUT_SIZE        => 10,
+        IN_SIZE         => 768,
+        OUT_SIZE        => 11,
         OUT_FIFO_DEPTH  => 256,
         IS_LAST         => 1,
-        SYN_MEM_WIDTH   => 40,
+        SYN_MEM_WIDTH   => 44,
         BITS_PER_SYN    => 4,
-        SYN_INIT_FILE   => "../data/fc1_syn.data",
+        SYN_INIT_FILE   => "../data/fc1_gesture.data",
         NRN_INIT_FILE   => ""
     )
     port map (

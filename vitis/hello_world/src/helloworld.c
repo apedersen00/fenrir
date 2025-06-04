@@ -2,7 +2,7 @@
 #include "xgpio.h"
 #include "xgpiops.h"
 #include "fenrir.h"
-#include "nmnist_fpga_data.h"
+#include "gesture_data_target_1.h"
 
 #define SDT
 
@@ -61,23 +61,26 @@ int main (void)
     XGpio_DiscreteWrite(&fenrir_ctrl, 1, 0b0000);
     XGpio_DiscreteWrite(&fifo, 1, 0x00000000);
 
+    // XGpio_DiscreteWrite(&fenrir_ctrl, 1, 0b0001);
+
     FCConfig fc1_cfg = {
         .bits_per_weight = 1,
         .synapse_layer_offset = 0,
-        .synapse_neurons = 10,
+        .synapse_neurons = 11,
 
         .neuron_layer_offset = 0,
-        .neuron_neurons = 10,
+        .neuron_neurons = 11,
 
         .weight_scalar = 10,
-        .beta = 230,
-        .threshold = 67,
+        .beta = 546,
+        .threshold = 338,
 
         .writer_layer_offset = 0,
-        .writer_neurons = 10
+        .writer_neurons = 11
     };
 
     write_config(XPAR_FENRIR_AXI_0_BASEADDR, &fc1_cfg);
+    for (i=0; i<9999; i++);
     XGpio_DiscreteWrite(&fenrir_ctrl, 1, 0b0011);
 
     int idx = 0;
@@ -86,8 +89,8 @@ int main (void)
         if (idx < NMNIST_EVENTS_SIZE) {
             unsigned int event = nmnist_events[idx];
             write_event(&fifo, event);
-            idx = idx + 1;
         }
+        idx = idx + 1;
 
         event_counter_0 = XGpio_DiscreteRead(&gpio_event_counter_0, 1);
         event_counter_1 = XGpio_DiscreteRead(&gpio_event_counter_1, 1);
@@ -100,13 +103,26 @@ int main (void)
         event_counter_8 = XGpio_DiscreteRead(&gpio_event_counter_8, 1);
         event_counter_9 = XGpio_DiscreteRead(&gpio_event_counter_9, 1);
 
-        printf("Spike counts: S0 = %10u | S1 = %10u | S2 = %10u\n", 
-               event_counter_0, event_counter_1, event_counter_2);
+        if (idx % 1000 == 0) {
+            printf("Spike counts:\n");
+            printf("  S0 = %10u | S1 = %10u | S2 = %10u | S3 = %10u | S4 = %10u\n",
+                    event_counter_0, event_counter_1, event_counter_2, event_counter_3, event_counter_4);
+            printf("  S5 = %10u | S6 = %10u | S7 = %10u | S8 = %10u | S9 = %10u\n",
+                    event_counter_5, event_counter_6, event_counter_7, event_counter_8, event_counter_9);
+        }
 
-        for (i=0; i<9999999; i++);
+        for (i=0; i<99999; i++);
     }
 
     return 0;
+}
+
+void print_binary(uint32_t value) {
+    for (int i = 31; i >= 0; i--) {
+        printf("%d", (value >> i) & 1);
+        if (i % 4 == 0) printf(" "); // optional: space every 4 bits for readability
+    }
+    printf("\n");
 }
 
 void write_event(XGpio *fifo, uint32_t event)
@@ -120,6 +136,7 @@ void write_event(XGpio *fifo, uint32_t event)
         data_to_write = event & 0x7FFFFFFF;
     }
 
+    // print_binary(data_to_write);
     XGpio_DiscreteWrite(fifo, 1, data_to_write);
     count = (count + 1) % 2;
 }
@@ -134,8 +151,8 @@ void write_config(uint32_t baseaddr, const FCConfig *cfg)
 
 uint32_t pack_synapse_loader(const FCConfig *cfg)
 {
-    return (cfg->bits_per_weight & 0x3) << 21 |
-           (cfg->synapse_layer_offset & 0x7FF) << 10 |
+    return (cfg->bits_per_weight & 0x3) << 22 |
+           (cfg->synapse_layer_offset & 0x7FF) << 11 |
            (cfg->synapse_neurons & 0x7FF);
 }
 
