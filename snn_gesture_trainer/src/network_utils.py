@@ -46,15 +46,6 @@ class SpikePooling2D(nn.Module):
 
         return membrane, spikes  # keep membrane at original size!
 
-class DebileClassifier(nn.Module):
-    def __init__(self, channels, num_classes):
-        super().__init__()
-        self.fc = nn.Linear(channels, num_classes, bias=False)
-    
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = x.mean(dim=(2, 3))  # Average over spatial dimensions
-        return self.fc(x)
-
 class NetUtils():
     @staticmethod
     def beta_clamp(mem, beta):

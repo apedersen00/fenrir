@@ -1,5 +1,6 @@
 import torch
 from tqdm import tqdm
+from snntorch import functional as SF
 import os
 
 def train_epoch(config, model, trainloader, criterion, optimizer, device, scheduler=None, current_epoch=0, grad_log_path=None):
