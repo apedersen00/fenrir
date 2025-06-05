@@ -1,0 +1,29 @@
+architecture:
+  # Input features to the first FC layer can be calculated from dataset settings
+  # e.g., input_channels * image_height * image_width if flattening an image sequence frame
+  # Or, if you have a conv backbone first, this would be its output feature count.
+  # For simplicity, let's assume direct input to FC layers.
+  
+  # Option 1: Explicit layer definitions (more flexible for varying params)
+  layers:
+    - name: "fc1"
+      type: "fc"
+      # in_features: (calculated or e.g. 2*128*128 for one DVS frame)
+      out_features: 512
+      # Other fc-specific params if any (e.g. bias=True/False)
+    - name: "lif1"
+      type: "lif"
+      # Parameters for your LIF neuron, e.g., SNNTorch specific like beta, threshold
+      beta: 0.95
+      threshold: 1.0
+      # You might also store if reset mechanism is 'subtract' or 'zero'
+      # reset_mechanism: "subtract"
+    - name: "fc2"
+      type: "fc"
+      # in_features: 512 (must match fc1.out_features or lif1.out_features)
+      out_features: 11 # Number of classes for DVS Gesture
+    - name: "lif2"
+      type: "lif"
+      beta: 0.9
+      threshold: 1.0
+      # reset_mechanism: "subtract"

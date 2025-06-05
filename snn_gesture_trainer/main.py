@@ -25,6 +25,7 @@ def main(args):
     os.makedirs(config['log_dir'], exist_ok=True)
     os.makedirs(config['model_dir'], exist_ok=True)
     os.makedirs(config['data_dir'], exist_ok=True)
+    os.makedirs(config['export_dir'], exist_ok=True)
 
     # --- Setup ---
     torch.manual_seed(config['seed'])
@@ -37,6 +38,33 @@ def main(args):
     device = get_device(config.get('device', 'auto'))
     print(f"Using device: {device}")
 
+    # --- Export ---
+    if args.export:
+        export_model_path = args.export
+        checkpoint = torch.load(export_model_path, map_location=device, weights_only=False)
+
+        loaded_config = checkpoint['config']
+        model_state_dict = checkpoint['model_state_dict']
+
+        # Instantiate the model using the loaded configuration
+        print(f"Initializing model '{loaded_config['model']}' for export from config...")
+        net_to_export = None
+        match loaded_config['model']:
+            case 'FenrirNet':
+                net_to_export = FenrirNet(loaded_config).to(device)
+            case 'FenrirFC':
+                net_to_export = FenrirFC(loaded_config).to(device)
+            case _:
+                print(f"Error: Unknown model type '{loaded_config['model']}' in saved config.")
+                exit(1)
+
+        net_to_export.load_state_dict(model_state_dict)
+        net_to_export.eval() # Set model to evaluation mode
+        print("Model loaded and ready for export.")
+
+
+
+    # --- Gradient logging ---
     grad_log_full_path = None
     if config.get('gradient_log_file'):
         grad_log_full_path = setup_gradient_log_file(config['log_dir'], config['gradient_log_file'])
@@ -55,6 +83,7 @@ def main(args):
             model = FenrirFC(config).to(device)
         case _:
             print(f"Unknown model '{model_name}'.")
+            exit(1)
 
     # --- Optimizer, Scheduler, Criterion ---
     optimizer = optim.Adam(
@@ -129,8 +158,9 @@ def main(args):
                     'model_state_dict': model.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
                     'scheduler_state_dict': scheduler.state_dict() if scheduler else None,
-                    'loss': avg_train_loss, # or test_loss
-                    'test_accuracy': test_accuracy
+                    'loss': avg_train_loss,
+                    'test_accuracy': test_accuracy,
+                    'config': config
                 }, best_model_path)
                 print(f"New best model saved to {best_model_path} (Accuracy: {test_accuracy:.2f}%)")
 
@@ -149,6 +179,8 @@ if __name__ == "__main__":
     
     parser.add_argument('--load_model_path', type=str, default=None, help='Path to load a pre-trained model state_dict from.')
     parser.add_argument('--save_model_name', type=str, default="fenrir_dvsgesture", help='Base name for saving the trained model. _best.pth" will be appended.')
+
+    parser.add_argument('--export', type=str, default=None, metavar='MODEL_PATH', help='Export weights and parameters of trained model for FENRIR.')
     
     parser.add_argument('--plots', action='store_true', help='Save plot of loss and LR to the log directory after training.')
 
