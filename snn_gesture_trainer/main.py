@@ -139,8 +139,8 @@ def main(args):
     print(f"Best Test Accuracy: {best_test_accuracy:.2f}%")
 
     # --- Plotting ---
-    if args.plot_results:
-        plot_save_dir = config['log_dir'] if args.save_plots else None
+    if args.plot:
+        plot_save_dir = config['log_dir']
         plot_loss_lr(all_losses, all_lrs, save_path=plot_save_dir)
 
 if __name__ == "__main__":
@@ -148,10 +148,9 @@ if __name__ == "__main__":
     parser.add_argument('--config_file', type=str, default='config.yaml', help='Path to the configuration YAML file.')
     
     parser.add_argument('--load_model_path', type=str, default=None, help='Path to load a pre-trained model state_dict from.')
-    parser.add_argument('--save_model_name', type=str, default="fenrir_dvsgesture", help='Base name for saving the trained model. "_best.pth" will be appended.')
+    parser.add_argument('--save_model_name', type=str, default="fenrir_dvsgesture", help='Base name for saving the trained model. _best.pth" will be appended.')
     
-    parser.add_argument('--plot_results', action='store_true', help='Plot loss and LR after training.')
-    parser.add_argument('--save_plots', action='store_true', help='Save plots to the log directory instead of showing them.')
+    parser.add_argument('--plots', action='store_true', help='Save plot of loss and LR to the log directory after training.')
 
     cli_args = parser.parse_args()
     main(cli_args)
