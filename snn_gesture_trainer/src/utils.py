@@ -66,6 +66,7 @@ def plot_loss_lr(loss_list, lr_list, save_path=None):
         ax1.legend(lines, labels, loc='best')
 
     if save_path:
+        fig.tight_layout()
         plt.savefig(os.path.join(save_path, "loss_lr_plot.png"))
         print(f"Plot saved to {os.path.join(save_path, 'loss_lr_plot.png')}")
     else:

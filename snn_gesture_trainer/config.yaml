@@ -1,9 +1,10 @@
 # General Settings
-seed: 0
+model: "FenrirFC"                           # See available models in src/model.py
+seed: 0                                     # Random seed for reproducability
 device: "auto"                              # "auto", "cuda", "cpu"
-data_dir: "data"                         # Relative path to where DVSGesture data is/will be saved
-log_dir: "logs"                          # Directory for log files
-model_dir: "models"                      # Directory for saved models
+data_dir: "data"                            # Relative path to where DVSGesture data is/will be saved
+log_dir: "logs"                             # Directory for log files
+model_dir: "models"                         # Directory for saved models
 gradient_log_file: "gradient_norms_log.txt" # Name of the gradient log file
 num_classes: 11
 num_workers: 2
@@ -19,7 +20,7 @@ correct_rate: 0.8                           # Correct rate for loss function
 incorrect_rate: 0.2                         # Incorrect rate for loss function
 
 # Data Parameters
-target_width: 80
+target_width: 60
 target_height: 60
 frame_length_us: 16600.0                    # 16.6ms for 60fps
 n_timesteps: 180                            # Number of timesteps for padded frames

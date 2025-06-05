@@ -6,7 +6,7 @@ import os
 import time
 import numpy as np
 from snntorch import functional as SF
-from src.model import FenrirNet
+from src.model import *
 from src.data_utils import get_dataloaders
 from src.trainer import train_epoch, test_model
 from src.utils import plot_loss_lr, setup_gradient_log_file, get_device
@@ -19,6 +19,7 @@ def load_config(config_path):
 def main(args):
     # --- Load Configuration ---
     config = load_config(args.config_file)
+    model_name = config['model']
     
     # Create directories if they don't exist
     os.makedirs(config['log_dir'], exist_ok=True)
@@ -46,10 +47,14 @@ def main(args):
     print(f"Trainloader size: {len(trainloader.dataset)}, Testloader size: {len(testloader.dataset)}")
 
     # --- Model ---
-    # Pass the whole config, FenrirNet should pick what it needs
-    print("Initializing model...")
-    model = FenrirNet(config).to(device) 
-    # print(model) # Optional: print model summary
+    print(f"Initializing model: '{model_name}'...")
+    match model_name:
+        case 'FenrirNet':
+            model = FenrirNet(config).to(device) 
+        case 'FenrirFC':
+            model = FenrirFC(config).to(device)
+        case _:
+            print(f"Unknown model '{model_name}'.")
 
     # --- Optimizer, Scheduler, Criterion ---
     optimizer = optim.Adam(
@@ -72,7 +77,7 @@ def main(args):
     if args.load_model_path:
         if os.path.exists(args.load_model_path):
             print(f"Loading model from {args.load_model_path}")
-            checkpoint = torch.load(args.load_model_path, map_location=device)
+            checkpoint = torch.load(args.load_model_path, map_location=device, weights_only=False)
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             if 'epoch' in checkpoint:
@@ -117,7 +122,7 @@ def main(args):
         if args.save_model_name:
             if test_accuracy > best_test_accuracy:
                 best_test_accuracy = test_accuracy
-                best_model_name = f"{args.save_model_name}_best.pth"
+                best_model_name = f"{args.save_model_name}_{model_name}_best.pth"
                 best_model_path = os.path.join(config['model_dir'], best_model_name)
                 torch.save({
                     'epoch': epoch,
