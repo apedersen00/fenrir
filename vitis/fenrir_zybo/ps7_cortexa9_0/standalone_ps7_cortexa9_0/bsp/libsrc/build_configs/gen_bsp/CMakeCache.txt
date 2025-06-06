@@ -329,13 +329,13 @@ dmaps_IS_TOP_LEVEL:STATIC=OFF
 dmaps_SOURCE_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/dmaps/src
 
 //Value Computed by CMake
-gpio_BINARY_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/gpio/src
+emacps_BINARY_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/emacps/src
 
 //Value Computed by CMake
-gpio_IS_TOP_LEVEL:STATIC=OFF
+emacps_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-gpio_SOURCE_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src
+emacps_SOURCE_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src
 
 //Value Computed by CMake
 gpiops_BINARY_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/gpiops/src
@@ -410,6 +410,15 @@ scuwdt_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 scuwdt_SOURCE_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scuwdt/src
+
+//Value Computed by CMake
+sdps_BINARY_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/sdps/src
+
+//Value Computed by CMake
+sdps_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+sdps_SOURCE_DIR:STATIC=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src
 
 //This option is not supported in the Unified Vitis IDE in this
 // version. Change to the classic IDE if you want to use this option
@@ -596,7 +605,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=26
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=27
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

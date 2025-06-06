@@ -79,7 +79,7 @@ rule C_STATIC_LIBRARY_LINKER__dmaps_
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__gpio_
+rule C_COMPILER__emacps_
   depfile = $DEP_FILE
   deps = gcc
   command = C:\Xilinx\Vitis\2024.2\gnu\aarch32\nt\gcc-arm-none-eabi\bin\arm-none-eabi-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
@@ -89,7 +89,7 @@ rule C_COMPILER__gpio_
 #############################################
 # Rule for linking C static library.
 
-rule C_STATIC_LIBRARY_LINKER__gpio_
+rule C_STATIC_LIBRARY_LINKER__emacps_
   command = cmd.exe /C "$PRE_LINK && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E rm -f $TARGET_FILE && arm-none-eabi-ar qc $TARGET_FILE $LINK_FLAGS $in && C:\Xilinx\Vitis\2024.2\gnu\aarch32\nt\gcc-arm-none-eabi\bin\arm-none-eabi-ranlib.exe $TARGET_FILE && $POST_BUILD"
   description = Linking C static library $TARGET_FILE
   restat = $RESTAT
@@ -185,6 +185,25 @@ rule C_COMPILER__scuwdt_
 # Rule for linking C static library.
 
 rule C_STATIC_LIBRARY_LINKER__scuwdt_
+  command = cmd.exe /C "$PRE_LINK && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E rm -f $TARGET_FILE && arm-none-eabi-ar qc $TARGET_FILE $LINK_FLAGS $in && C:\Xilinx\Vitis\2024.2\gnu\aarch32\nt\gcc-arm-none-eabi\bin\arm-none-eabi-ranlib.exe $TARGET_FILE && $POST_BUILD"
+  description = Linking C static library $TARGET_FILE
+  restat = $RESTAT
+
+
+#############################################
+# Rule for compiling C files.
+
+rule C_COMPILER__sdps_
+  depfile = $DEP_FILE
+  deps = gcc
+  command = C:\Xilinx\Vitis\2024.2\gnu\aarch32\nt\gcc-arm-none-eabi\bin\arm-none-eabi-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building C object $out
+
+
+#############################################
+# Rule for linking C static library.
+
+rule C_STATIC_LIBRARY_LINKER__sdps_
   command = cmd.exe /C "$PRE_LINK && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E rm -f $TARGET_FILE && arm-none-eabi-ar qc $TARGET_FILE $LINK_FLAGS $in && C:\Xilinx\Vitis\2024.2\gnu\aarch32\nt\gcc-arm-none-eabi\bin\arm-none-eabi-ranlib.exe $TARGET_FILE && $POST_BUILD"
   description = Linking C static library $TARGET_FILE
   restat = $RESTAT

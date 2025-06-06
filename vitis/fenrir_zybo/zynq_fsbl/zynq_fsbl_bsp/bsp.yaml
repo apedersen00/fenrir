@@ -151,55 +151,7 @@ include_folder: include
 lib_folder: lib
 libsrc_folder: libsrc
 drv_info:
-  event_count_0:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_1:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_2:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_3:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_4:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_5:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_6:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_7:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_8:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  event_count_9:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
   fenrir_axi_0: None
-  fenrir_ctrl:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
-  fifo_write:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
   ps7_afi_0: None
   ps7_afi_1: None
   ps7_afi_2: None
@@ -218,6 +170,10 @@ drv_info:
     driver: dmaps
     ip_name: ps7_dma
     path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\dmaps_v2_11
+  ps7_ethernet_0:
+    driver: emacps
+    ip_name: ps7_ethernet
+    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\emacps_v3_21
   ps7_globaltimer_0: None
   ps7_gpio_0:
     driver: gpiops
@@ -245,6 +201,10 @@ drv_info:
     driver: scuwdt
     ip_name: ps7_scuwdt
     path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\scuwdt_v2_6
+  ps7_sd_0:
+    driver: sdps
+    ip_name: ps7_sdio
+    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\sdps_v4_4
   ps7_slcr_0: None
   ps7_uart_1:
     driver: uartps
@@ -258,10 +218,6 @@ drv_info:
     driver: xadcps
     ip_name: ps7_xadc
     path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\xadcps_v2_7
-  switches:
-    driver: gpio
-    ip_name: axi_gpio
-    path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\XilinxProcessorIPLib\drivers\gpio_v4_12
 lib_info:
   xiltimer:
     path: C:\Xilinx\Vitis\2024.2\data\embeddedsw\lib\sw_services\xiltimer_v2_1

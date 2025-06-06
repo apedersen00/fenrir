@@ -19,8 +19,8 @@ use ieee.math_real.all;
 entity FENRIR_TOP is
     port (
         i_sysclk                : in std_logic;
-        i_ctrl                  : in std_logic_vector(3 downto 0);  -- fsm control
-        o_flags                 : out std_logic_vector(2 downto 0); -- in_fifo_full_next & busy & idle
+        i_ctrl                  : in std_logic_vector(31 downto 0);  -- fsm control
+        o_flags                 : out std_logic_vector(31 downto 0); -- in_fifo_full_next & busy & idle
         o_led                   : out std_logic_vector(3 downto 0);
 
         -- PS FIFO
@@ -69,6 +69,7 @@ architecture behavior of FENRIR_TOP is
 
     -- general
     signal reset                : std_logic;
+    signal ctrl                 : std_logic_vector(3 downto 0);
 
     -- fc1
     signal fc1_en               : std_logic;
@@ -106,9 +107,10 @@ architecture behavior of FENRIR_TOP is
 
 begin
 
+    ctrl        <= i_ctrl(3 downto 0);
     busy_flag   <= fc1_busy or fc2_busy;
     idle_flag   <= fc2_fifo_empty and fc1_fifo_empty;
-    o_flags     <= fc1_fifo_full_next & busy_flag & idle_flag;
+    o_flags     <= (o_flags'high downto 3 => '0') & fc1_fifo_full_next & busy_flag & idle_flag;
 
     FIFO_IN_ADAPTER : entity work.FIFO_ADAPTER
     generic map (
@@ -247,7 +249,7 @@ begin
     state_reg : process(i_sysclk)
     begin
         if rising_edge(i_sysclk) then
-            if (i_ctrl = "0000") then
+            if (ctrl = "0000") then
                 present_state <= IDLE;
             else
                 present_state <= next_state;
@@ -256,10 +258,10 @@ begin
     end process;
 
     -- FSM next state process
-    nxt_state : process(present_state, i_ctrl)
+    nxt_state : process(present_state, ctrl)
     begin
         next_state <= present_state;
-        case i_ctrl is
+        case ctrl is
             when "0001" =>
                 next_state <= IDLE;
             when "0010" =>

@@ -3,7 +3,7 @@
   "type": "PLATFORM",
   "configuration": {
     "description": "",
-    "xsa": "C:\\home\\university\\8-semester\\fenrir\\vivado\\fenrir\\fenrir_system_wrapper.xsa",
+    "xsa": "C:\\home\\university\\8-semester\\fenrir\\vivado\\fenrir_v2\\fenrir_system_wrapper.xsa",
     "xsaPathInPlatform": "fenrir_zybo\\hw\\fenrir_system_wrapper.xsa",
     "emulationXsa": "",
     "emulationXsaPathInPlatform": "",

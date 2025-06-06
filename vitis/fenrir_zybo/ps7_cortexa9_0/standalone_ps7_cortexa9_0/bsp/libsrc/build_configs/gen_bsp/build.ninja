@@ -109,7 +109,7 @@ build install/strip: phony CMakeFiles/install/strip.util
 #############################################
 # Utility command for combined
 
-build libsrc/combined: phony libsrc/CMakeFiles/combined libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/gpio/src/libgpio.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a
+build libsrc/combined: phony libsrc/CMakeFiles/combined libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/emacps/src/libemacps.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/sdps/src/libsdps.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a
 
 
 #############################################
@@ -180,7 +180,7 @@ build libsrc/install/strip: phony libsrc/CMakeFiles/install/strip.util
 #############################################
 # Custom command for libsrc\CMakeFiles\combined
 
-build libsrc/CMakeFiles/combined | ${cmake_ninja_workdir}libsrc/CMakeFiles/combined: CUSTOM_COMMAND libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/gpio/src/libgpio.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a || libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/gpio/src/libgpio.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a
+build libsrc/CMakeFiles/combined | ${cmake_ninja_workdir}libsrc/CMakeFiles/combined: CUSTOM_COMMAND libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/emacps/src/libemacps.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/sdps/src/libsdps.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a || libsrc/coresightps_dcc/src/libcoresightps_dcc.a libsrc/devcfg/src/libdevcfg.a libsrc/dmaps/src/libdmaps.a libsrc/emacps/src/libemacps.a libsrc/gpiops/src/libgpiops.a libsrc/qspips/src/libqspips.a libsrc/scugic/src/libscugic.a libsrc/scutimer/src/libscutimer.a libsrc/scuwdt/src/libscuwdt.a libsrc/sdps/src/libsdps.a libsrc/uartps/src/libuartps.a libsrc/usbps/src/libusbps.a libsrc/xadcps/src/libxadcps.a
   COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp && arm-none-eabi-ar -M<C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libxil.mri && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E copy C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libxil.a C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/lib"
 
 # =============================================================================
@@ -628,136 +628,143 @@ build libsrc/dmaps/src/install/strip: phony libsrc/dmaps/src/CMakeFiles/install/
 # =============================================================================
 
 # =============================================================================
-# Object build statements for STATIC_LIBRARY target gpio
+# Object build statements for STATIC_LIBRARY target emacps
 
 
 #############################################
-# Order-only phony target for gpio
+# Order-only phony target for emacps
 
-build cmake_object_order_depends_target_gpio: phony || libsrc/gpio/src/CMakeFiles/gpio.dir
+build cmake_object_order_depends_target_emacps: phony || libsrc/emacps/src/CMakeFiles/emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_g.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_g.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_g.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_extra.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio_extra.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio_extra.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_hw.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_hw.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_hw.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_g.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio_g.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio_g.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_control.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_control.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_control.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_intr.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio_intr.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio_intr.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_selftest.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio_selftest.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio_selftest.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_bdring.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_bdring.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_bdring.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
-build libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_sinit.c.obj: C_COMPILER__gpio_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/xgpio_sinit.c || cmake_object_order_depends_target_gpio
-  DEP_FILE = libsrc\gpio\src\CMakeFiles\gpio.dir\xgpio_sinit.c.obj.d
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_sinit.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_sinit.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_sinit.c.obj.d
   FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
   INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
-  OBJECT_FILE_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+
+build libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_intr.c.obj: C_COMPILER__emacps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/xemacps_intr.c || cmake_object_order_depends_target_emacps
+  DEP_FILE = libsrc\emacps\src\CMakeFiles\emacps.dir\xemacps_intr.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
+  OBJECT_FILE_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
 
 
 # =============================================================================
-# Link build statements for STATIC_LIBRARY target gpio
+# Link build statements for STATIC_LIBRARY target emacps
 
 
 #############################################
-# Link the static library libsrc\gpio\src\libgpio.a
+# Link the static library libsrc\emacps\src\libemacps.a
 
-build libsrc/gpio/src/libgpio.a: C_STATIC_LIBRARY_LINKER__gpio_ libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio.c.obj libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_extra.c.obj libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_g.c.obj libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_intr.c.obj libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_selftest.c.obj libsrc/gpio/src/CMakeFiles/gpio.dir/xgpio_sinit.c.obj
+build libsrc/emacps/src/libemacps.a: C_STATIC_LIBRARY_LINKER__emacps_ libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_g.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_hw.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_control.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_bdring.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_sinit.c.obj libsrc/emacps/src/CMakeFiles/emacps.dir/xemacps_intr.c.obj
   LANGUAGE_COMPILE_FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include
-  OBJECT_DIR = libsrc\gpio\src\CMakeFiles\gpio.dir
+  OBJECT_DIR = libsrc\emacps\src\CMakeFiles\emacps.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_FILE = libsrc\gpio\src\libgpio.a
-  TARGET_PDB = gpio.a.dbg
+  TARGET_FILE = libsrc\emacps\src\libemacps.a
+  TARGET_PDB = emacps.a.dbg
 
 
 #############################################
 # Utility command for edit_cache
 
-build libsrc/gpio/src/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\gpio\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E echo "No interactive CMake dialog available.""
+build libsrc/emacps/src/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\emacps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E echo "No interactive CMake dialog available.""
   DESC = No interactive CMake dialog available...
   restat = 1
 
-build libsrc/gpio/src/edit_cache: phony libsrc/gpio/src/CMakeFiles/edit_cache.util
+build libsrc/emacps/src/edit_cache: phony libsrc/emacps/src/CMakeFiles/edit_cache.util
 
 
 #############################################
 # Utility command for rebuild_cache
 
-build libsrc/gpio/src/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\gpio\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe --regenerate-during-build -SC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp -BC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp"
+build libsrc/emacps/src/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\emacps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe --regenerate-during-build -SC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp -BC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp"
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
 
-build libsrc/gpio/src/rebuild_cache: phony libsrc/gpio/src/CMakeFiles/rebuild_cache.util
+build libsrc/emacps/src/rebuild_cache: phony libsrc/emacps/src/CMakeFiles/rebuild_cache.util
 
 
 #############################################
 # Utility command for list_install_components
 
-build libsrc/gpio/src/list_install_components: phony
+build libsrc/emacps/src/list_install_components: phony
 
 
 #############################################
 # Utility command for install
 
-build libsrc/gpio/src/CMakeFiles/install.util: CUSTOM_COMMAND libsrc/gpio/src/all
-  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\gpio\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -P cmake_install.cmake"
+build libsrc/emacps/src/CMakeFiles/install.util: CUSTOM_COMMAND libsrc/emacps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\emacps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -P cmake_install.cmake"
   DESC = Install the project...
   pool = console
   restat = 1
 
-build libsrc/gpio/src/install: phony libsrc/gpio/src/CMakeFiles/install.util
+build libsrc/emacps/src/install: phony libsrc/emacps/src/CMakeFiles/install.util
 
 
 #############################################
 # Utility command for install/local
 
-build libsrc/gpio/src/CMakeFiles/install/local.util: CUSTOM_COMMAND libsrc/gpio/src/all
-  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\gpio\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+build libsrc/emacps/src/CMakeFiles/install/local.util: CUSTOM_COMMAND libsrc/emacps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\emacps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
   DESC = Installing only the local directory...
   pool = console
   restat = 1
 
-build libsrc/gpio/src/install/local: phony libsrc/gpio/src/CMakeFiles/install/local.util
+build libsrc/emacps/src/install/local: phony libsrc/emacps/src/CMakeFiles/install/local.util
 
 
 #############################################
 # Utility command for install/strip
 
-build libsrc/gpio/src/CMakeFiles/install/strip.util: CUSTOM_COMMAND libsrc/gpio/src/all
-  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\gpio\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake"
+build libsrc/emacps/src/CMakeFiles/install/strip.util: CUSTOM_COMMAND libsrc/emacps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\emacps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake"
   DESC = Installing the project stripped...
   pool = console
   restat = 1
 
-build libsrc/gpio/src/install/strip: phony libsrc/gpio/src/CMakeFiles/install/strip.util
+build libsrc/emacps/src/install/strip: phony libsrc/emacps/src/CMakeFiles/install/strip.util
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
@@ -1415,6 +1422,143 @@ build libsrc/scuwdt/src/CMakeFiles/install/strip.util: CUSTOM_COMMAND libsrc/scu
   restat = 1
 
 build libsrc/scuwdt/src/install/strip: phony libsrc/scuwdt/src/CMakeFiles/install/strip.util
+
+# =============================================================================
+# Write statements declared in CMakeLists.txt:
+# C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/CMakeLists.txt
+# =============================================================================
+
+# =============================================================================
+# Object build statements for STATIC_LIBRARY target sdps
+
+
+#############################################
+# Order-only phony target for sdps
+
+build cmake_object_order_depends_target_sdps: phony || libsrc/sdps/src/CMakeFiles/sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_host.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps_host.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps_host.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_options.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps_options.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps_options.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_card.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps_card.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps_card.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_sinit.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps_sinit.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps_sinit.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+build libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_g.c.obj: C_COMPILER__sdps_ C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/xsdps_g.c || cmake_object_order_depends_target_sdps
+  DEP_FILE = libsrc\sdps\src\CMakeFiles\sdps.dir\xsdps_g.c.obj.d
+  FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include   -c  -g -Wall -Wextra -fno-tree-loop-distribute-patterns "-D__FILENAME__='__FILE__'"
+  INCLUDES = -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/include -isystem C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/x86_64-oesdk-mingw32/usr/lib/arm-xilinx-eabi/gcc/arm-xilinx-eabi/13.3.0/include-fixed -isystem C:/Xilinx/Vitis/2024.2/gnu/aarch32/nt/gcc-arm-none-eabi/aarch32-xilinx-eabi/usr/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  OBJECT_FILE_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+
+
+# =============================================================================
+# Link build statements for STATIC_LIBRARY target sdps
+
+
+#############################################
+# Link the static library libsrc\sdps\src\libsdps.a
+
+build libsrc/sdps/src/libsdps.a: C_STATIC_LIBRARY_LINKER__sdps_ libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_host.c.obj libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_options.c.obj libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_card.c.obj libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_sinit.c.obj libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps.c.obj libsrc/sdps/src/CMakeFiles/sdps.dir/xsdps_g.c.obj
+  LANGUAGE_COMPILE_FLAGS = -O2 -DSDT -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard  -MMD -MP -specs=C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Xilinx.spec -IC:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/include
+  OBJECT_DIR = libsrc\sdps\src\CMakeFiles\sdps.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = libsrc\sdps\src\libsdps.a
+  TARGET_PDB = sdps.a.dbg
+
+
+#############################################
+# Utility command for edit_cache
+
+build libsrc/sdps/src/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\sdps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -E echo "No interactive CMake dialog available.""
+  DESC = No interactive CMake dialog available...
+  restat = 1
+
+build libsrc/sdps/src/edit_cache: phony libsrc/sdps/src/CMakeFiles/edit_cache.util
+
+
+#############################################
+# Utility command for rebuild_cache
+
+build libsrc/sdps/src/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\sdps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe --regenerate-during-build -SC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp -BC:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp"
+  DESC = Running CMake to regenerate build system...
+  pool = console
+  restat = 1
+
+build libsrc/sdps/src/rebuild_cache: phony libsrc/sdps/src/CMakeFiles/rebuild_cache.util
+
+
+#############################################
+# Utility command for list_install_components
+
+build libsrc/sdps/src/list_install_components: phony
+
+
+#############################################
+# Utility command for install
+
+build libsrc/sdps/src/CMakeFiles/install.util: CUSTOM_COMMAND libsrc/sdps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\sdps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -P cmake_install.cmake"
+  DESC = Install the project...
+  pool = console
+  restat = 1
+
+build libsrc/sdps/src/install: phony libsrc/sdps/src/CMakeFiles/install.util
+
+
+#############################################
+# Utility command for install/local
+
+build libsrc/sdps/src/CMakeFiles/install/local.util: CUSTOM_COMMAND libsrc/sdps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\sdps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  DESC = Installing only the local directory...
+  pool = console
+  restat = 1
+
+build libsrc/sdps/src/install/local: phony libsrc/sdps/src/CMakeFiles/install/local.util
+
+
+#############################################
+# Utility command for install/strip
+
+build libsrc/sdps/src/CMakeFiles/install/strip.util: CUSTOM_COMMAND libsrc/sdps/src/all
+  COMMAND = cmd.exe /C "cd /D C:\home\university\8-semester\fenrir\vitis\fenrir_zybo\ps7_cortexa9_0\standalone_ps7_cortexa9_0\bsp\libsrc\build_configs\gen_bsp\libsrc\sdps\src && C:\Xilinx\Vitis\2024.2\tps\win64\cmake-3.24.2\bin\cmake.exe -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake"
+  DESC = Installing the project stripped...
+  pool = console
+  restat = 1
+
+build libsrc/sdps/src/install/strip: phony libsrc/sdps/src/CMakeFiles/install/strip.util
 
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
@@ -3001,7 +3145,7 @@ build devcfg: phony libsrc/devcfg/src/libdevcfg.a
 
 build dmaps: phony libsrc/dmaps/src/libdmaps.a
 
-build gpio: phony libsrc/gpio/src/libgpio.a
+build emacps: phony libsrc/emacps/src/libemacps.a
 
 build gpiops: phony libsrc/gpiops/src/libgpiops.a
 
@@ -3011,7 +3155,7 @@ build libdevcfg.a: phony libsrc/devcfg/src/libdevcfg.a
 
 build libdmaps.a: phony libsrc/dmaps/src/libdmaps.a
 
-build libgpio.a: phony libsrc/gpio/src/libgpio.a
+build libemacps.a: phony libsrc/emacps/src/libemacps.a
 
 build libgpiops.a: phony libsrc/gpiops/src/libgpiops.a
 
@@ -3022,6 +3166,8 @@ build libscugic.a: phony libsrc/scugic/src/libscugic.a
 build libscutimer.a: phony libsrc/scutimer/src/libscutimer.a
 
 build libscuwdt.a: phony libsrc/scuwdt/src/libscuwdt.a
+
+build libsdps.a: phony libsrc/sdps/src/libsdps.a
 
 build libuartps.a: phony libsrc/uartps/src/libuartps.a
 
@@ -3040,6 +3186,8 @@ build scugic: phony libsrc/scugic/src/libscugic.a
 build scutimer: phony libsrc/scutimer/src/libscutimer.a
 
 build scuwdt: phony libsrc/scuwdt/src/libscuwdt.a
+
+build sdps: phony libsrc/sdps/src/libsdps.a
 
 build uartps: phony libsrc/uartps/src/libuartps.a
 
@@ -3066,7 +3214,7 @@ build all: phony libsrc/all libsrc/standalone/src/all libsrc/xiltimer/src/all
 #############################################
 # Folder: C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc
 
-build libsrc/all: phony libsrc/combined libsrc/common/src/all libsrc/coresightps_dcc/src/all libsrc/devcfg/src/all libsrc/dmaps/src/all libsrc/gpio/src/all libsrc/gpiops/src/all libsrc/qspips/src/all libsrc/scugic/src/all libsrc/scutimer/src/all libsrc/scuwdt/src/all libsrc/uartps/src/all libsrc/usbps/src/all libsrc/xadcps/src/all
+build libsrc/all: phony libsrc/combined libsrc/common/src/all libsrc/coresightps_dcc/src/all libsrc/devcfg/src/all libsrc/dmaps/src/all libsrc/emacps/src/all libsrc/gpiops/src/all libsrc/qspips/src/all libsrc/scugic/src/all libsrc/scutimer/src/all libsrc/scuwdt/src/all libsrc/sdps/src/all libsrc/uartps/src/all libsrc/usbps/src/all libsrc/xadcps/src/all
 
 # =============================================================================
 
@@ -3099,9 +3247,9 @@ build libsrc/dmaps/src/all: phony libsrc/dmaps/src/libdmaps.a
 # =============================================================================
 
 #############################################
-# Folder: C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/gpio/src
+# Folder: C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/emacps/src
 
-build libsrc/gpio/src/all: phony libsrc/gpio/src/libgpio.a
+build libsrc/emacps/src/all: phony libsrc/emacps/src/libemacps.a
 
 # =============================================================================
 
@@ -3137,6 +3285,13 @@ build libsrc/scutimer/src/all: phony libsrc/scutimer/src/libscutimer.a
 # Folder: C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/scuwdt/src
 
 build libsrc/scuwdt/src/all: phony libsrc/scuwdt/src/libscuwdt.a
+
+# =============================================================================
+
+#############################################
+# Folder: C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/build_configs/gen_bsp/libsrc/sdps/src
+
+build libsrc/sdps/src/all: phony libsrc/sdps/src/libsdps.a
 
 # =============================================================================
 
@@ -3243,14 +3398,14 @@ build libsrc/xiltimer/src/core/default_timer/all: phony
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeASMInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCXXInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeGenericSystem.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-ASM.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-C.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-CXX.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Platform/Generic.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommon.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommonmeta.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/cortexa9_toolchain.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/DRVLISTConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/common/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/coresightps_dcc/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/devcfg/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/dmaps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpiops/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/qspips/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/SCUGICConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scutimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scuwdt/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/MemConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/bspconfig.h.in C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/StandaloneExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/intr/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/xilstandalone.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/uartps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/usbps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xadcps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/XiltimerExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/default_timer/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xiltimer.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xtimer_config.h.in CMakeCache.txt CMakeFiles/3.24.2/CMakeASMCompiler.cmake CMakeFiles/3.24.2/CMakeCCompiler.cmake CMakeFiles/3.24.2/CMakeCXXCompiler.cmake CMakeFiles/3.24.2/CMakeSystem.cmake
+build build.ninja: RERUN_CMAKE | C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeASMInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCXXInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeGenericSystem.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-ASM.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-C.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-CXX.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Platform/Generic.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommon.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommonmeta.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/cortexa9_toolchain.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/DRVLISTConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/common/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/coresightps_dcc/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/devcfg/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/dmaps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpiops/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/qspips/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/SCUGICConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scutimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scuwdt/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/MemConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/bspconfig.h.in C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/StandaloneExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/intr/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/xilstandalone.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/uartps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/usbps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xadcps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/XiltimerExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/default_timer/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xiltimer.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xtimer_config.h.in CMakeCache.txt CMakeFiles/3.24.2/CMakeASMCompiler.cmake CMakeFiles/3.24.2/CMakeCCompiler.cmake CMakeFiles/3.24.2/CMakeCXXCompiler.cmake CMakeFiles/3.24.2/CMakeSystem.cmake
   pool = console
 
 
 #############################################
 # A missing CMake input file is not an error.
 
-build C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeASMInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCXXInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeGenericSystem.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-ASM.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-C.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-CXX.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Platform/Generic.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommon.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommonmeta.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/cortexa9_toolchain.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/DRVLISTConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/common/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/coresightps_dcc/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/devcfg/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/dmaps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpio/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpiops/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/qspips/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/SCUGICConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scutimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scuwdt/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/MemConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/bspconfig.h.in C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/StandaloneExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/intr/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/xilstandalone.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/uartps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/usbps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xadcps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/XiltimerExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/default_timer/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xiltimer.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xtimer_config.h.in CMakeCache.txt CMakeFiles/3.24.2/CMakeASMCompiler.cmake CMakeFiles/3.24.2/CMakeCCompiler.cmake CMakeFiles/3.24.2/CMakeCXXCompiler.cmake CMakeFiles/3.24.2/CMakeSystem.cmake: phony
+build C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeASMInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCXXInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeGenericSystem.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeInitializeConfigs.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeLanguageInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInformation.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/CMakeSystemSpecificInitialize.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/CMakeCommonCompilerMacros.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-ASM.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-C.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU-CXX.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Compiler/GNU.cmake C$:/Xilinx/Vitis/2024.2/tps/win64/cmake-3.24.2/share/cmake-3.24/Modules/Platform/Generic.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommon.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/Findcommonmeta.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/cortexa9_toolchain.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/DRVLISTConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/common/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/coresightps_dcc/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/devcfg/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/dmaps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/emacps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/gpiops/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/qspips/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scugic/src/SCUGICConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scutimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/scuwdt/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/sdps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/MemConfig.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/common/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/arm/cortexa9/gcc/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/bspconfig.h.in C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/StandaloneExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/common/intr/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/standalone/src/xilstandalone.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/uartps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/usbps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xadcps/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/XiltimerExample.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/core/default_timer/CMakeLists.txt C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xiltimer.cmake C$:/home/university/8-semester/fenrir/vitis/fenrir_zybo/ps7_cortexa9_0/standalone_ps7_cortexa9_0/bsp/libsrc/xiltimer/src/xtimer_config.h.in CMakeCache.txt CMakeFiles/3.24.2/CMakeASMCompiler.cmake CMakeFiles/3.24.2/CMakeCCompiler.cmake CMakeFiles/3.24.2/CMakeCXXCompiler.cmake CMakeFiles/3.24.2/CMakeSystem.cmake: phony
 
 
 #############################################

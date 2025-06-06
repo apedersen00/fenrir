@@ -169,22 +169,52 @@
 		xlnx,qspi-bus-width = <2>;
 		is-dual = <0>;
 	};
+	&gem0 {
+		xlnx,has-mdio = <1>;
+		phy-mode = "rgmii-id";
+		xlnx,enet-slcr-1000mbps-div0 = <8>;
+		xlnx,enet-slcr-10mbps-div0 = <8>;
+		xlnx,rable = <0>;
+		xlnx,enet-slcr-1000mbps-div1 = <1>;
+		xlnx,enet-slcr-10mbps-div1 = <50>;
+		xlnx,ip-name = "ps7_ethernet";
+		xlnx,eth-mode = <1>;
+		xlnx,enet-clk-freq-hz = <125000000>;
+		xlnx,enet-slcr-100mbps-div0 = <8>;
+		xlnx,ptp-enet-clock = <0x69f6bcb>;
+		local-mac-address = [ 00 0a 23 00 00 00 ];
+		status = "okay";
+		xlnx,enet-slcr-100mbps-div1 = <5>;
+		xlnx,name = "ps7_ethernet_0";
+	};
 	&usb0 {
 		xlnx,rable = <0>;
+		xlnx,usb-reset = "MIO , 46";
 		status = "okay";
 		xlnx,ip-name = "ps7_usb";
 		phy_type = "ulpi";
+		usb-reset = <&gpio0 46 0>;
 		xlnx,name = "ps7_usb_0";
+	};
+	&sdhci0 {
+		xlnx,rable = <0>;
+		xlnx,has-power = <0>;
+		status = "okay";
+		xlnx,ip-name = "ps7_sdio";
+		xlnx,sdio-clk-freq-hz = <50000000>;
+		xlnx,has-wp = <0>;
+		xlnx,has-cd = <1>;
+		xlnx,name = "ps7_sd_0";
 	};
 	&gpio0 {
 		xlnx,rable = <0>;
 		xlnx,mio-gpio-mask = <0x5600>;
 		status = "okay";
 		gpio-mask-high = <0>;
-		xlnx,emio-gpio-width = <1>;
+		xlnx,emio-gpio-width = <64>;
 		xlnx,ip-name = "ps7_gpio";
 		gpio-mask-low = <22016>;
-		emio-gpio-width = <0x1>;
+		emio-gpio-width = <0x40>;
 		xlnx,name = "ps7_gpio_0";
 	};
 	&mc {

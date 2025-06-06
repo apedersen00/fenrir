@@ -1,42 +1,6 @@
-event_count_0:
-- axi_gpio
-- gpio
-event_count_1:
-- axi_gpio
-- gpio
-event_count_2:
-- axi_gpio
-- gpio
-event_count_3:
-- axi_gpio
-- gpio
-event_count_4:
-- axi_gpio
-- gpio
-event_count_5:
-- axi_gpio
-- gpio
-event_count_6:
-- axi_gpio
-- gpio
-event_count_7:
-- axi_gpio
-- gpio
-event_count_8:
-- axi_gpio
-- gpio
-event_count_9:
-- axi_gpio
-- gpio
 fenrir_axi_0:
 - fenrir_axi
 - None
-fenrir_ctrl:
-- axi_gpio
-- gpio
-fifo_write:
-- axi_gpio
-- gpio
 ps7_afi_0:
 - ps7_afi
 - None
@@ -64,6 +28,9 @@ ps7_dma_ns:
 ps7_dma_s:
 - ps7_dma
 - dmaps
+ps7_ethernet_0:
+- ps7_ethernet
+- emacps
 ps7_globaltimer_0:
 - ps7_globaltimer
 - None
@@ -100,6 +67,9 @@ ps7_scutimer_0:
 ps7_scuwdt_0:
 - ps7_scuwdt
 - scuwdt
+ps7_sd_0:
+- ps7_sdio
+- sdps
 ps7_slcr_0:
 - ps7_slcr
 - None
@@ -112,6 +82,3 @@ ps7_usb_0:
 ps7_xadc_0:
 - ps7_xadc
 - xadcps
-switches:
-- axi_gpio
-- gpio
