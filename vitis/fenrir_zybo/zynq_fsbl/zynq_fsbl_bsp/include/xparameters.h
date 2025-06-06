@@ -1,0 +1,543 @@
+#ifndef XPARAMETERS_H   /* prevent circular inclusions */
+#define XPARAMETERS_H   /* by using protection macros */
+
+#define XPAR_XCORESIGHTPS_DCC_NUM_INSTANCES 1
+
+/* Definitions for peripheral CORESIGHT */
+#define XPAR_CORESIGHT_COMPATIBLE "xlnx,ps7-coresight-comp-1.00.a"
+#define XPAR_CORESIGHT_BASEADDR 0xf8800000
+#define XPAR_CORESIGHT_HIGHADDR 0xf88fffff
+
+/* Canonical definitions for peripheral CORESIGHT */
+#define XPAR_XCORESIGHTPS_DCC_0_BASEADDR 0xf8800000
+#define XPAR_XCORESIGHTPS_DCC_0_HIGHADDR 0xf88fffff
+#define XPAR_XCORESIGHTPS_DCC_0_COMPATIBLE "xlnx,ps7-coresight-comp-1.00.a"
+
+#define XPAR_XDEVCFG_NUM_INSTANCES 1
+
+/* Definitions for peripheral DEVCFG */
+#define XPAR_DEVCFG_COMPATIBLE "xlnx,zynq-devcfg-1.0"
+#define XPAR_DEVCFG_BASEADDR 0xf8007000
+#define XPAR_DEVCFG_HIGHADDR 0xf80070ff
+#define XPAR_DEVCFG_INTERRUPTS 0x4008
+#define XPAR_DEVCFG_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral DEVCFG */
+#define XPAR_XDEVCFG_0_BASEADDR 0xf8007000
+#define XPAR_XDEVCFG_0_HIGHADDR 0xf80070ff
+#define XPAR_XDEVCFG_0_COMPATIBLE "xlnx,zynq-devcfg-1.0"
+#define XPAR_XDEVCFG_0_INTERRUPTS 0x4008
+#define XPAR_XDEVCFG_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XDMAPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral DMAC_S */
+#define XPAR_DMAC_S_COMPATIBLE "arm,pl330"
+#define XPAR_DMAC_S_BASEADDR 0xf8003000
+#define XPAR_DMAC_S_HIGHADDR 0xf8003fff
+#define XPAR_DMAC_S_INTERRUPTS 0x400d
+#define XPAR_DMAC_S_INTERRUPTS_1 0x400e
+#define XPAR_DMAC_S_INTERRUPTS_2 0x400f
+#define XPAR_DMAC_S_INTERRUPTS_3 0x4010
+#define XPAR_DMAC_S_INTERRUPTS_4 0x4011
+#define XPAR_DMAC_S_INTERRUPTS_5 0x4028
+#define XPAR_DMAC_S_INTERRUPTS_6 0x4029
+#define XPAR_DMAC_S_INTERRUPTS_7 0x402a
+#define XPAR_DMAC_S_INTERRUPTS_8 0x402b
+#define XPAR_DMAC_S_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral DMAC_S */
+#define XPAR_XDMAPS_0_BASEADDR 0xf8003000
+#define XPAR_XDMAPS_0_HIGHADDR 0xf8003fff
+#define XPAR_XDMAPS_0_COMPATIBLE "arm,pl330"
+#define XPAR_XDMAPS_0_INTERRUPTS 0x400d
+#define XPAR_XDMAPS_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XGPIO_NUM_INSTANCES 13
+
+/* Definitions for peripheral EVENT_COUNT_0 */
+#define XPAR_EVENT_COUNT_0_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_0_BASEADDR 0x41240000
+#define XPAR_EVENT_COUNT_0_HIGHADDR 0x4124ffff
+#define XPAR_EVENT_COUNT_0_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_0_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_0_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_0 */
+#define XPAR_XGPIO_0_BASEADDR 0x41240000
+#define XPAR_XGPIO_0_HIGHADDR 0x4124ffff
+#define XPAR_XGPIO_0_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_0_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_0_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_0_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_1 */
+#define XPAR_EVENT_COUNT_1_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_1_BASEADDR 0x41230000
+#define XPAR_EVENT_COUNT_1_HIGHADDR 0x4123ffff
+#define XPAR_EVENT_COUNT_1_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_1_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_1_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_1 */
+#define XPAR_XGPIO_1_BASEADDR 0x41230000
+#define XPAR_XGPIO_1_HIGHADDR 0x4123ffff
+#define XPAR_XGPIO_1_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_1_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_1_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_1_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_2 */
+#define XPAR_EVENT_COUNT_2_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_2_BASEADDR 0x41220000
+#define XPAR_EVENT_COUNT_2_HIGHADDR 0x4122ffff
+#define XPAR_EVENT_COUNT_2_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_2_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_2_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_2 */
+#define XPAR_XGPIO_2_BASEADDR 0x41220000
+#define XPAR_XGPIO_2_HIGHADDR 0x4122ffff
+#define XPAR_XGPIO_2_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_2_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_2_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_2_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_3 */
+#define XPAR_EVENT_COUNT_3_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_3_BASEADDR 0x41260000
+#define XPAR_EVENT_COUNT_3_HIGHADDR 0x4126ffff
+#define XPAR_EVENT_COUNT_3_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_3_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_3_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_3 */
+#define XPAR_XGPIO_3_BASEADDR 0x41260000
+#define XPAR_XGPIO_3_HIGHADDR 0x4126ffff
+#define XPAR_XGPIO_3_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_3_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_3_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_3_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_4 */
+#define XPAR_EVENT_COUNT_4_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_4_BASEADDR 0x41270000
+#define XPAR_EVENT_COUNT_4_HIGHADDR 0x4127ffff
+#define XPAR_EVENT_COUNT_4_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_4_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_4_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_4 */
+#define XPAR_XGPIO_4_BASEADDR 0x41270000
+#define XPAR_XGPIO_4_HIGHADDR 0x4127ffff
+#define XPAR_XGPIO_4_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_4_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_4_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_4_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_5 */
+#define XPAR_EVENT_COUNT_5_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_5_BASEADDR 0x41280000
+#define XPAR_EVENT_COUNT_5_HIGHADDR 0x4128ffff
+#define XPAR_EVENT_COUNT_5_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_5_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_5_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_5 */
+#define XPAR_XGPIO_5_BASEADDR 0x41280000
+#define XPAR_XGPIO_5_HIGHADDR 0x4128ffff
+#define XPAR_XGPIO_5_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_5_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_5_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_5_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_6 */
+#define XPAR_EVENT_COUNT_6_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_6_BASEADDR 0x41290000
+#define XPAR_EVENT_COUNT_6_HIGHADDR 0x4129ffff
+#define XPAR_EVENT_COUNT_6_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_6_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_6_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_6 */
+#define XPAR_XGPIO_6_BASEADDR 0x41290000
+#define XPAR_XGPIO_6_HIGHADDR 0x4129ffff
+#define XPAR_XGPIO_6_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_6_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_6_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_6_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_7 */
+#define XPAR_EVENT_COUNT_7_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_7_BASEADDR 0x412a0000
+#define XPAR_EVENT_COUNT_7_HIGHADDR 0x412affff
+#define XPAR_EVENT_COUNT_7_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_7_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_7_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_7 */
+#define XPAR_XGPIO_7_BASEADDR 0x412a0000
+#define XPAR_XGPIO_7_HIGHADDR 0x412affff
+#define XPAR_XGPIO_7_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_7_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_7_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_7_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_8 */
+#define XPAR_EVENT_COUNT_8_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_8_BASEADDR 0x412b0000
+#define XPAR_EVENT_COUNT_8_HIGHADDR 0x412bffff
+#define XPAR_EVENT_COUNT_8_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_8_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_8_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_8 */
+#define XPAR_XGPIO_8_BASEADDR 0x412b0000
+#define XPAR_XGPIO_8_HIGHADDR 0x412bffff
+#define XPAR_XGPIO_8_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_8_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_8_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_8_IS_DUAL 0x0
+
+/* Definitions for peripheral EVENT_COUNT_9 */
+#define XPAR_EVENT_COUNT_9_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_EVENT_COUNT_9_BASEADDR 0x412c0000
+#define XPAR_EVENT_COUNT_9_HIGHADDR 0x412cffff
+#define XPAR_EVENT_COUNT_9_INTERRUPT_PRESENT 0x0
+#define XPAR_EVENT_COUNT_9_IS_DUAL 0x0
+#define XPAR_EVENT_COUNT_9_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral EVENT_COUNT_9 */
+#define XPAR_XGPIO_9_BASEADDR 0x412c0000
+#define XPAR_XGPIO_9_HIGHADDR 0x412cffff
+#define XPAR_XGPIO_9_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_9_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_9_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_9_IS_DUAL 0x0
+
+/* Definitions for peripheral FENRIR_CTRL */
+#define XPAR_FENRIR_CTRL_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_FENRIR_CTRL_BASEADDR 0x41210000
+#define XPAR_FENRIR_CTRL_HIGHADDR 0x4121ffff
+#define XPAR_FENRIR_CTRL_INTERRUPT_PRESENT 0x0
+#define XPAR_FENRIR_CTRL_IS_DUAL 0x0
+#define XPAR_FENRIR_CTRL_GPIO_WIDTH 0x4
+
+/* Canonical definitions for peripheral FENRIR_CTRL */
+#define XPAR_XGPIO_10_BASEADDR 0x41210000
+#define XPAR_XGPIO_10_HIGHADDR 0x4121ffff
+#define XPAR_XGPIO_10_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_10_GPIO_WIDTH 0x4
+#define XPAR_XGPIO_10_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_10_IS_DUAL 0x0
+
+/* Definitions for peripheral FIFO_WRITE */
+#define XPAR_FIFO_WRITE_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_FIFO_WRITE_BASEADDR 0x41250000
+#define XPAR_FIFO_WRITE_HIGHADDR 0x4125ffff
+#define XPAR_FIFO_WRITE_INTERRUPT_PRESENT 0x0
+#define XPAR_FIFO_WRITE_IS_DUAL 0x0
+#define XPAR_FIFO_WRITE_GPIO_WIDTH 0x20
+
+/* Canonical definitions for peripheral FIFO_WRITE */
+#define XPAR_XGPIO_11_BASEADDR 0x41250000
+#define XPAR_XGPIO_11_HIGHADDR 0x4125ffff
+#define XPAR_XGPIO_11_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_11_GPIO_WIDTH 0x20
+#define XPAR_XGPIO_11_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_11_IS_DUAL 0x0
+
+/* Definitions for peripheral SWITCHES */
+#define XPAR_SWITCHES_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_SWITCHES_BASEADDR 0x41200000
+#define XPAR_SWITCHES_HIGHADDR 0x4120ffff
+#define XPAR_SWITCHES_INTERRUPT_PRESENT 0x0
+#define XPAR_SWITCHES_IS_DUAL 0x0
+#define XPAR_SWITCHES_GPIO_WIDTH 0x4
+
+/* Canonical definitions for peripheral SWITCHES */
+#define XPAR_XGPIO_12_BASEADDR 0x41200000
+#define XPAR_XGPIO_12_HIGHADDR 0x4120ffff
+#define XPAR_XGPIO_12_COMPATIBLE "xlnx,axi-gpio-2.0"
+#define XPAR_XGPIO_12_GPIO_WIDTH 0x4
+#define XPAR_XGPIO_12_INTERRUPT_PRESENT 0x0
+#define XPAR_XGPIO_12_IS_DUAL 0x0
+
+#define XPAR_XGPIOPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral GPIO0 */
+#define XPAR_GPIO0_COMPATIBLE "xlnx,zynq-gpio-1.0"
+#define XPAR_GPIO0_BASEADDR 0xe000a000
+#define XPAR_GPIO0_HIGHADDR 0xe000afff
+#define XPAR_GPIO0_INTERRUPTS 0x4014
+#define XPAR_GPIO0_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral GPIO0 */
+#define XPAR_XGPIOPS_0_BASEADDR 0xe000a000
+#define XPAR_XGPIOPS_0_HIGHADDR 0xe000afff
+#define XPAR_XGPIOPS_0_COMPATIBLE "xlnx,zynq-gpio-1.0"
+#define XPAR_XGPIOPS_0_INTERRUPTS 0x4014
+#define XPAR_XGPIOPS_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XQSPIPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral QSPI */
+#define XPAR_QSPI_COMPATIBLE "xlnx,zynq-qspi-1.0"
+#define XPAR_QSPI_BASEADDR 0xe000d000
+#define XPAR_QSPI_HIGHADDR 0xe000dfff
+#define XPAR_QSPI_CLOCK_FREQ 0xbebc200
+#define XPAR_QSPI_CONNECTION_MODE 0x0
+#define XPAR_QSPI_INTERRUPTS 0x4013
+#define XPAR_QSPI_INTERRUPT_PARENT 0xf8f01000
+#define XPAR_QSPI_QSPI_MODE 0x0
+#define XPAR_QSPI_QSPI_BUS_WIDTH 0x2
+
+/* Canonical definitions for peripheral QSPI */
+#define XPAR_XQSPIPS_0_BASEADDR 0xe000d000
+#define XPAR_XQSPIPS_0_HIGHADDR 0xe000dfff
+#define XPAR_XQSPIPS_0_COMPATIBLE "xlnx,zynq-qspi-1.0"
+#define XPAR_XQSPIPS_0_CLOCK_FREQ 0xbebc200
+#define XPAR_XQSPIPS_0_CONNECTION_MODE 0x0
+#define XPAR_XQSPIPS_0_INTERRUPTS 0x4013
+#define XPAR_XQSPIPS_0_INTERRUPT_PARENT 0xf8f01000
+#define XPAR_XQSPIPS_0_QSPI_MODE 0x0
+#define XPAR_XQSPIPS_0_QSPI_BUS_WIDTH 0x2
+
+#define XPAR_XSCUGIC_NUM_INSTANCES 1
+
+/* Definitions for peripheral INTC */
+#define XPAR_INTC_COMPATIBLE "arm,cortex-a9-gic"
+#define XPAR_INTC_BASEADDR 0xf8f01000
+#define XPAR_INTC_HIGHADDR 0xf8f01fff
+#define XPAR_INTC_BASEADDR_1 0xf8f00100
+#define XPAR_INTC_HANDLER_TABLE 0x0
+
+/* Canonical definitions for peripheral INTC */
+#define XPAR_XSCUGIC_0_BASEADDR 0xf8f01000
+#define XPAR_XSCUGIC_0_HIGHADDR 0xf8f01fff
+#define XPAR_XSCUGIC_0_HANDLER_TABLE 0x0
+#define XPAR_XSCUGIC_0_COMPATIBLE "arm,cortex-a9-gic"
+
+#define XPAR_XSCUTIMER_NUM_INSTANCES 1
+
+/* Definitions for peripheral SCUTIMER */
+#define XPAR_SCUTIMER_COMPATIBLE "arm,cortex-a9-twd-timer"
+#define XPAR_SCUTIMER_BASEADDR 0xf8f00600
+#define XPAR_SCUTIMER_HIGHADDR 0xf8f0061f
+#define XPAR_SCUTIMER_INTERRUPTS 0x13100d
+#define XPAR_SCUTIMER_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral SCUTIMER */
+#define XPAR_XSCUTIMER_0_BASEADDR 0xf8f00600
+#define XPAR_XSCUTIMER_0_HIGHADDR 0xf8f0061f
+#define XPAR_XSCUTIMER_0_COMPATIBLE "arm,cortex-a9-twd-timer"
+#define XPAR_XSCUTIMER_0_INTERRUPTS 0x13100d
+#define XPAR_XSCUTIMER_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XSCUWDT_NUM_INSTANCES 1
+
+/* Definitions for peripheral SCUWDT */
+#define XPAR_SCUWDT_COMPATIBLE "xlnx,ps7-scuwdt-1.00.a"
+#define XPAR_SCUWDT_BASEADDR 0xf8f00620
+#define XPAR_SCUWDT_HIGHADDR 0xf8f006ff
+#define XPAR_SCUWDT_INTERRUPTS 0x10400e
+#define XPAR_SCUWDT_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral SCUWDT */
+#define XPAR_XSCUWDT_0_BASEADDR 0xf8f00620
+#define XPAR_XSCUWDT_0_HIGHADDR 0xf8f006ff
+#define XPAR_XSCUWDT_0_COMPATIBLE "xlnx,ps7-scuwdt-1.00.a"
+#define XPAR_XSCUWDT_0_INTERRUPTS 0x10400e
+#define XPAR_XSCUWDT_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XUARTPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral UART1 */
+#define XPAR_UART1_COMPATIBLE "xlnx,xuartps"
+#define XPAR_UART1_BASEADDR 0xe0001000
+#define XPAR_UART1_HIGHADDR 0xe0001fff
+#define XPAR_UART1_CLOCK_FREQ 0x5f5e100
+#define XPAR_UART1_CTS_OVERRIDE 0x1
+#define XPAR_UART1_CLOCKS 0x18
+#define XPAR_UART1_INTERRUPTS 0x4032
+#define XPAR_UART1_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral UART1 */
+#define XPAR_XUARTPS_0_BASEADDR 0xe0001000
+#define XPAR_XUARTPS_0_HIGHADDR 0xe0001fff
+#define XPAR_XUARTPS_0_COMPATIBLE "xlnx,xuartps"
+#define XPAR_XUARTPS_0_CLOCK_FREQ 0x5f5e100
+#define XPAR_XUARTPS_0_CTS_OVERRIDE 0x1
+#define XPAR_XUARTPS_0_CLOCKS 0x18
+#define XPAR_XUARTPS_0_INTERRUPTS 0x4032
+#define XPAR_XUARTPS_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XUSBPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral USB0 */
+#define XPAR_USB0_COMPATIBLE "xlnx,zynq-usb-2.20a"
+#define XPAR_USB0_BASEADDR 0xe0002000
+#define XPAR_USB0_HIGHADDR 0xe0002fff
+#define XPAR_USB0_INTERRUPTS 0x4015
+#define XPAR_USB0_INTERRUPT_PARENT 0xf8f01000
+
+/* Canonical definitions for peripheral USB0 */
+#define XPAR_XUSBPS_0_BASEADDR 0xe0002000
+#define XPAR_XUSBPS_0_HIGHADDR 0xe0002fff
+#define XPAR_XUSBPS_0_COMPATIBLE "xlnx,zynq-usb-2.20a"
+#define XPAR_XUSBPS_0_INTERRUPTS 0x4015
+#define XPAR_XUSBPS_0_INTERRUPT_PARENT 0xf8f01000
+
+#define XPAR_XXADCPS_NUM_INSTANCES 1
+
+/* Definitions for peripheral ADC */
+#define XPAR_ADC_COMPATIBLE "xlnx,zynq-xadc-1.00.a"
+#define XPAR_ADC_BASEADDR 0xf8007100
+#define XPAR_ADC_HIGHADDR 0xf800711f
+
+/* Canonical definitions for peripheral ADC */
+#define XPAR_XXADCPS_0_BASEADDR 0xf8007100
+#define XPAR_XXADCPS_0_HIGHADDR 0xf800711f
+#define XPAR_XXADCPS_0_COMPATIBLE "xlnx,zynq-xadc-1.00.a"
+
+/* Definitions for peripheral L2 */
+#define XPAR_L2_BASEADDR 0xf8f02000
+#define XPAR_L2_HIGHADDR 0xf8f02fff
+
+/* Canonical definitions for peripheral L2 */
+#define XPAR_PS7_PL310_0_BASEADDR 0xf8f02000
+#define XPAR_PS7_PL310_0_HIGHADDR 0xf8f02fff
+
+/* Definitions for peripheral MC */
+#define XPAR_MC_BASEADDR 0xf8006000
+#define XPAR_MC_HIGHADDR 0xf8006fff
+
+/* Canonical definitions for peripheral MC */
+#define XPAR_PS7_DDRC_0_BASEADDR 0xf8006000
+#define XPAR_PS7_DDRC_0_HIGHADDR 0xf8006fff
+
+/* Definitions for peripheral SLCR */
+#define XPAR_SLCR_BASEADDR 0xf8000000
+#define XPAR_SLCR_HIGHADDR 0xf8000fff
+
+/* Canonical definitions for peripheral SLCR */
+#define XPAR_PS7_SLCR_0_BASEADDR 0xf8000000
+#define XPAR_PS7_SLCR_0_HIGHADDR 0xf8000fff
+
+/* Definitions for peripheral GLOBAL_TIMER */
+#define XPAR_GLOBAL_TIMER_BASEADDR 0xf8f00200
+#define XPAR_GLOBAL_TIMER_HIGHADDR 0xf8f0021f
+
+/* Canonical definitions for peripheral GLOBAL_TIMER */
+#define XPAR_PS7_GLOBALTIMER_0_BASEADDR 0xf8f00200
+#define XPAR_PS7_GLOBALTIMER_0_HIGHADDR 0xf8f0021f
+
+/* Definitions for peripheral PS7_PMU_0 */
+#define XPAR_PS7_PMU_0_BASEADDR 0xf8891000
+#define XPAR_PS7_PMU_0_HIGHADDR 0xf8891fff
+
+/* Canonical definitions for peripheral PS7_PMU_0 */
+#define XPAR_PS7_PMU_0_BASEADDR 0xf8891000
+#define XPAR_PS7_PMU_0_HIGHADDR 0xf8891fff
+
+/* Definitions for peripheral PS7_OCMC_0 */
+#define XPAR_PS7_OCMC_0_BASEADDR 0xf800c000
+#define XPAR_PS7_OCMC_0_HIGHADDR 0xf800cfff
+
+/* Canonical definitions for peripheral PS7_OCMC_0 */
+#define XPAR_PS7_OCMC_0_BASEADDR 0xf800c000
+#define XPAR_PS7_OCMC_0_HIGHADDR 0xf800cfff
+
+/* Definitions for peripheral PS7_GPV_0 */
+#define XPAR_PS7_GPV_0_BASEADDR 0xf8900000
+#define XPAR_PS7_GPV_0_HIGHADDR 0xf89fffff
+
+/* Canonical definitions for peripheral PS7_GPV_0 */
+#define XPAR_PS7_GPV_0_BASEADDR 0xf8900000
+#define XPAR_PS7_GPV_0_HIGHADDR 0xf89fffff
+
+/* Definitions for peripheral PS7_SCUC_0 */
+#define XPAR_PS7_SCUC_0_BASEADDR 0xf8f00000
+#define XPAR_PS7_SCUC_0_HIGHADDR 0xf8f000fc
+
+/* Canonical definitions for peripheral PS7_SCUC_0 */
+#define XPAR_PS7_SCUC_0_BASEADDR 0xf8f00000
+#define XPAR_PS7_SCUC_0_HIGHADDR 0xf8f000fc
+
+/* Definitions for peripheral PS7_IOP_BUS_CONFIG_0 */
+#define XPAR_PS7_IOP_BUS_CONFIG_0_BASEADDR 0xe0200000
+#define XPAR_PS7_IOP_BUS_CONFIG_0_HIGHADDR 0xe0200fff
+
+/* Canonical definitions for peripheral PS7_IOP_BUS_CONFIG_0 */
+#define XPAR_PS7_IOP_BUS_CONFIG_0_BASEADDR 0xe0200000
+#define XPAR_PS7_IOP_BUS_CONFIG_0_HIGHADDR 0xe0200fff
+
+/* Definitions for peripheral PS7_DMA_NS */
+#define XPAR_PS7_DMA_NS_BASEADDR 0xf8004000
+#define XPAR_PS7_DMA_NS_HIGHADDR 0xf8004fff
+
+/* Canonical definitions for peripheral PS7_DMA_NS */
+#define XPAR_PS7_DMA_0_BASEADDR 0xf8004000
+#define XPAR_PS7_DMA_0_HIGHADDR 0xf8004fff
+
+/* Definitions for peripheral PS7_AFI_0 */
+#define XPAR_PS7_AFI_0_BASEADDR 0xf8008000
+#define XPAR_PS7_AFI_0_HIGHADDR 0xf8008fff
+
+/* Canonical definitions for peripheral PS7_AFI_0 */
+#define XPAR_PS7_AFI_0_BASEADDR 0xf8008000
+#define XPAR_PS7_AFI_0_HIGHADDR 0xf8008fff
+
+/* Definitions for peripheral PS7_AFI_1 */
+#define XPAR_PS7_AFI_1_BASEADDR 0xf8009000
+#define XPAR_PS7_AFI_1_HIGHADDR 0xf8009fff
+
+/* Canonical definitions for peripheral PS7_AFI_1 */
+#define XPAR_PS7_AFI_1_BASEADDR 0xf8009000
+#define XPAR_PS7_AFI_1_HIGHADDR 0xf8009fff
+
+/* Definitions for peripheral PS7_AFI_2 */
+#define XPAR_PS7_AFI_2_BASEADDR 0xf800a000
+#define XPAR_PS7_AFI_2_HIGHADDR 0xf800afff
+
+/* Canonical definitions for peripheral PS7_AFI_2 */
+#define XPAR_PS7_AFI_2_BASEADDR 0xf800a000
+#define XPAR_PS7_AFI_2_HIGHADDR 0xf800afff
+
+/* Definitions for peripheral PS7_AFI_3 */
+#define XPAR_PS7_AFI_3_BASEADDR 0xf800b000
+#define XPAR_PS7_AFI_3_HIGHADDR 0xf800bfff
+
+/* Canonical definitions for peripheral PS7_AFI_3 */
+#define XPAR_PS7_AFI_3_BASEADDR 0xf800b000
+#define XPAR_PS7_AFI_3_HIGHADDR 0xf800bfff
+
+/* Definitions for peripheral FENRIR_AXI_0 */
+#define XPAR_FENRIR_AXI_0_BASEADDR 0x43c00000
+#define XPAR_FENRIR_AXI_0_HIGHADDR 0x43c0ffff
+
+/* Canonical definitions for peripheral FENRIR_AXI_0 */
+#define XPAR_FENRIR_AXI_0_BASEADDR 0x43c00000
+#define XPAR_FENRIR_AXI_0_HIGHADDR 0x43c0ffff
+
+/*  BOARD definition */
+#define XPS_BOARD_ZYBO-Z7-10
+
+#define XPAR_PS7_DDR_0_BASEADDRESS 0x100000
+#define XPAR_PS7_DDR_0_HIGHADDRESS 0x3fffffff
+#define XPAR_PS7_QSPI_LINEAR_0_BASEADDRESS 0xfc000000
+#define XPAR_PS7_QSPI_LINEAR_0_HIGHADDRESS 0xfcffffff
+#define XPAR_PS7_RAM_0_BASEADDRESS 0x0
+#define XPAR_PS7_RAM_0_HIGHADDRESS 0x2ffff
+#define XPAR_PS7_RAM_1_BASEADDRESS 0xffff0000
+#define XPAR_PS7_RAM_1_HIGHADDRESS 0xfffffdff
+
+#define XPAR_CPU_CORE_CLOCK_FREQ_HZ 666666687
+
+/* Number of SLRs */
+#define NUMBER_OF_SLRS 0x1
+
+/* Device ID */
+#define XPAR_DEVICE_ID "7z010"
+
+#endif  /* end of protection macro */

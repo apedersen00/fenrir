@@ -1,0 +1,117 @@
+event_count_0:
+- axi_gpio
+- gpio
+event_count_1:
+- axi_gpio
+- gpio
+event_count_2:
+- axi_gpio
+- gpio
+event_count_3:
+- axi_gpio
+- gpio
+event_count_4:
+- axi_gpio
+- gpio
+event_count_5:
+- axi_gpio
+- gpio
+event_count_6:
+- axi_gpio
+- gpio
+event_count_7:
+- axi_gpio
+- gpio
+event_count_8:
+- axi_gpio
+- gpio
+event_count_9:
+- axi_gpio
+- gpio
+fenrir_axi_0:
+- fenrir_axi
+- None
+fenrir_ctrl:
+- axi_gpio
+- gpio
+fifo_write:
+- axi_gpio
+- gpio
+ps7_afi_0:
+- ps7_afi
+- None
+ps7_afi_1:
+- ps7_afi
+- None
+ps7_afi_2:
+- ps7_afi
+- None
+ps7_afi_3:
+- ps7_afi
+- None
+ps7_coresight_comp_0:
+- ps7_coresight_comp
+- coresightps_dcc
+ps7_ddrc_0:
+- ps7_ddrc
+- None
+ps7_dev_cfg_0:
+- ps7_dev_cfg
+- devcfg
+ps7_dma_ns:
+- ps7_dma
+- None
+ps7_dma_s:
+- ps7_dma
+- dmaps
+ps7_globaltimer_0:
+- ps7_globaltimer
+- None
+ps7_gpio_0:
+- ps7_gpio
+- gpiops
+ps7_gpv_0:
+- ps7_gpv
+- None
+ps7_intc_dist_0:
+- ps7_intc_dist
+- scugic
+ps7_iop_bus_config_0:
+- ps7_iop_bus_config
+- None
+ps7_ocmc_0:
+- ps7_ocmc
+- None
+ps7_pl310_0:
+- ps7_pl310
+- None
+ps7_pmu_0:
+- ps7_pmu
+- None
+ps7_qspi_0:
+- ps7_qspi
+- qspips
+ps7_scuc_0:
+- ps7_scuc
+- None
+ps7_scutimer_0:
+- ps7_scutimer
+- scutimer
+ps7_scuwdt_0:
+- ps7_scuwdt
+- scuwdt
+ps7_slcr_0:
+- ps7_slcr
+- None
+ps7_uart_1:
+- ps7_uart
+- uartps
+ps7_usb_0:
+- ps7_usb
+- usbps
+ps7_xadc_0:
+- ps7_xadc
+- xadcps
+switches:
+- axi_gpio
+- gpio

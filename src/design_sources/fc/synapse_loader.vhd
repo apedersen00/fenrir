@@ -165,6 +165,7 @@ begin
     cfg_layer_offset    <= i_reg_cfg_0(21 downto 11);
     cfg_syn_bits        <= i_reg_cfg_0(23 downto 22);
 
+    -- 137 * 3600
     addr_decoding : process(i_clk)
     begin
         if rising_edge(i_clk) then

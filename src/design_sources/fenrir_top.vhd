@@ -21,6 +21,8 @@ entity FENRIR_TOP is
         sysclk  : in std_logic;
         ctrl    : in std_logic_vector(3 downto 0);
         led     : out std_logic_vector(3 downto 0);
+        busy    : out std_logic;
+        empty   : out std_logic;
 
         -- PS FIFO
         ps_fifo : in std_logic_vector(31 downto 0);
@@ -30,6 +32,12 @@ entity FENRIR_TOP is
         i_fc1_nrnldr_reg_cfg_0   : in std_logic_vector(31 downto 0);
         i_fc1_lif_reg_cfg_0      : in std_logic_vector(31 downto 0);
         i_fc1_nrnwrt_reg_cfg_0   : in std_logic_vector(31 downto 0);
+
+        -- FC2
+        i_fc2_synldr_reg_cfg_0   : in std_logic_vector(31 downto 0);
+        i_fc2_nrnldr_reg_cfg_0   : in std_logic_vector(31 downto 0);
+        i_fc2_lif_reg_cfg_0      : in std_logic_vector(31 downto 0);
+        i_fc2_nrnwrt_reg_cfg_0   : in std_logic_vector(31 downto 0);
 
         -- event counters
         o_class_count_0     : out std_logic_vector(31 downto 0);
@@ -70,6 +78,19 @@ architecture behavior of FENRIR_TOP is
     signal fc1_in_wdata         : std_logic_vector(12 downto 0);
     signal fc1_out_we           : std_logic;
     signal fc1_out_wdata        : std_logic_vector(12 downto 0);
+    signal fc1_busy             : std_logic;
+    signal fc1_fifo_empty       : std_logic;
+
+    -- fc2
+    signal fc2_en               : std_logic;
+    signal fc2_in_we            : std_logic;
+    signal fc2_in_wdata         : std_logic_vector(12 downto 0);
+    signal fc2_out_we           : std_logic;
+    signal fc2_out_wdata        : std_logic_vector(12 downto 0);
+    signal fc2_fifo_empty       : std_logic;
+    signal fc2_fifo_full        : std_logic;
+    signal fc2_fifo_fill_count  : std_logic_vector(7 downto 0);
+    signal fc2_busy             : std_logic;
 
     -- output fifo
     signal out_fifo_empty       : std_logic;
@@ -90,7 +111,8 @@ architecture behavior of FENRIR_TOP is
 
 begin
 
-    -- o_class_count_2 <= "000000000000000000000000" & in_fifo_fill_count;
+    busy <= fc1_busy or fc2_busy;
+    empty <= fc2_fifo_empty and fc1_fifo_empty;
 
     FIFO_IN_ADAPTER : entity work.FIFO_ADAPTER
     generic map (
@@ -106,13 +128,13 @@ begin
 
     FC1 : entity work.FC_LAYER
     generic map (
-        IN_SIZE         => 768,
-        OUT_SIZE        => 11,
+        IN_SIZE         => 3600,
+        OUT_SIZE        => 64,
         OUT_FIFO_DEPTH  => 256,
-        IS_LAST         => 1,
-        SYN_MEM_WIDTH   => 44,
+        IS_LAST         => 0,
+        SYN_MEM_WIDTH   => 32,
         BITS_PER_SYN    => 4,
-        SYN_INIT_FILE   => "../data/fc1_gesture.data",
+        SYN_INIT_FILE   => "../data/FenrirFC_fc1.data",
         NRN_INIT_FILE   => ""
     )
     port map (
@@ -128,15 +150,57 @@ begin
         o_out_fifo_we           => fc1_out_we,
         o_out_fifo_wdata        => fc1_out_wdata,
         -- status
-        o_in_fifo_empty         => open,
+        o_in_fifo_empty         => fc1_fifo_empty,
         o_in_fifo_full          => open,
         o_in_fifo_fill_count    => open,
+        i_out_fifo_full         => fc2_fifo_full,
+        i_out_fifo_empty        => fc2_fifo_empty,
+        i_out_fifo_fill_count   => fc2_fifo_fill_count,
+        o_busy                  => fc1_busy,
+        -- control
+        i_enable                => fc1_en,
+        i_rst                   => reset,
+        i_clk                   => sysclk,
+        -- debug
+        o_sched_tstep           => open,
+        o_nrnmem_we             => open,
+        o_nrnmem_waddr          => open,
+        o_nrnmem_wdata          => open
+    );
+
+    FC2 : entity work.FC_LAYER
+    generic map (
+        IN_SIZE         => 64,
+        OUT_SIZE        => 11,
+        OUT_FIFO_DEPTH  => 256,
+        IS_LAST         => 1,
+        SYN_MEM_WIDTH   => 44,
+        BITS_PER_SYN    => 4,
+        SYN_INIT_FILE   => "../data/FenrirFC_fc2.data",
+        NRN_INIT_FILE   => ""
+    )
+    port map (
+        -- config
+        i_synldr_reg_cfg_0      => i_fc2_synldr_reg_cfg_0,
+        i_nrnldr_reg_cfg_0      => i_fc2_nrnldr_reg_cfg_0,
+        i_lif_reg_cfg_0         => i_fc2_lif_reg_cfg_0,
+        i_nrnwrt_reg_cfg_0      => i_fc2_nrnwrt_reg_cfg_0,
+        -- input
+        i_in_fifo_we            => fc1_out_we,
+        i_in_fifo_wdata         => fc1_out_wdata,
+        -- output
+        o_out_fifo_we           => fc2_out_we,
+        o_out_fifo_wdata        => fc2_out_wdata,
+        -- status
+        o_in_fifo_empty         => fc2_fifo_empty,
+        o_in_fifo_full          => fc2_fifo_full,
+        o_in_fifo_fill_count    => fc2_fifo_fill_count,
         i_out_fifo_full         => out_fifo_full,
         i_out_fifo_empty        => out_fifo_empty,
         i_out_fifo_fill_count   => out_fifo_fill_count,
-        o_busy                  => open,
+        o_busy                  => fc2_busy,
         -- control
-        i_enable                => fc1_en,
+        i_enable                => fc2_en,
         i_rst                   => reset,
         i_clk                   => sysclk,
         -- debug
@@ -152,8 +216,8 @@ begin
             WIDTH => 13
         )
         port map (
-            i_we                => fc1_out_we,
-            i_wdata             => fc1_out_wdata,
+            i_we                => fc2_out_we,
+            i_wdata             => fc2_out_wdata,
             i_re                => out_fifo_re,
             o_rvalid            => out_fifo_rvalid,
             o_rdata             => out_fifo_rdata,
@@ -236,16 +300,20 @@ begin
             when IDLE =>
                 led     <= "0001";
                 fc1_en  <= '0';
+                fc2_en  <= '0';
             when CONFIG =>
                 led     <= "0010";
                 fc1_en  <= '0';
+                fc2_en  <= '0';
             when RUN =>
                 led     <= "0011";
                 fc1_en  <= '1';
+                fc2_en  <= '1';
             when INVALID =>
                 led <= "0000";
             when others =>
                 fc1_en <= '0';
+                fc2_en  <= '0';
         end case;
     end process;
 

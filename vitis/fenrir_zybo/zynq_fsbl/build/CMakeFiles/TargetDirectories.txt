@@ -1,0 +1,3 @@
+C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/zynq_fsbl/build/CMakeFiles/fsbl.elf.dir
+C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/zynq_fsbl/build/CMakeFiles/edit_cache.dir
+C:/home/university/8-semester/fenrir/vitis/fenrir_zybo/zynq_fsbl/build/CMakeFiles/rebuild_cache.dir

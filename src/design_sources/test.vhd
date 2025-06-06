@@ -17,6 +17,11 @@ architecture rtl of FENRIR_WRAPPER is
     signal fc1_lif_reg_cfg_0    : std_logic_vector(31 downto 0);
     signal fc1_nrnwrt_reg_cfg_0 : std_logic_vector(31 downto 0);
 
+    signal fc2_synldr_reg_cfg_0 : std_logic_vector(31 downto 0);
+    signal fc2_nrnldr_reg_cfg_0 : std_logic_vector(31 downto 0);
+    signal fc2_lif_reg_cfg_0    : std_logic_vector(31 downto 0);
+    signal fc2_nrnwrt_reg_cfg_0 : std_logic_vector(31 downto 0);
+
     signal class_count_0        : std_logic_vector(31 downto 0);
     signal class_count_1        : std_logic_vector(31 downto 0);
     signal class_count_2        : std_logic_vector(31 downto 0);
@@ -34,23 +39,45 @@ begin
         "00000000"                              &   -- zero padding
         std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
         std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-        std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+        std_logic_vector(to_unsigned(64, 11));      -- neurons per layer
 
     --
     fc1_nrnldr_reg_cfg_0 <=
         "0000000000"                            &   -- zero padding
         std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-        std_logic_vector(to_unsigned(10, 11));      -- neurons per 
+        std_logic_vector(to_unsigned(64, 11));      -- neurons per 
 
     fc1_lif_reg_cfg_0 <=
         std_logic_vector(to_unsigned(10, 8))    &   -- weight scalar
-        std_logic_vector(to_unsigned(230, 12))  &   -- beta
-        std_logic_vector(to_unsigned(67, 12));      -- thresholdlayer
+        std_logic_vector(to_unsigned(18, 12))  &   -- beta
+        std_logic_vector(to_unsigned(39, 12));      -- thresholdlayer
 
     fc1_nrnwrt_reg_cfg_0 <=
         "0000000000"                            &   -- zero padding
         std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-        std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+        std_logic_vector(to_unsigned(64, 11));      -- neurons per layer
+
+    fc2_synldr_reg_cfg_0 <=
+        "00000000"                              &   -- zero padding
+        std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
+        std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+        std_logic_vector(to_unsigned(11, 11));      -- neurons per layer
+
+    --
+    fc2_nrnldr_reg_cfg_0 <=
+        "0000000000"                            &   -- zero padding
+        std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+        std_logic_vector(to_unsigned(11, 11));      -- neurons per 
+
+    fc2_lif_reg_cfg_0 <=
+        std_logic_vector(to_unsigned(10, 8))    &   -- weight scalar
+        std_logic_vector(to_unsigned(16, 12))  &   -- beta
+        std_logic_vector(to_unsigned(47, 12));      -- thresholdlayer
+
+    fc2_nrnwrt_reg_cfg_0 <=
+        "0000000000"                            &   -- zero padding
+        std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+        std_logic_vector(to_unsigned(11, 11));      -- neurons per layer
 
     FENRIR_inst : entity work.FENRIR_TOP
         port map (
@@ -63,6 +90,11 @@ begin
             i_fc1_nrnldr_reg_cfg_0 => fc1_nrnldr_reg_cfg_0,
             i_fc1_lif_reg_cfg_0    => fc1_lif_reg_cfg_0,
             i_fc1_nrnwrt_reg_cfg_0 => fc1_nrnwrt_reg_cfg_0,
+
+            i_fc2_synldr_reg_cfg_0 => fc2_synldr_reg_cfg_0,
+            i_fc2_nrnldr_reg_cfg_0 => fc2_nrnldr_reg_cfg_0,
+            i_fc2_lif_reg_cfg_0    => fc2_lif_reg_cfg_0,
+            i_fc2_nrnwrt_reg_cfg_0 => fc2_nrnwrt_reg_cfg_0,
 
             o_class_count_0        => class_count_0,
             o_class_count_1        => class_count_1,

@@ -31,11 +31,18 @@
         signal ctrl             : std_logic_vector(3 downto 0);
         signal led              : std_logic_vector(3 downto 0);
         signal ps_fifo          : std_logic_vector(31 downto 0);
+        signal busy             : std_logic;
+        signal fc2_fifo_empty   : std_logic;
 
         signal fc1_synldr_reg_cfg_0 : std_logic_vector(31 downto 0);
         signal fc1_nrnldr_reg_cfg_0 : std_logic_vector(31 downto 0);
         signal fc1_lif_reg_cfg_0    : std_logic_vector(31 downto 0);
         signal fc1_nrnwrt_reg_cfg_0 : std_logic_vector(31 downto 0);
+
+        signal fc2_synldr_reg_cfg_0 : std_logic_vector(31 downto 0);
+        signal fc2_nrnldr_reg_cfg_0 : std_logic_vector(31 downto 0);
+        signal fc2_lif_reg_cfg_0    : std_logic_vector(31 downto 0);
+        signal fc2_nrnwrt_reg_cfg_0 : std_logic_vector(31 downto 0);
 
         signal class_count_0        : std_logic_vector(31 downto 0);
         signal class_count_1        : std_logic_vector(31 downto 0);
@@ -53,35 +60,41 @@
     begin
 
     FENRIR : entity work.FENRIR_TOP
-    port map (
-        sysclk                  => clk,
-        ctrl                    => ctrl,
-        led                     => led,
-        -- PS FIFO
-        ps_fifo                 => ps_fifo,
-        -- FC1
-        i_fc1_synldr_reg_cfg_0  => fc1_synldr_reg_cfg_0,
-        i_fc1_nrnldr_reg_cfg_0  => fc1_nrnldr_reg_cfg_0,
-        i_fc1_lif_reg_cfg_0     => fc1_lif_reg_cfg_0,
-        i_fc1_nrnwrt_reg_cfg_0  => fc1_nrnwrt_reg_cfg_0,
-        -- event counters
-        o_class_count_0         => class_count_0,
-        o_class_count_1         => class_count_1,
-        o_class_count_2         => class_count_2,
-        o_class_count_3         => class_count_3,
-        o_class_count_4         => class_count_4,
-        o_class_count_5         => class_count_5,
-        o_class_count_6         => class_count_6,
-        o_class_count_7         => class_count_7,
-        o_class_count_8         => class_count_8,
-        o_class_count_9         => class_count_9
-    );
+        port map (
+            sysclk                 => clk,
+            ctrl                   => ctrl,
+            led                    => led,
+            ps_fifo                => ps_fifo,
+            busy                   => busy,
+            empty                  => fc2_fifo_empty,
+
+            i_fc1_synldr_reg_cfg_0 => fc1_synldr_reg_cfg_0,
+            i_fc1_nrnldr_reg_cfg_0 => fc1_nrnldr_reg_cfg_0,
+            i_fc1_lif_reg_cfg_0    => fc1_lif_reg_cfg_0,
+            i_fc1_nrnwrt_reg_cfg_0 => fc1_nrnwrt_reg_cfg_0,
+
+            i_fc2_synldr_reg_cfg_0 => fc2_synldr_reg_cfg_0,
+            i_fc2_nrnldr_reg_cfg_0 => fc2_nrnldr_reg_cfg_0,
+            i_fc2_lif_reg_cfg_0    => fc2_lif_reg_cfg_0,
+            i_fc2_nrnwrt_reg_cfg_0 => fc2_nrnwrt_reg_cfg_0,
+
+            o_class_count_0        => class_count_0,
+            o_class_count_1        => class_count_1,
+            o_class_count_2        => class_count_2,
+            o_class_count_3        => class_count_3,
+            o_class_count_4        => class_count_4,
+            o_class_count_5        => class_count_5,
+            o_class_count_6        => class_count_6,
+            o_class_count_7        => class_count_7,
+            o_class_count_8        => class_count_8,
+            o_class_count_9        => class_count_9
+        );
 
         clk <= not clk after clk_period / 2;
 
         PROC_SEQUENCER : process
 
-            file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/nmnist_data.txt";
+            file bin_file           : text open read_mode is "C:/home/university/8-semester/fenrir/src/design_sources/data/gesture_data.txt";
             variable line_buffer    : line;
             variable bv_data        : bit_vector(12 downto 0);
             variable slv_data       : std_logic_vector(12 downto 0);
@@ -92,30 +105,48 @@
             ps_fifo <= (others => '0');
             pendulum <= '0';
             
-            -- 01 00000000000 00000001010
             fc1_synldr_reg_cfg_0 <=
                 "00000000"                              &   -- zero padding
                 std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(64, 11));      -- neurons per layer
 
-            -- 0000 0000 0000 0000 0000 0000 0000 1010
-            --
             fc1_nrnldr_reg_cfg_0 <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per 
+                std_logic_vector(to_unsigned(64, 11));      -- neurons per 
 
-            -- 1010 000011100110 000001000011
             fc1_lif_reg_cfg_0 <=
                 std_logic_vector(to_unsigned(10, 8))    &   -- weight scalar
-                std_logic_vector(to_unsigned(230, 12))  &   -- beta
-                std_logic_vector(to_unsigned(67, 12));      -- thresholdlayer
+                std_logic_vector(to_unsigned(18, 12))  &   -- beta
+                std_logic_vector(to_unsigned(390, 12));      -- thresholdlayer
 
             fc1_nrnwrt_reg_cfg_0 <=
                 "0000000000"                            &   -- zero padding
                 std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
-                std_logic_vector(to_unsigned(10, 11));      -- neurons per layer
+                std_logic_vector(to_unsigned(64, 11));      -- neurons per layer
+
+            fc2_synldr_reg_cfg_0 <=
+                "00000000"                              &   -- zero padding
+                std_logic_vector(to_unsigned(1, 2))     &   -- bits per weight
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(11, 11));      -- neurons per layer
+
+            --
+            fc2_nrnldr_reg_cfg_0 <=
+                "0000000000"                            &   -- zero padding
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(11, 11));      -- neurons per 
+
+            fc2_lif_reg_cfg_0 <=
+                std_logic_vector(to_unsigned(10, 8))    &   -- weight scalar
+                std_logic_vector(to_unsigned(16, 12))  &   -- beta
+                std_logic_vector(to_unsigned(477, 12));      -- thresholdlayer
+
+            fc2_nrnwrt_reg_cfg_0 <=
+                "0000000000"                            &   -- zero padding
+                std_logic_vector(to_unsigned(0, 11))    &   -- layer offset
+                std_logic_vector(to_unsigned(11, 11));      -- neurons per layer
 
             wait until rising_edge(clk);
 
@@ -133,8 +164,12 @@
                 ps_fifo <= pendulum & "000000000000000000" & slv_data;
                 pendulum <= not pendulum;
 
-                wait for 100 * clk_period;
+                wait for 200 * clk_period;
 
+            end loop;
+
+            while (fc2_fifo_empty = '0') loop
+                wait for 100 * clk_period;
             end loop;
             
             finish;

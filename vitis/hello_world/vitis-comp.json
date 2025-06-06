@@ -1,0 +1,16 @@
+{
+  "name": "hello_world",
+  "type": "HOST",
+  "platform": "fenrir_zybo",
+  "domain": "standalone_ps7_cortexa9_0",
+  "cpuInstance": "ps7_cortexa9_0",
+  "cpuType": "cortex-a9",
+  "os": "standalone",
+  "configuration": {
+    "componentType": "HOST",
+    "hostToolchainConfigurations": []
+  },
+  "domainRealName": "standalone_ps7_cortexa9_0",
+  "applicationFlow": "EMBEDDED",
+  "template": "hello_world"
+}
