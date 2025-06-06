@@ -92,8 +92,6 @@ end FC_SYNAPSE_LOADER;
 
 architecture Behavioral of FC_SYNAPSE_LOADER is
 
-    attribute MARK_DEBUG : string;
-
     -- fsm
     type state is (
         IDLE,
@@ -135,14 +133,6 @@ architecture Behavioral of FC_SYNAPSE_LOADER is
     signal dbg_syn_valid    : std_logic;
     signal dbg_syn_valid_next : std_logic;
     signal dbg_syn_valid_last : std_logic;
-
-    attribute MARK_DEBUG of reg_event_buf: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_syn_state: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_o_weight: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_syn_index: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_syn_valid: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_syn_valid_next: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_syn_valid_last: signal is "TRUE";
 
 begin
 

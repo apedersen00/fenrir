@@ -69,8 +69,6 @@ end FC_SCHEDULER;
 
 architecture Behavioral of FC_SCHEDULER is
 
-    attribute MARK_DEBUG : string;
-
     -- fsm
     type state is (
         IDLE,
@@ -97,15 +95,6 @@ architecture Behavioral of FC_SCHEDULER is
     signal dbg_synldr_busy  : std_logic;
     signal dbg_nrnldr_busy  : std_logic;
     signal dbg_rst          : std_logic;
-
-    attribute MARK_DEBUG of event_buf: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_synldr_start: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_nrnldr_start: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_timestep: signal is "TRUE";        
-    attribute MARK_DEBUG of dbg_state: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_synldr_busy: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_nrnldr_busy: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_rst: signal is "TRUE";
     
 begin
 

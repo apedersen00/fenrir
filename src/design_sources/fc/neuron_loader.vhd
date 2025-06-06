@@ -86,8 +86,6 @@ end FC_NEURON_LOADER;
 
 architecture Behavioral of FC_NEURON_LOADER is
 
-    attribute MARK_DEBUG : string;
-
     -- fsm
     type state is (
         IDLE,

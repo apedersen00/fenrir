@@ -88,8 +88,6 @@ end FC_LIF_NEURON;
 
 architecture Behavioral of FC_LIF_NEURON is
 
-    attribute MARK_DEBUG : string;
-
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
@@ -103,16 +101,6 @@ architecture Behavioral of FC_LIF_NEURON is
     signal dbg_continue     : std_logic;
     signal dbg_goto_idle    : std_logic;
     signal dbg_nrn_state_nxt: std_logic_vector(11 downto 0);
-    attribute MARK_DEBUG of syn_reg: signal is "TRUE";
-    attribute MARK_DEBUG of nrn_reg: signal is "TRUE";
-    attribute MARK_DEBUG of idx_reg: signal is "TRUE";
-    attribute MARK_DEBUG of reg_valid: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_continue: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_goto_idle: signal is "TRUE";
-    attribute MARK_DEBUG of dbg_nrn_state_nxt: signal is "TRUE";
-    attribute MARK_DEBUG of cfg_threshold: signal is "TRUE";
-    attribute MARK_DEBUG of cfg_beta: signal is "TRUE";
-    attribute MARK_DEBUG of cfg_weight_scale: signal is "TRUE";
 
     constant cfg_bits_per_syn : integer := 4;
 
