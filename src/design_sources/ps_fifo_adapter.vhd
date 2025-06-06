@@ -24,6 +24,7 @@ use ieee.math_real.all;
 --      i_clk           =>
 --      i_rst           =>
 --      i_ps_write      =>
+--      i_fifo_full     =>
 --      o_fifo_we       =>
 --      o_fifo_wdata    =>
 --  );
@@ -36,6 +37,7 @@ entity FIFO_ADAPTER is
         i_clk               : in std_logic;
         i_rst               : in std_logic;
         i_ps_write          : in std_logic_vector(31 downto 0);
+        i_fifo_full         : in std_logic;
         o_fifo_we           : out std_logic;
         o_fifo_wdata        : out std_logic_vector(WIDTH - 1 downto 0)
     );
@@ -55,7 +57,7 @@ begin
         if rising_edge(i_clk) then
             if i_rst = '1' then
                 last_pendulum <= pendulum;
-            elsif (pendulum /= last_pendulum) then
+            elsif (pendulum /= last_pendulum) and (i_fifo_full = '0') then
                 o_fifo_we       <= '1';
                 o_fifo_wdata    <= i_ps_write(WIDTH - 1 downto 0);
                 last_pendulum   <= pendulum;

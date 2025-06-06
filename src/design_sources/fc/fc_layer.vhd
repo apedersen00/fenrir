@@ -76,6 +76,7 @@ entity FC_LAYER is
         i_in_fifo_wdata         : in std_logic_vector(12 downto 0);
         o_in_fifo_empty         : out std_logic;
         o_in_fifo_full          : out std_logic;
+        o_in_fifo_full_next     : out std_logic;
         o_in_fifo_fill_count    : out std_logic_vector(7 downto 0);
         i_out_fifo_full         : in std_logic;
         i_out_fifo_empty        : in std_logic;
@@ -201,7 +202,7 @@ begin
         o_empty             => in_fifo_empty,
         o_empty_next        => open,
         o_full              => o_in_fifo_full,
-        o_full_next         => open,
+        o_full_next         => o_in_fifo_full_next,
         o_fill_count        => o_in_fifo_fill_count,
         i_clk               => i_clk,
         i_rst               => i_rst

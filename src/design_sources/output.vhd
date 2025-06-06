@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 --
 --  File: output.vhd
---  Description: Module for counting output events from a FIFO.
+--  Description: Exposes a FIFO interface for counting events.
 --  VHDL Version: VHDL-2008
 --
 --  Author(s):
@@ -24,10 +24,8 @@ use ieee.math_real.all;
 --  )
 --  port map (
 --      -- output fifo interface
---      o_fifo_re       =>
---      i_fifo_rdata    =>
---      i_fifo_empty    =>
---      i_fifo_rvalid   =>
+--      i_fifo_we       =>
+--      i_fifo_wdata    =>
 --      -- counter outputs
 --      o_class_count_0 =>
 --      o_class_count_1 =>
@@ -49,10 +47,8 @@ entity FC_OUTPUT is
     );
     port (
         -- output fifo interface
-        o_fifo_re           : out std_logic;
-        i_fifo_rdata        : in std_logic_vector(FIFO_WIDTH - 1 downto 0);
-        i_fifo_empty        : in std_logic;
-        i_fifo_rvalid       : in std_logic;
+        i_fifo_we           : in std_logic;
+        i_fifo_wdata        : in std_logic_vector(FIFO_WIDTH - 1 downto 0);
 
         -- counter outputs
         o_class_count_0     : out std_logic_vector(31 downto 0);
@@ -65,6 +61,7 @@ entity FC_OUTPUT is
         o_class_count_7     : out std_logic_vector(31 downto 0);
         o_class_count_8     : out std_logic_vector(31 downto 0);
         o_class_count_9     : out std_logic_vector(31 downto 0);
+        o_class_count_10    : out std_logic_vector(31 downto 0);
 
         i_clk               : in std_logic;
         i_rst               : in std_logic
@@ -72,14 +69,6 @@ entity FC_OUTPUT is
 end FC_OUTPUT;
 
 architecture Behavioral of FC_OUTPUT is
-    -- fsm
-    type state is (
-        IDLE,
-        GET_EVENT,
-        WRITE_COUNTER
-    );
-    signal present_state    : state;
-    signal next_state       : state;
     
     signal class_count_0    : unsigned(31 downto 0);
     signal class_count_1    : unsigned(31 downto 0);
@@ -91,19 +80,21 @@ architecture Behavioral of FC_OUTPUT is
     signal class_count_7    : unsigned(31 downto 0);
     signal class_count_8    : unsigned(31 downto 0);
     signal class_count_9    : unsigned(31 downto 0);
+    signal class_count_10   : unsigned(31 downto 0);
 
 begin
 
-    o_class_count_0 <= std_logic_vector(class_count_0);
-    o_class_count_1 <= std_logic_vector(class_count_1);
-    o_class_count_2 <= std_logic_vector(class_count_2);
-    o_class_count_3 <= std_logic_vector(class_count_3);
-    o_class_count_4 <= std_logic_vector(class_count_4);
-    o_class_count_5 <= std_logic_vector(class_count_5);
-    o_class_count_6 <= std_logic_vector(class_count_6);
-    o_class_count_7 <= std_logic_vector(class_count_7);
-    o_class_count_8 <= std_logic_vector(class_count_8);
-    o_class_count_9 <= std_logic_vector(class_count_9);
+    o_class_count_0     <= std_logic_vector(class_count_0);
+    o_class_count_1     <= std_logic_vector(class_count_1);
+    o_class_count_2     <= std_logic_vector(class_count_2);
+    o_class_count_3     <= std_logic_vector(class_count_3);
+    o_class_count_4     <= std_logic_vector(class_count_4);
+    o_class_count_5     <= std_logic_vector(class_count_5);
+    o_class_count_6     <= std_logic_vector(class_count_6);
+    o_class_count_7     <= std_logic_vector(class_count_7);
+    o_class_count_8     <= std_logic_vector(class_count_8);
+    o_class_count_9     <= std_logic_vector(class_count_9);
+    o_class_count_10    <= std_logic_vector(class_count_10);
 
     incr_counters : process(i_clk)
     begin
@@ -120,8 +111,8 @@ begin
                 class_count_8 <= (others => '0');
                 class_count_9 <= (others => '0');
             else
-                if (present_state = WRITE_COUNTER) and (i_fifo_rvalid = '1') then
-                    case to_integer(unsigned(i_fifo_rdata)) is
+                if (i_fifo_we = '1') then
+                    case to_integer(unsigned(i_fifo_wdata)) is
                         when 0 =>
                             class_count_0 <= class_count_0 + 1;
                         when 1 =>
@@ -142,61 +133,14 @@ begin
                             class_count_8 <= class_count_8 + 1;
                         when 9 =>
                             class_count_9 <= class_count_9 + 1;
+                        when 10 =>
+                            class_count_10 <= class_count_10 + 1;
                         when others =>
                             null;
                     end case;
                 end if;
             end if;
         end if;
-    end process;
-
-    -- FSM state register process
-    state_reg : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_rst = '1' then
-                present_state <= IDLE;
-            else
-                present_state <= next_state;
-            end if;
-        end if;
-    end process;
-
-    -- FSM next state process
-    nxt_state : process(all)
-    begin
-        next_state <= present_state;
-        case present_state is
-            when IDLE =>
-                if i_fifo_empty = '0' then
-                    next_state <= GET_EVENT;
-                end if;
-
-            when GET_EVENT =>
-                next_state <= WRITE_COUNTER;
-
-            when WRITE_COUNTER =>
-                if i_fifo_rvalid = '1' then
-                    next_state <= IDLE;
-                end if;
-        end case;
-    end process;
-
-    -- FSM output process
-    outputs : process(all)
-    begin
-        case present_state is    
-
-            when IDLE =>
-                o_fifo_re <= '0';
-
-            when GET_EVENT =>
-                o_fifo_re <= '1';
-
-            when WRITE_COUNTER =>
-                o_fifo_re <= '0';
-    
-        end case;
     end process;
 
 end Behavioral;

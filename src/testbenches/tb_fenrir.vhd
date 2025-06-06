@@ -31,7 +31,7 @@
         signal ctrl             : std_logic_vector(3 downto 0);
         signal led              : std_logic_vector(3 downto 0);
         signal ps_fifo          : std_logic_vector(31 downto 0);
-        signal busy             : std_logic;
+        signal flags            : std_logic_vector(2 downto 0);
         signal fc2_fifo_empty   : std_logic;
 
         signal fc1_synldr_reg_cfg_0 : std_logic_vector(31 downto 0);
@@ -54,6 +54,7 @@
         signal class_count_7        : std_logic_vector(31 downto 0);
         signal class_count_8        : std_logic_vector(31 downto 0);
         signal class_count_9        : std_logic_vector(31 downto 0);
+        signal class_count_10       : std_logic_vector(31 downto 0);
 
         signal pendulum             : std_logic;
 
@@ -61,33 +62,33 @@
 
     FENRIR : entity work.FENRIR_TOP
         port map (
-            sysclk                 => clk,
-            ctrl                   => ctrl,
-            led                    => led,
-            ps_fifo                => ps_fifo,
-            busy                   => busy,
-            empty                  => fc2_fifo_empty,
+            i_sysclk                => clk,
+            i_ctrl                  => ctrl,
+            o_flags                 => flags,
+            o_led                   => led,
+            i_ps_fifo               => ps_fifo,
 
-            i_fc1_synldr_reg_cfg_0 => fc1_synldr_reg_cfg_0,
-            i_fc1_nrnldr_reg_cfg_0 => fc1_nrnldr_reg_cfg_0,
-            i_fc1_lif_reg_cfg_0    => fc1_lif_reg_cfg_0,
-            i_fc1_nrnwrt_reg_cfg_0 => fc1_nrnwrt_reg_cfg_0,
+            i_fc1_synldr_reg_cfg_0  => fc1_synldr_reg_cfg_0,
+            i_fc1_nrnldr_reg_cfg_0  => fc1_nrnldr_reg_cfg_0,
+            i_fc1_lif_reg_cfg_0     => fc1_lif_reg_cfg_0,
+            i_fc1_nrnwrt_reg_cfg_0  => fc1_nrnwrt_reg_cfg_0,
 
-            i_fc2_synldr_reg_cfg_0 => fc2_synldr_reg_cfg_0,
-            i_fc2_nrnldr_reg_cfg_0 => fc2_nrnldr_reg_cfg_0,
-            i_fc2_lif_reg_cfg_0    => fc2_lif_reg_cfg_0,
-            i_fc2_nrnwrt_reg_cfg_0 => fc2_nrnwrt_reg_cfg_0,
+            i_fc2_synldr_reg_cfg_0  => fc2_synldr_reg_cfg_0,
+            i_fc2_nrnldr_reg_cfg_0  => fc2_nrnldr_reg_cfg_0,
+            i_fc2_lif_reg_cfg_0     => fc2_lif_reg_cfg_0,
+            i_fc2_nrnwrt_reg_cfg_0  => fc2_nrnwrt_reg_cfg_0,
 
-            o_class_count_0        => class_count_0,
-            o_class_count_1        => class_count_1,
-            o_class_count_2        => class_count_2,
-            o_class_count_3        => class_count_3,
-            o_class_count_4        => class_count_4,
-            o_class_count_5        => class_count_5,
-            o_class_count_6        => class_count_6,
-            o_class_count_7        => class_count_7,
-            o_class_count_8        => class_count_8,
-            o_class_count_9        => class_count_9
+            o_class_count_0         => class_count_0,
+            o_class_count_1         => class_count_1,
+            o_class_count_2         => class_count_2,
+            o_class_count_3         => class_count_3,
+            o_class_count_4         => class_count_4,
+            o_class_count_5         => class_count_5,
+            o_class_count_6         => class_count_6,
+            o_class_count_7         => class_count_7,
+            o_class_count_8         => class_count_8,
+            o_class_count_9         => class_count_9,
+            o_class_count_10        => class_count_10
         );
 
         clk <= not clk after clk_period / 2;
@@ -164,11 +165,15 @@
                 ps_fifo <= pendulum & "000000000000000000" & slv_data;
                 pendulum <= not pendulum;
 
-                wait for 200 * clk_period;
+                wait until rising_edge(clk);
+
+                while (flags(2) = '1') loop
+                    wait until rising_edge(clk);
+                end loop;
 
             end loop;
 
-            while (fc2_fifo_empty = '0') loop
+            while (flags(0) = '0') loop
                 wait for 100 * clk_period;
             end loop;
             
