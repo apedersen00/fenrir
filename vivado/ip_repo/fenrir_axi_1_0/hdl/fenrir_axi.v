@@ -15,10 +15,28 @@
 	)
 	(
 		// Users to add ports here
-		output wire [31:0] reg_0,
-		output wire [31:0] reg_1,
-		output wire [31:0] reg_2,
-		output wire [31:0] reg_3, 
+		output wire [31:0] fc1_synldr_cfg,
+		output wire [31:0] fc1_nrnldr_cfg,
+		output wire [31:0] fc1_lif_cfg,
+		output wire [31:0] fc1_nrnwrt_cfg,
+		output wire [31:0] fc2_synldr_cfg,
+		output wire [31:0] fc2_nrnldr_cfg,
+		output wire [31:0] fc2_lif_cfg,
+		output wire [31:0] fc2_nrnwrt_cfg,
+		output wire [31:0] ctrl,
+		output wire [31:0] fifo_write,
+		input wire [31:0] flags,
+		input wire [31:0] class_count_0,
+		input wire [31:0] class_count_1,
+		input wire [31:0] class_count_2,
+		input wire [31:0] class_count_3,
+		input wire [31:0] class_count_4,
+		input wire [31:0] class_count_5,
+		input wire [31:0] class_count_6,
+		input wire [31:0] class_count_7,
+		input wire [31:0] class_count_8,
+		input wire [31:0] class_count_9,
+		input wire [31:0] class_count_10,
 		// User ports ends
 		// Do not modify the ports beyond this line
 
@@ -74,10 +92,28 @@
 		.S_AXI_RREADY(s00_axi_rready),
 
 		// user ports
-		.reg_0(reg_0),
-		.reg_1(reg_1),
-		.reg_2(reg_2),
-		.reg_3(reg_3)
+		.fc1_synldr_cfg(fc1_synldr_cfg),
+		.fc1_nrnldr_cfg(fc1_nrnldr_cfg),
+		.fc1_lif_cfg(fc1_lif_cfg),
+		.fc1_nrnwrt_cfg(fc1_nrnwrt_cfg),
+		.fc2_synldr_cfg(fc2_synldr_cfg),
+		.fc2_nrnldr_cfg(fc2_nrnldr_cfg),
+		.fc2_lif_cfg(fc2_lif_cfg),
+		.fc2_nrnwrt_cfg(fc2_nrnwrt_cfg),
+		.ctrl(ctrl),
+		.fifo_write(fifo_write),
+		.flags(flags),
+		.class_count_0(class_count_0),
+		.class_count_1(class_count_1),
+		.class_count_2(class_count_2),
+		.class_count_3(class_count_3),
+		.class_count_4(class_count_4),
+		.class_count_5(class_count_5),
+		.class_count_6(class_count_6),
+		.class_count_7(class_count_7),
+		.class_count_8(class_count_8),
+		.class_count_9(class_count_9),
+		.class_count_10(class_count_10)
 	);
 
 	// Add user logic here

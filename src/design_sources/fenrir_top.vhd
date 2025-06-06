@@ -19,7 +19,7 @@ use ieee.math_real.all;
 entity FENRIR_TOP is
     port (
         i_sysclk                : in std_logic;
-        i_ctrl                  : in std_logic_vector(3 downto 0);
+        i_ctrl                  : in std_logic_vector(3 downto 0);  -- fsm control
         o_flags                 : out std_logic_vector(2 downto 0); -- in_fifo_full_next & busy & idle
         o_led                   : out std_logic_vector(3 downto 0);
 
