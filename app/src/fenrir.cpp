@@ -120,8 +120,12 @@ int main(void) {
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
-    auto last_timer_check = steady_clock::now();
-    const auto timer_interval = milliseconds(10);
+    const auto timestep_interval    = milliseconds(10);
+    const auto counters_interval    = milliseconds(100);
+    const uint32_t TIMESTEP_EVENT   = 4096;
+
+    auto last_timestep_check = steady_clock::now();
+    auto last_counters_check = steady_clock::now();
 
     // Init class counters
     uint64_t running_class_counts[11] = {0};
@@ -159,14 +163,19 @@ int main(void) {
 		}
 
         auto current_time = steady_clock::now();
-        if (duration_cast<milliseconds>(current_time - last_timer_check) >= timer_interval) {
-            last_timer_check = current_time;
+
+        if (duration_cast<milliseconds>(current_time - last_timestep_check) >= timestep_interval) {
+            last_timestep_check = current_time;
+            fenrir_regs->write = TIMESTEP_EVENT;
+        }
+
+        if (duration_cast<milliseconds>(current_time - last_counters_check) >= counters_interval) {
+            last_counters_check = current_time;
 
             uint64_t max_count = 0;
             int max_index = -1;
 
             for (int i = 0; i < 11; i++) {
-                // Read class count, compute and store delta
                 uint32_t current_count = fenrir_regs->class_counts[i];
                 uint32_t delta = current_count - last_read_counts[i];
                 running_class_counts[i] += delta;
