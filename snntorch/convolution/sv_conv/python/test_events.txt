@@ -1,0 +1,12 @@
+// Generated test events: 10 total
+// Format: x,y (one event per line)
+02,02
+00,00
+07,07
+04,00
+00,04
+07,04
+04,07
+04,04
+06,06
+02,03

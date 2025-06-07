@@ -12,7 +12,7 @@ interface arbiter_if #(
 );
 
     // Use simple unpacked array type - much cleaner
-    typedef logic [BITS_PER_CHANNEL - 1 : 0] fm_array_t [CHANNELS - 1 : 0];
+    typedef snn_interfaces_pkg::feature_map_t fm_array_t;
     
     // Read signals
     vec2_t coord_get;        // coordinate to read from

@@ -1,11 +1,26 @@
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          6/5/2025   8:22 AM                interfaces
+d-----          6/5/2025   8:22 AM                modules
+d-----          6/5/2025   8:22 AM                packages
+d-----          6/5/2025   5:41 PM                python
+d-----          6/5/2025   3:42 PM                testbenches
+-a----          6/5/2025  11:25 AM           2455 folder_and_file_structure.txt
+
+
     Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\interfaces
 
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
+-a----          6/5/2025   2:46 PM           2782 arbiter_if.sv
+-a----          6/4/2025   2:56 PM           3080 dp_bram_if.sv
 -a----          6/4/2025  12:10 PM           1360 fifo_if.sv
--a----          6/4/2025  12:55 PM            700 snn_control_if.sv
--a----          6/4/2025   1:14 PM           1078 snn_event_if.sv
+-a----          6/4/2025   3:26 PM            903 snn_control_if.sv
+-a----          6/4/2025   4:44 PM           1078 snn_event_if.sv
 
 
     Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\modules
@@ -13,8 +28,12 @@ Mode                 LastWriteTime         Length Name
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
+-a----          6/4/2025   3:34 PM           8217 arbiter.sv
 -a----          6/4/2025   1:34 PM           5301 capture_event.sv
--a----          6/4/2025  10:34 AM           2293 fifo.sv
+-a----          6/4/2025   3:03 PM           3953 dp_bram.sv
+-a----          6/5/2025   2:57 PM           9268 fast_conv.sv
+-a----          6/5/2025   3:04 PM          15511 fast_conv_controller.sv
+-a----          6/5/2025   9:02 AM           2293 fifo.sv
 
 
     Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\packages
@@ -22,7 +41,33 @@ Mode                 LastWriteTime         Length Name
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
--a----          6/4/2025  12:10 PM           1066 snn_interfaces_pkg.sv
+-a----          6/5/2025   2:45 PM           3043 snn_interfaces_pkg.sv
+
+
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\python
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----          6/5/2025   5:41 PM                mem_dumps
+-a----          6/5/2025   3:41 PM           8136 event_gen.py
+-a----          6/5/2025   5:40 PM           5801 get_dumps.py
+-a----          6/5/2025   3:41 PM            131 test_events.txt
+-a----          6/5/2025   3:47 PM          11081 verification.py
+
+
+    Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\python\mem_dumps
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----          6/5/2025   5:38 PM           6058 memory_dumps.csv
+-a----          6/5/2025   5:38 PM          18859 memory_dump_event_0.csv
+-a----          6/5/2025   5:38 PM          18865 memory_dump_event_1.csv
+-a----          6/5/2025   5:38 PM          18871 memory_dump_event_2.csv
+-a----          6/5/2025   5:38 PM          18949 memory_dump_event_9.csv
+-a----          6/5/2025   5:38 PM          18949 memory_dump_final.csv
+-a----          6/5/2025   5:38 PM          18845 memory_dump_initial.csv
 
 
     Directory: C:\Users\alext\source\fenrir\snntorch\convolution\sv_conv\testbenches
@@ -30,5 +75,11 @@ Mode                 LastWriteTime         Length Name
 
 Mode                 LastWriteTime         Length Name
 ----                 -------------         ------ ----
+-a----          6/4/2025   3:24 PM          13374 tb_arbiter.sv
 -a----          6/4/2025   1:20 PM           6966 tb_capture_event.sv
+-a----          6/5/2025   9:49 AM           7319 tb_conv_top.sv
+-a----          6/4/2025   4:35 PM           9265 tb_event_to_conv.sv
 -a----          6/4/2025  11:27 AM          11692 tb_fifo.sv
+-a----          6/5/2025   3:41 PM          13020 tb_verification.sv
+-a----          6/5/2025   3:41 PM             50 test_events.hex
+-a----          6/5/2025   3:41 PM            260 test_events_config.sv
