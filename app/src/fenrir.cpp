@@ -18,6 +18,7 @@
 #include <atomic>
 #include <csignal>
 #include <chrono>
+#include <unordered_set>
 
 #include <libcaercpp/devices/dvxplorer.hpp>
 
@@ -135,6 +136,8 @@ int main(void) {
         last_read_counts[i] = fenrir_regs->class_counts[i];
     }
 
+    std::unordered_set<uint32_t> fired_addresses_in_timestep;
+
 	while (!globalShutdown.load(memory_order_relaxed)) {
         // Receive event packet
 		std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
@@ -153,11 +156,11 @@ int main(void) {
 					= std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
                 for (const auto &event : *polarity) {
-                    uint16_t x = event.getX();
-                    uint16_t y = event.getY();
+                    uint32_t flat_address = (uint32_t)event.getY() * TARGET_WIDTH + (uint32_t)event.getX();
 
-                    uint32_t flat = (uint32_t)y * TARGET_WIDTH + (uint32_t)x;
-                    writeEvent(fenrir_regs, flat);
+                    if (fired_addresses_in_timestep.insert(flat_address).second) {
+                        writeEvent(fenrir_regs, flat_address);
+                    }
                 }
 			}
 		}
@@ -166,6 +169,9 @@ int main(void) {
 
         if (duration_cast<milliseconds>(current_time - last_timestep_check) >= timestep_interval) {
             last_timestep_check = current_time;
+
+            fired_addresses_in_timestep.clear();
+
             fenrir_regs->write = TIMESTEP_EVENT;
         }
 
