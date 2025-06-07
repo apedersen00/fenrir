@@ -1,9 +1,10 @@
-set(FenrirSRC
+add_library(Fenrir STATIC
     fenrir.cpp
+    ../inc/fenrir.hpp
 )
 
-# Form the full path to the source files...
-PREPEND(FenrirSRC)
+target_include_directories(Fenrir PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../inc
+)
 
-# ... and pass the variable to the parent scope.
-set(FenrirSRC ${FenrirSRC} PARENT_SCOPE)
+target_link_libraries(Fenrir PUBLIC caer)
