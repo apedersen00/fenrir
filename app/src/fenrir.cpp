@@ -24,7 +24,7 @@
 #include "fenrir.hpp"
 
 #define MAP_SIZE 4096
-#define TARGET_WIDTH 240
+#define TARGET_WIDTH 240 // If changing this, also update DVX_DVS_CHIP config
 
 using namespace std;
 using namespace std::chrono;
@@ -32,6 +32,7 @@ using namespace std::chrono;
 static int initShutdownHandler();
 static void globalShutdownSignalHandler(int signal);
 static void usbShutdownHandler(void *ptr);
+static void writeEvent(volatile FenrirMemoryMap *regs, uint32_t event);
 
 static atomic_bool globalShutdown(false);
 
@@ -122,7 +123,13 @@ int main(void) {
     auto last_timer_check = steady_clock::now();
     const auto timer_interval = milliseconds(10);
 
-    uint32_t write_count = 0;
+    // Init class counters
+    uint64_t running_class_counts[11] = {0};
+    uint32_t last_read_counts[11] = {0};
+
+    for (int i = 0; i < 11; i++) {
+        last_read_counts[i] = fenrir_regs->class_counts[i];
+    }
 
 	while (!globalShutdown.load(memory_order_relaxed)) {
         // Receive event packet
@@ -146,18 +153,7 @@ int main(void) {
                     uint16_t y = event.getY();
 
                     uint32_t flat = (uint32_t)y * TARGET_WIDTH + (uint32_t)x;
-
-                    uint32_t data_to_write;
-                    if (write_count == 0) {
-                        data_to_write = (flat & 0x7FFFFFFF) | 0x80000000;
-                    }
-                    else {
-                        data_to_write = flat & 0x7FFFFFFF;
-                    }
-
-                    fenrir_regs->write = data_to_write;
-
-                    write_count = (write_count + 1) % 2;
+                    writeEvent(fenrir_regs, flat);
                 }
 			}
 		}
@@ -166,8 +162,25 @@ int main(void) {
         if (duration_cast<milliseconds>(current_time - last_timer_check) >= timer_interval) {
             last_timer_check = current_time;
 
+            uint64_t max_count = 0;
+            int max_index = -1;
+
             for (int i = 0; i < 11; i++) {
-                uint32_t count = fenrir_regs->class_counts[i];
+                // Read class count, compute and store delta
+                uint32_t current_count = fenrir_regs->class_counts[i];
+                uint32_t delta = current_count - last_read_counts[i];
+                running_class_counts[i] += delta;
+                last_read_counts[i] = current_count;
+
+                if (running_class_counts[i] > max_count) {
+                    max_count = running_class_counts[i];
+                    max_index = i;
+                }
+            }
+
+            if (max_index != -1) {
+                printf("Most active neuron is Class %d with a running total of %llu events.\n", 
+                       max_index, (unsigned long long)max_count);
             }
         }
 
@@ -183,6 +196,22 @@ int main(void) {
 
     return EXIT_SUCCESS;
 }
+
+static void writeEvent(volatile FenrirMemoryMap *regs, uint32_t event) {
+    static uint32_t write_count = 0;
+    uint32_t data_to_write;
+
+    if (write_count == 0) {
+        data_to_write = (event & 0x7FFFFFFF) | 0x80000000;
+    }
+    else {
+        data_to_write = event & 0x7FFFFFFF;
+    }
+    
+    regs->write = data_to_write;
+    write_count = (write_count + 1) % 2;
+}
+
 
 static int initShutdownHandler() {
     struct sigaction shutdownAction;
