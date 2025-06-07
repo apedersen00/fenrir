@@ -1,15 +1,23 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.10)
 
-# Set full RPATH
-SET(CMAKE_INSTALL_RPATH ${USER_LOCAL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/caer/examples)
+set(CMAKE_CXX_STANDARD 11)
 
-IF(ENABLE_OPENCV)
-	FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgproc highgui)
-	IF(OpenCV_VERSION VERSION_LESS "3.1.0")
-		MESSAGE(FATAL_ERROR "Cannot find OpenCV 3.1.0 or newer.")
-	ENDIF()
+project(Fenrir VERSION 1.0)
+set(Fenrir_VERSION 1.0)
 
-	ADD_EXECUTABLE(dvxplorer src/dvxplorer.cpp)
-	TARGET_LINK_LIBRARIES(dvxplorer PRIVATE caer ${OpenCV_LIBS})
-	INSTALL(TARGETS dvxplorer DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/caer/examples)
-ENDIF()
+function(PREPEND var )
+   set(listVar "")
+   foreach(f ${${var}})
+       list(APPEND listVar "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
+   endforeach(f)
+   set(${var} "${listVar}" PARENT_SCOPE)
+endfunction(PREPEND)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+add_subdirectory(src)
+add_subdirectory(inc)
+
+add_library(Fenrir STATIC ${FenrirSRC} ${FenrirINC})
+
+target_link_libraries(Fenrir caer)
