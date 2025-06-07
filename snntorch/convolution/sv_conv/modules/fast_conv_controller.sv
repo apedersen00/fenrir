@@ -65,6 +65,7 @@ module fast_conv_controller #(
     snn_control_if  conv_ctrl_bus();
     snn_event_if    capture_to_conv_bus();
     snn_control_if  arbiter_ctrl_bus();
+    snn_control_if  pooling_ctrl_bus();
 
     fifo_if #(
         .DATA_WIDTH(FIFO_DATA_WIDTH),
@@ -121,20 +122,8 @@ module fast_conv_controller #(
     // =========================================================================
     // Timestep control and buffer
     // =========================================================================
-    logic timestep_previous;
-    logic timestep_rising_edge;
     logic pooling_request_pending;
 
-    // Detect rising edge of timestep signal
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            timestep_previous <= 1'b0;
-        end else begin
-            timestep_previous <= timestep;
-        end
-    end
-
-    assign timestep_rising_edge = timestep && !timestep_previous;
 
     // Buffer timestep until pooling can be processed
     always_ff @(posedge clk or negedge rst_n) begin
@@ -142,7 +131,7 @@ module fast_conv_controller #(
             pooling_request_pending <= 1'b0;
         end else if (sys_reset) begin
             pooling_request_pending <= 1'b0;
-        end else if (timestep_rising_edge) begin
+        end else if (timestep) begin
             pooling_request_pending <= 1'b1;
         end else if (state == POOL_MODE) begin
             pooling_request_pending <= 1'b0;
@@ -155,7 +144,7 @@ module fast_conv_controller #(
     logic conv_module_active;
     logic pooling_module_active;
     logic conv_module_ready;
-    logic pooling_module_ready;
+    logic pooling_module_done;
 
     // =========================================================================
     // State machine for processing modes
@@ -197,7 +186,7 @@ module fast_conv_controller #(
             POOL_MODE: begin
                 if (output_fifo_full) begin
                     next_state = PAUSE_POOLING;
-                end else if (pooling_module_ready && !pooling_request_pending) begin
+                end else if (pooling_module_done && !pooling_request_pending) begin
                     next_state = CONV_MODE;
                 end else begin
                     next_state = POOL_MODE;
@@ -225,8 +214,12 @@ module fast_conv_controller #(
     assign capture_ctrl_bus.enable = sys_enable;
     assign capture_ctrl_bus.reset = sys_reset || !rst_n;
 
-    assign pooling_module_active = 1'b0; // No pooling module yet  
-    assign pooling_module_ready = 1'b1;  // Always ready for testing
+    assign pooling_ctrl_bus.clk = clk;
+    assign pooling_ctrl_bus.enable = sys_enable && (state == POOL_MODE);
+    assign pooling_ctrl_bus.reset = sys_reset || !rst_n;
+    assign pooling_module_done = pooling_ctrl_bus.done;
+    assign pooling_module_active = pooling_ctrl_bus.active;
+
 
     assign arbiter_ctrl_bus.clk = clk;
     assign arbiter_ctrl_bus.enable = sys_enable;
@@ -285,6 +278,21 @@ module fast_conv_controller #(
         .mem_read(conv_read_bus.read_port),
         .mem_write(conv_write_bus.write_port)
     );
+
+    // =========================================================================
+    // Sum Pooling Instance
+    // =========================================================================
+    sum_pooling #(
+        .CHANNELS(CHANNELS),
+        .BITS_PER_CHANNEL(BITS_PER_CHANNEL),
+        .IMG_WIDTH(IMG_WIDTH),
+        .IMG_HEIGHT(IMG_HEIGHT)
+    ) sum_pooling_inst (
+        .ctrl_port(pooling_ctrl_bus.pooling),
+        .mem_read(pool_read_bus.read_port),
+        .mem_write(pool_write_bus.write_port)
+    );
+
     // =========================================================================
     // Dual port bram instance
     // =========================================================================
@@ -338,20 +346,7 @@ module fast_conv_controller #(
         $display("================================================");
     end
 
-    always @(posedge clk) begin
-        if (timestep_rising_edge) begin
-            $display("T=%0t: TIMESTEP detected - pooling request buffered", $time);
-        end
-        
-        if (state != next_state) begin
-            case (next_state)
-                CONV_MODE: $display("T=%0t: Switching to CONVOLUTION mode", $time);
-                CONV_FINISHING: $display("T=%0t: CONV_FINISHING - waiting for convolution to complete", $time);
-                POOL_MODE: $display("T=%0t: Switching to POOLING mode", $time);
-                PAUSE_POOLING: $display("T=%0t: PAUSE_POOLING - output FIFO full", $time);
-            endcase
-        end
-    end
+    
         
     always @(posedge clk) begin
         // Check for X/Z values on critical signals

@@ -14,7 +14,7 @@ module tb_convolution_reusable;
     localparam int COORD_BITS = 8;
     localparam int IMG_WIDTH = TEST_IMG_WIDTH;
     localparam int IMG_HEIGHT = TEST_IMG_HEIGHT;
-    localparam int CHANNELS = 1;
+    localparam int CHANNELS = 2;
     localparam int BITS_PER_CHANNEL = 9;
     localparam int FIFO_DATA_WIDTH = 2 * COORD_BITS;
     localparam int INPUT_FIFO_EVENT_CAPACITY = 512;
@@ -122,7 +122,7 @@ module tb_convolution_reusable;
         $display("T=%0t: Dumping memory to %s...", $time, filename);
         
         // Write simple CSV header
-        $fwrite(file_handle, "addr,ch0\n");
+        $fwrite(file_handle, "addr,ch0,ch1\n");
         
         // Dump ALL memory locations - pure raw dump
         for (int addr = 0; addr < (IMG_WIDTH * IMG_HEIGHT); addr++) begin

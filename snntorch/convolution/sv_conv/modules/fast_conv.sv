@@ -44,6 +44,7 @@ module fast_conv #(
     logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] kernel_idx [0:KERNEL_SIZE*KERNEL_SIZE-1];
     // Control signals
     assign ctrl_port.active = (state != IDLE);
+    assign ctrl_port.ready = (state == IDLE);
     assign event_port.event_ready = (state == IDLE);
     
     // go to next state
