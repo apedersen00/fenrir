@@ -24,6 +24,7 @@
 #include "fenrir.hpp"
 
 #define MAP_SIZE 4096
+#define TARGET_WIDTH 240
 
 using namespace std;
 using namespace std::chrono;
@@ -33,6 +34,7 @@ static void globalShutdownSignalHandler(int signal);
 static void usbShutdownHandler(void *ptr);
 
 static atomic_bool globalShutdown(false);
+
 
 int main(void) {
     if (initShutdownHandler() == EXIT_FAILURE) {
@@ -117,6 +119,11 @@ int main(void) {
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
+    auto last_timer_check = steady_clock::now();
+    const auto timer_interval = milliseconds(10);
+
+    uint32_t write_count = 0;
+
 	while (!globalShutdown.load(memory_order_relaxed)) {
         // Receive event packet
 		std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
@@ -138,10 +145,32 @@ int main(void) {
                     uint16_t x = event.getX();
                     uint16_t y = event.getY();
 
-                    printf("Event - x: %d, y: %d\n", x, y);
+                    uint32_t flat = (uint32_t)y * TARGET_WIDTH + (uint32_t)x;
+
+                    uint32_t data_to_write;
+                    if (write_count == 0) {
+                        data_to_write = (flat & 0x7FFFFFFF) | 0x80000000;
+                    }
+                    else {
+                        data_to_write = flat & 0x7FFFFFFF;
+                    }
+
+                    fenrir_regs->write = data_to_write;
+
+                    write_count = (write_count + 1) % 2;
                 }
 			}
 		}
+
+        auto current_time = steady_clock::now();
+        if (duration_cast<milliseconds>(current_time - last_timer_check) >= timer_interval) {
+            last_timer_check = current_time;
+
+            for (int i = 0; i < 11; i++) {
+                uint32_t count = fenrir_regs->class_counts[i];
+            }
+        }
+
 	}
 
     handle.dataStop();
