@@ -25,7 +25,7 @@
 #include "fenrir.hpp"
 
 #define MAP_SIZE 4096
-#define TARGET_WIDTH 240 // If changing this, also update DVX_DVS_CHIP config
+#define TARGET_WIDTH 60 // If changing this, also update DVX_DVS_CHIP config
 
 using namespace std;
 using namespace std::chrono;
@@ -103,7 +103,7 @@ int main(void) {
      *  - Only positive events
      *  - Low sensor bias
      *  - Crop to 480x480
-     *  - Subsample to 240x240
+     *  - Subsample to 60x60
      */
     handle.sendDefaultConfig();
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_EVENT_ON_ONLY, true);
@@ -114,15 +114,15 @@ int main(void) {
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_Y_END_ADDRESS, 480);
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_ENABLE, true);
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_ENABLE, true);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL_HALF);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL_HALF);
+    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL_EIGHTH);
+    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL_EIGHTH);
 
     // Start receiving data
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
     const auto timestep_interval    = milliseconds(10);
-    const auto counters_interval    = milliseconds(100);
+    const auto counters_interval    = milliseconds(1000);
     const uint32_t TIMESTEP_EVENT   = 4096;
 
     auto last_timestep_check = steady_clock::now();
