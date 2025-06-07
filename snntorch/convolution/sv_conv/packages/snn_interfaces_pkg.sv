@@ -3,8 +3,8 @@ package snn_interfaces_pkg;
     parameter int DEFAULT_COORD_BITS = 8;
     parameter int DEFAULT_IMG_WIDTH = 32;
     parameter int DEFAULT_IMG_HEIGHT = 32;
-    parameter int DEFAULT_NEURON_BITS = 6;
-    parameter int DEFAULT_CHANNELS = 6;
+    parameter int DEFAULT_NEURON_BITS = 9;
+    parameter int DEFAULT_CHANNELS = 1;
     parameter int DEFAULT_INPUT_FIFO_EVENT_CAPACITY = 1024;
     parameter int DEFAULT_KERNEL_BITS = 6;
 
@@ -39,15 +39,15 @@ package snn_interfaces_pkg;
     //only for 3x3 kernels
     parameter logic signed [DEFAULT_KERNEL_BITS-1:0] kernel_weights [0:8][0:DEFAULT_CHANNELS -1] =
     '{
-        '{-1, -1,  0,  0,  1,  1}, 
-        '{-2, -1,  0,  0,  1,  2},
-        '{-1, -1,  0,  0,  1,  1},
-        '{ 0,  0, -2, -1,  1,  2},
-        '{ 0,  0,  0,  0,  0,  0},
-        '{ 0,  0,  2,  1, -1, -2},
-        '{ 1,  1,  0,  0, -1, -1},
-        '{ 2,  1,  0,  0, -1, -2},
-        '{ 1,  1,  0,  0, -1, -1}
+        '{1},//, -1,  0,  0,  1,  1}, 
+        '{2},//, -1,  0,  0,  1,  2},
+        '{1},//, -1,  0,  0,  1,  1},
+        '{ 0},//,  0, -2, -1,  1,  2},
+        '{ 0},//,  0,  0,  0,  0,  0},
+        '{ 0},//,  0,  2,  1, -1, -2},
+        '{-1},//,  1,  0,  0, -1, -1},
+        '{-2},//,  1,  0,  0, -1, -2},
+        '{-1}//,  1,  0,  0, -1, -1}
     };
 
     function automatic feature_map_t apply_kernel_weights(

@@ -42,7 +42,7 @@ module arbiter #(
 
     // Coordinate to address conversion function
     function automatic logic [BRAM_ADDR_WIDTH-1:0] coord_to_addr(input vec2_t coord);
-        return coord.y * IMG_WIDTH + coord.x;  // Row-major addressing
+        return coord.y + coord.x * IMG_WIDTH;  // Row-major addressing
     endfunction
 
     // Inline packing/unpacking to avoid type conflicts
