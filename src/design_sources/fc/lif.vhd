@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 --
 --  File: lif.vhd
---  Description:
+--  Description: Leaky-Integrate-and-Fire module for FENRIR. Also locksteps the loaders.
 --  VHDL Version: VHDL-2008
 --
 --  Author(s):
@@ -54,9 +54,7 @@ use ieee.math_real.all;
 entity FC_LIF_NEURON is
     port (
         -- configuration interface
-        i_cfg_en        : in std_logic;                             -- enable configuration
-        i_cfg_addr      : in std_logic_vector(3 downto 0);          -- register to configure
-        i_cfg_val       : in std_logic_vector(31 downto 0);         -- value to configure
+        i_reg_cfg_0         : in std_logic_vector(31 downto 0);
 
         -- neuron interface
         i_nrn_valid         : in std_logic;                             -- neuron state valid
@@ -89,31 +87,37 @@ entity FC_LIF_NEURON is
 end FC_LIF_NEURON;
 
 architecture Behavioral of FC_LIF_NEURON is
-    -- registers
-    signal reg_cfg_0        : std_logic_vector(31 downto 0);    -- configuration register 0
 
     -- configuration
     signal cfg_threshold    : std_logic_vector(11 downto 0);
     signal cfg_beta         : std_logic_vector(11 downto 0);
     signal cfg_weight_scale : std_logic_vector(7 downto 0);
-    signal cfg_bits_per_syn : integer;
 
     signal syn_reg          : std_logic_vector(7 downto 0);
     signal nrn_reg          : std_logic_vector(11 downto 0);
     signal idx_reg          : std_logic_vector(11 downto 0);
     signal reg_valid        : std_logic;
 
+    signal dbg_continue     : std_logic;
+    signal dbg_goto_idle    : std_logic;
+    signal dbg_nrn_state_nxt: std_logic_vector(11 downto 0);
+
+    constant cfg_bits_per_syn : integer := 4;
+
 begin
 
+    o_nrn_state_next <= dbg_nrn_state_nxt;
+    o_continue <= dbg_continue;
+    o_goto_idle <= dbg_goto_idle;
+
     -- configuration decoding
-    cfg_threshold       <= reg_cfg_0(11 downto 0);
-    cfg_beta            <= reg_cfg_0(23 downto 12);
-    cfg_weight_scale    <= reg_cfg_0(31 downto 24);
-    cfg_bits_per_syn    <= 4;
+    cfg_threshold       <= i_reg_cfg_0(11 downto 0);
+    cfg_beta            <= i_reg_cfg_0(23 downto 12);
+    cfg_weight_scale    <= i_reg_cfg_0(31 downto 24);
 
     -- lockstep the neuron and synapse loader
-    o_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
-    o_goto_idle <= i_nrn_valid_last and (i_syn_valid_last or i_timestep);
+    dbg_continue  <= i_nrn_valid_next and (i_syn_valid_next or i_timestep);
+    dbg_goto_idle <= i_nrn_valid_last and (i_syn_valid_last or i_timestep);
 
     out_val : process(i_clk)
     begin
@@ -125,31 +129,23 @@ begin
     input_reg : process(i_clk)
     begin
         if rising_edge(i_clk) then
-            if i_nrn_valid and (i_syn_valid or i_timestep) then
-                syn_reg     <= i_syn_weight;
-                nrn_reg     <= i_nrn_state;
-                idx_reg     <= i_nrn_index;
-                reg_valid   <= '1';
-            else
+            if i_rst = '1' then
                 syn_reg     <= (others => '0');
                 nrn_reg     <= (others => '0');
                 idx_reg     <= (others => '0');
                 reg_valid   <= '0';
-            end if;
-        end if;
-    end process;
-
-    -- configuration interface
-    config : process(i_clk)
-    begin
-        if rising_edge(i_clk) then
-            if i_rst = '1' then
-                reg_cfg_0   <= (others => '0');
-            elsif i_cfg_en = '1' then
-                case i_cfg_addr is
-                    when "0000" => reg_cfg_0 <= i_cfg_val;
-                    when others => null;
-                end case;
+            else
+                if i_nrn_valid and (i_syn_valid or i_timestep) then
+                    syn_reg     <= i_syn_weight;
+                    nrn_reg     <= i_nrn_state;
+                    idx_reg     <= i_nrn_index;
+                    reg_valid   <= '1';
+                else
+                    syn_reg     <= (others => '0');
+                    nrn_reg     <= (others => '0');
+                    idx_reg     <= (others => '0');
+                    reg_valid   <= '0';
+                end if;
             end if;
         end if;
     end process;
@@ -158,7 +154,7 @@ begin
         variable v_syn_weight   : integer range -2047 to 2047;
         variable v_cur_state    : integer range -2047 to 2047;
         variable v_next_state   : integer range -65535 to 65535;
-        variable v_beta         : integer range 0 to 1023;
+        variable v_beta         : integer range 0 to 4095;
         variable v_weight_scale : integer range 0 to 255;
     begin
         if rising_edge(i_clk) then
@@ -174,9 +170,9 @@ begin
 
                 if (i_timestep = '1') and (v_cur_state <= to_integer(unsigned(cfg_threshold))) then
                     if v_cur_state > v_beta then
-                        v_next_state := v_cur_state - to_integer(unsigned(cfg_beta));
+                        v_next_state := v_cur_state - v_beta;
                     elsif v_cur_state < -v_beta then
-                        v_next_state := v_cur_state + to_integer(unsigned(cfg_beta));
+                        v_next_state := v_cur_state + v_beta;
                     else
                         v_next_state := 0;
                     end if;
@@ -190,19 +186,19 @@ begin
                 end if;
 
                 if (i_timestep = '1') and (v_cur_state >= to_integer(unsigned(cfg_threshold))) then
-                    o_nrn_state_next <= (others => '0');
+                    dbg_nrn_state_nxt <= (others => '0');
                     o_event_fifo_out <= std_logic_vector(to_unsigned(0, 12)) when unsigned(idx_reg) = 0 else
                                         std_logic_vector(to_unsigned(to_integer(unsigned(idx_reg)), 12));
                     o_event_fifo_we  <= '1';
                 else
-                    o_nrn_state_next <= std_logic_vector(to_signed(v_next_state, o_nrn_state_next'length));
+                    dbg_nrn_state_nxt <= std_logic_vector(to_signed(v_next_state, dbg_nrn_state_nxt'length));
                     o_event_fifo_out <= (others => '0');
                     o_event_fifo_we  <= '0';
                 end if;
 
             else
                 o_event_fifo_we     <= '0';
-                o_nrn_state_next    <= (others => '0');
+                dbg_nrn_state_nxt    <= (others => '0');
                 o_event_fifo_out    <= (others => '0');
                 o_event_fifo_we     <= '0';
             end if;
