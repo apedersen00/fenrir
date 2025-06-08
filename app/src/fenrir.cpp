@@ -23,11 +23,14 @@
 #include <string>
 
 #include <libcaercpp/devices/dvxplorer.hpp>
+#include <libcaercpp/filters/dvs_noise.hpp>
 
 #include "fenrir.hpp"
+// #include "gesture_data_target_1.h"
 
 #define MAP_SIZE 4096
 #define TARGET_WIDTH 60 // If changing this, also update DVX_DVS_CHIP config
+#define RUN_TEST 0
 
 using namespace std;
 using namespace std::chrono;
@@ -124,12 +127,21 @@ int main(void) {
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_EVENT_ON_ONLY, true);
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_BIAS_SIMPLE, true);
 
+    libcaer::filters::DVSNoise noiseFilter(info.dvsSizeX, info.dvsSizeY);
+
+    noiseFilter.configSet(CAER_FILTER_DVS_BACKGROUND_ACTIVITY_TIME, 5000);
+    noiseFilter.configSet(CAER_FILTER_DVS_BACKGROUND_ACTIVITY_ENABLE, true);
+    noiseFilter.configSet(CAER_FILTER_DVS_REFRACTORY_PERIOD_TIME, 1000);
+    noiseFilter.configSet(CAER_FILTER_DVS_REFRACTORY_PERIOD_ENABLE, true);
+
+    printf("Denoising filter configured and enabled.\n");
+
     // Start receiving data
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
     const auto timestep_interval    = microseconds(16600);
-    const auto counters_interval    = microseconds(1000000);
+    const auto counters_interval    = microseconds(3000000);
     const uint32_t TIMESTEP_EVENT   = 4096;
 
     auto last_timestep_check = steady_clock::now();
@@ -147,46 +159,100 @@ int main(void) {
 
     fenrir_regs->control = 0x00000003;
 
-	while (!globalShutdown.load(memory_order_relaxed)) {
-        // Receive event packet
-		std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
-		if (packetContainer == nullptr) {
-			continue;
-		}
+    uint32_t event_counter = 0;
+    uint32_t event_cnt_all = 0;
 
-		for (auto &packet : *packetContainer) {
-			if (packet == nullptr) {
-				continue;
-			}
+#if RUN_TEST == 1
 
-			if (packet->getEventType() == POLARITY_EVENT) {
-                // Cast base packet to PolarityEventPacket
-				std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
-					= std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
+    printf("--- Starting N-MNIST data test ---\n");
 
-                const uint16_t CROP_X_MAX = 480;
-                const uint16_t CROP_Y_MAX = 480;
-                const uint16_t SUBSAMPLE_FACTOR = 8;
+    // 1. Read the initial state of the counters to establish a baseline
+    uint32_t initial_counts[11] = {0};
+    printf("Reading initial hardware counter values...\n");
+    for (int i = 0; i < 11; i++) {
+        initial_counts[i] = fenrir_regs->class_counts[i];
+    }
 
-                for (const auto &event : *polarity) {
-                    uint16_t x = event.getX();
-                    uint16_t y = event.getY();
+    // 2. Write all events from the header file with a small delay
+    printf("Writing %d events to hardware with a 20us delay between each...\n", NMNIST_EVENTS_SIZE);
+    for (int i = 0; i < NMNIST_EVENTS_SIZE; i++) {
+        writeEvent(fenrir_regs, nmnist_events[i]);
+        usleep(20); // Add a 20 microsecond delay to pace the events
+    }
+    
+    printf("All events written.\n");
 
-                    if (x >= CROP_X_MAX || y >= CROP_Y_MAX) {
-                        continue;
-                    }
+    // 4. Wait for a moment to allow the hardware to complete processing
+    sleep(1); // Wait for 1 second
+
+    // 5. Read the final results and calculate the delta from the initial state
+    printf("\n--- Final Classification Counts (for this test run) ---\n");
+    uint32_t max_delta = 0;
+    int max_index = -1;
+
+    for (int i = 0; i < 11; i++) {
+        uint32_t final_count = fenrir_regs->class_counts[i];
+        // Calculate the difference to see what happened during this test
+        uint32_t delta = final_count - initial_counts[i];
         
-                    uint16_t subsampled_x = x / SUBSAMPLE_FACTOR;
-                    uint16_t subsampled_y = y / SUBSAMPLE_FACTOR;
+        printf("  Class '%s': %u new events (Initial: %u, Final: %u)\n", 
+               class_map[i].c_str(), delta, initial_counts[i], final_count);
+        
+        if (delta > max_delta) {
+            max_delta = delta;
+            max_index = i;
+        }
+    }
 
-                    uint32_t flat_address = (uint32_t)subsampled_y * TARGET_WIDTH + (uint32_t)subsampled_x;
+    // 6. Print the final prediction based on the delta
+    if (max_index != -1 && max_delta > 0) {
+        printf("\nPredicted Gesture: %s (%u events)\n", class_map[max_index].c_str(), max_delta);
+    } else {
+        printf("\nNo gesture recognized.\n");
+    }
 
-                    if (fired_addresses_in_timestep.insert(flat_address).second) {
-                        writeEvent(fenrir_regs, flat_address);
-                    }
+#else
+
+    while (!globalShutdown.load(memory_order_relaxed)) {
+        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = handle.dataGet();
+        if (packetContainer == nullptr) {
+            continue;
+        }
+
+        for (auto &packet : *packetContainer) {
+            if (packet == nullptr || packet->getEventType() != POLARITY_EVENT) {
+                continue;
+            }
+
+            auto polarityPacket = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
+
+            noiseFilter.apply(*polarityPacket);
+
+            const uint16_t CROP_X_MAX       = 480;
+            const uint16_t CROP_Y_MAX       = 480;
+            const uint16_t SUBSAMPLE_FACTOR = 8;
+
+            for (const auto &event : *polarityPacket) {
+                if (!event.isValid()) {
+                    continue;
                 }
-			}
-		}
+
+                uint16_t x = event.getX();
+                uint16_t y = event.getY();
+
+                if (x >= CROP_X_MAX || y >= CROP_Y_MAX) {
+                    continue;
+                }
+
+                uint16_t subsampled_x = x / SUBSAMPLE_FACTOR;
+                uint16_t subsampled_y = y / SUBSAMPLE_FACTOR;
+                uint32_t flat_address = (uint32_t)subsampled_y * TARGET_WIDTH + (uint32_t)subsampled_x;
+
+                if (fired_addresses_in_timestep.insert(flat_address).second) {
+                    writeEvent(fenrir_regs, flat_address);
+                }
+            }
+        }
 
         auto current_time = steady_clock::now();
 
@@ -223,6 +289,11 @@ int main(void) {
                 }
             }
 
+            printf("Number of events: %u\n", event_counter);
+            printf("All events: %u\n", event_cnt_all);
+            event_counter = 0;
+            event_cnt_all = 0;
+
             if (max_index != -1 && max_delta > 0) {
                 printf("\nMost active gesture THIS interval: %s (%u events)\n\n",
                        class_map[max_index].c_str(), max_delta);
@@ -232,14 +303,15 @@ int main(void) {
         }
 
 	}
+#endif
+
+    fenrir_regs->control = 0x00000000;
 
     handle.dataStop();
     if (munmap(virtual_base, MAP_SIZE) == -1) {
         perror("munmap() failed");
     }
     close(mem_fd);
-
-    fenrir_regs->control = 0x00000000;
 
     printf("Shutdown successful.\n");
 
