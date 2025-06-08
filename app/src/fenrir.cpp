@@ -19,6 +19,8 @@
 #include <csignal>
 #include <chrono>
 #include <unordered_set>
+#include <vector>
+#include <string>
 
 #include <libcaercpp/devices/dvxplorer.hpp>
 
@@ -37,6 +39,19 @@ static void writeEvent(volatile FenrirMemoryMap *regs, uint32_t event);
 
 static atomic_bool globalShutdown(false);
 
+const std::vector<std::string> class_map = {
+    "hand_clapping",
+    "right_hand_wave",
+    "left_hand_wave",
+    "right_hand_clockwise",
+    "right_hand_counter_clockwise",
+    "left_hand_clockwise",
+    "left_hand_counter_clockwise",
+    "forearm_roll", 
+    "drums",
+    "guitar",
+    "random_other_gestures"
+};
 
 int main(void) {
     if (initShutdownHandler() == EXIT_FAILURE) {
@@ -193,9 +208,9 @@ int main(void) {
                 }
             }
 
-            if (max_index != -1) {
-                printf("Most active neuron is Class %d with a running total of %llu events.\n", 
-                       max_index, (unsigned long long)max_count);
+            if (max_index != -1 && max_index < class_map.size()) {
+                printf("Most active gesture: %s (total: %llu events)\n", 
+                       class_map[max_index].c_str(), (unsigned long long)max_count);
             }
         }
 
