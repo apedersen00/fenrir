@@ -43,6 +43,13 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 # To test this script, run the following commands from Vivado Tcl console:
 # source fenrir_system_script.tcl
 
+
+# The design that will be created by this Tcl script contains the following 
+# module references:
+# FENRIR_TOP
+
+# Please add the sources of those modules before sourcing this Tcl script.
+
 # If there is no project opened, this script will create a
 # project, but make sure you do not have an existing project
 # <./myproj/project_1.xpr> in the current working folder.
@@ -131,7 +138,7 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:processing_system7:5.5\
-xilinx.com:ip:axi_gpio:2.0\
+xilinx.com:user:fenrir_axi:1.0\
 xilinx.com:ip:smartconnect:1.0\
 xilinx.com:ip:proc_sys_reset:5.0\
 "
@@ -151,6 +158,31 @@ xilinx.com:ip:proc_sys_reset:5.0\
       set bCheckIPsPassed 0
    }
 
+}
+
+##################################################################
+# CHECK Modules
+##################################################################
+set bCheckModules 1
+if { $bCheckModules == 1 } {
+   set list_check_mods "\ 
+FENRIR_TOP\
+"
+
+   set list_mods_missing ""
+   common::send_gid_msg -ssname BD::TCL -id 2020 -severity "INFO" "Checking if the following modules exist in the project's sources: $list_check_mods ."
+
+   foreach mod_vlnv $list_check_mods {
+      if { [can_resolve_reference $mod_vlnv] == 0 } {
+         lappend list_mods_missing $mod_vlnv
+      }
+   }
+
+   if { $list_mods_missing ne "" } {
+      catch {common::send_gid_msg -ssname BD::TCL -id 2021 -severity "ERROR" "The following module(s) are not found in the project: $list_mods_missing" }
+      common::send_gid_msg -ssname BD::TCL -id 2022 -severity "INFO" "Please add source files for the missing module(s) above."
+      set bCheckIPsPassed 0
+   }
 }
 
 if { $bCheckIPsPassed != 1 } {
@@ -201,12 +233,6 @@ proc create_root_design { parentCell } {
 
   set FIXED_IO [ create_bd_intf_port -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO ]
 
-  set sws_4bits [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:gpio_rtl:1.0 sws_4bits ]
-
-  set leds_4bits [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:gpio_rtl:1.0 leds_4bits ]
-
-  set btn [ create_bd_intf_port -mode Master -vlnv xilinx.com:interface:gpio_rtl:1.0 btn ]
-
 
   # Create ports
 
@@ -216,7 +242,7 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_ACT_APU_PERIPHERAL_FREQMHZ {666.666687} \
     CONFIG.PCW_ACT_CAN_PERIPHERAL_FREQMHZ {10.000000} \
     CONFIG.PCW_ACT_DCI_PERIPHERAL_FREQMHZ {10.158730} \
-    CONFIG.PCW_ACT_ENET0_PERIPHERAL_FREQMHZ {10.000000} \
+    CONFIG.PCW_ACT_ENET0_PERIPHERAL_FREQMHZ {125.000000} \
     CONFIG.PCW_ACT_ENET1_PERIPHERAL_FREQMHZ {10.000000} \
     CONFIG.PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ {50.000000} \
     CONFIG.PCW_ACT_FPGA1_PERIPHERAL_FREQMHZ {10.000000} \
@@ -224,7 +250,7 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_ACT_FPGA3_PERIPHERAL_FREQMHZ {10.000000} \
     CONFIG.PCW_ACT_PCAP_PERIPHERAL_FREQMHZ {200.000000} \
     CONFIG.PCW_ACT_QSPI_PERIPHERAL_FREQMHZ {200.000000} \
-    CONFIG.PCW_ACT_SDIO_PERIPHERAL_FREQMHZ {10.000000} \
+    CONFIG.PCW_ACT_SDIO_PERIPHERAL_FREQMHZ {50.000000} \
     CONFIG.PCW_ACT_SMC_PERIPHERAL_FREQMHZ {10.000000} \
     CONFIG.PCW_ACT_SPI_PERIPHERAL_FREQMHZ {10.000000} \
     CONFIG.PCW_ACT_TPIU_PERIPHERAL_FREQMHZ {200.000000} \
@@ -249,29 +275,30 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_DCI_PERIPHERAL_FREQMHZ {10.159} \
     CONFIG.PCW_DDR_PERIPHERAL_CLKSRC {DDR PLL} \
     CONFIG.PCW_DDR_RAM_HIGHADDR {0x3FFFFFFF} \
+    CONFIG.PCW_ENET0_ENET0_IO {MIO 16 .. 27} \
+    CONFIG.PCW_ENET0_GRP_MDIO_ENABLE {1} \
+    CONFIG.PCW_ENET0_GRP_MDIO_IO {MIO 52 .. 53} \
     CONFIG.PCW_ENET0_PERIPHERAL_CLKSRC {IO PLL} \
-    CONFIG.PCW_ENET0_PERIPHERAL_ENABLE {0} \
+    CONFIG.PCW_ENET0_PERIPHERAL_ENABLE {1} \
+    CONFIG.PCW_ENET0_PERIPHERAL_FREQMHZ {1000 Mbps} \
     CONFIG.PCW_ENET0_RESET_ENABLE {0} \
     CONFIG.PCW_ENET1_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_ENET1_PERIPHERAL_ENABLE {0} \
     CONFIG.PCW_ENET_RESET_ENABLE {1} \
     CONFIG.PCW_ENET_RESET_POLARITY {Active Low} \
+    CONFIG.PCW_ENET_RESET_SELECT {Share reset pin} \
     CONFIG.PCW_EN_4K_TIMER {0} \
-    CONFIG.PCW_EN_EMIO_GPIO {1} \
-    CONFIG.PCW_EN_ENET0 {0} \
+    CONFIG.PCW_EN_ENET0 {1} \
     CONFIG.PCW_EN_GPIO {1} \
     CONFIG.PCW_EN_QSPI {1} \
-    CONFIG.PCW_EN_SDIO0 {0} \
+    CONFIG.PCW_EN_SDIO0 {1} \
     CONFIG.PCW_EN_UART1 {1} \
     CONFIG.PCW_EN_USB0 {1} \
     CONFIG.PCW_FPGA_FCLK0_ENABLE {1} \
-    CONFIG.PCW_GPIO_EMIO_GPIO_ENABLE {1} \
-    CONFIG.PCW_GPIO_EMIO_GPIO_IO {1} \
-    CONFIG.PCW_GPIO_EMIO_GPIO_WIDTH {1} \
     CONFIG.PCW_GPIO_MIO_GPIO_ENABLE {1} \
     CONFIG.PCW_GPIO_MIO_GPIO_IO {MIO} \
     CONFIG.PCW_GPIO_PERIPHERAL_ENABLE {0} \
-    CONFIG.PCW_I2C_RESET_ENABLE {0} \
+    CONFIG.PCW_I2C_RESET_ENABLE {1} \
     CONFIG.PCW_IRQ_F2P_MODE {DIRECT} \
     CONFIG.PCW_MIO_0_IOTYPE {LVCMOS 3.3V} \
     CONFIG.PCW_MIO_0_PULLUP {enabled} \
@@ -428,9 +455,10 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_MIO_9_IOTYPE {LVCMOS 3.3V} \
     CONFIG.PCW_MIO_9_PULLUP {enabled} \
     CONFIG.PCW_MIO_9_SLEW {slow} \
-    CONFIG.PCW_MIO_TREE_PERIPHERALS {GPIO#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#GPIO#Quad SPI Flash#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#USB\
-0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#UART 1#UART 1#GPIO#GPIO#GPIO#GPIO} \
-    CONFIG.PCW_MIO_TREE_SIGNALS {gpio[0]#qspi0_ss_b#qspi0_io[0]#qspi0_io[1]#qspi0_io[2]#qspi0_io[3]/HOLD_B#qspi0_sclk#gpio[7]#qspi_fbclk#gpio[9]#gpio[10]#gpio[11]#gpio[12]#gpio[13]#gpio[14]#gpio[15]#gpio[16]#gpio[17]#gpio[18]#gpio[19]#gpio[20]#gpio[21]#gpio[22]#gpio[23]#gpio[24]#gpio[25]#gpio[26]#gpio[27]#data[4]#dir#stp#nxt#data[0]#data[1]#data[2]#data[3]#clk#data[5]#data[6]#data[7]#gpio[40]#gpio[41]#gpio[42]#gpio[43]#gpio[44]#gpio[45]#gpio[46]#gpio[47]#tx#rx#gpio[50]#gpio[51]#gpio[52]#gpio[53]}\
+    CONFIG.PCW_MIO_TREE_PERIPHERALS {GPIO#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#Quad SPI Flash#GPIO#Quad SPI Flash#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#GPIO#Enet 0#Enet 0#Enet\
+0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#Enet 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#USB 0#SD 0#SD 0#SD 0#SD 0#SD 0#SD 0#USB Reset#SD 0#UART 1#UART 1#GPIO#GPIO#Enet\
+0#Enet 0} \
+    CONFIG.PCW_MIO_TREE_SIGNALS {gpio[0]#qspi0_ss_b#qspi0_io[0]#qspi0_io[1]#qspi0_io[2]#qspi0_io[3]/HOLD_B#qspi0_sclk#gpio[7]#qspi_fbclk#gpio[9]#gpio[10]#gpio[11]#gpio[12]#gpio[13]#gpio[14]#gpio[15]#tx_clk#txd[0]#txd[1]#txd[2]#txd[3]#tx_ctl#rx_clk#rxd[0]#rxd[1]#rxd[2]#rxd[3]#rx_ctl#data[4]#dir#stp#nxt#data[0]#data[1]#data[2]#data[3]#clk#data[5]#data[6]#data[7]#clk#cmd#data[0]#data[1]#data[2]#data[3]#reset#cd#tx#rx#gpio[50]#gpio[51]#mdc#mdio}\
 \
     CONFIG.PCW_OVERRIDE_BASIC_CLOCK {0} \
     CONFIG.PCW_PACKAGE_DDR_BOARD_DELAY0 {0.221} \
@@ -458,10 +486,15 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_QSPI_PERIPHERAL_ENABLE {1} \
     CONFIG.PCW_QSPI_PERIPHERAL_FREQMHZ {200} \
     CONFIG.PCW_QSPI_QSPI_IO {MIO 1 .. 6} \
-    CONFIG.PCW_SD0_PERIPHERAL_ENABLE {0} \
+    CONFIG.PCW_SD0_GRP_CD_ENABLE {1} \
+    CONFIG.PCW_SD0_GRP_CD_IO {MIO 47} \
+    CONFIG.PCW_SD0_GRP_POW_ENABLE {0} \
+    CONFIG.PCW_SD0_GRP_WP_ENABLE {0} \
+    CONFIG.PCW_SD0_PERIPHERAL_ENABLE {1} \
+    CONFIG.PCW_SD0_SD0_IO {MIO 40 .. 45} \
     CONFIG.PCW_SDIO_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_SDIO_PERIPHERAL_FREQMHZ {50} \
-    CONFIG.PCW_SDIO_PERIPHERAL_VALID {0} \
+    CONFIG.PCW_SDIO_PERIPHERAL_VALID {1} \
     CONFIG.PCW_SINGLE_QSPI_DATA_MODE {x4} \
     CONFIG.PCW_SMC_PERIPHERAL_CLKSRC {IO PLL} \
     CONFIG.PCW_TPIU_PERIPHERAL_CLKSRC {External} \
@@ -533,69 +566,105 @@ proc create_root_design { parentCell } {
     CONFIG.PCW_UIPARAM_DDR_TRAIN_WRITE_LEVEL {1} \
     CONFIG.PCW_UIPARAM_DDR_USE_INTERNAL_VREF {0} \
     CONFIG.PCW_USB0_PERIPHERAL_ENABLE {1} \
+    CONFIG.PCW_USB0_RESET_ENABLE {1} \
+    CONFIG.PCW_USB0_RESET_IO {MIO 46} \
     CONFIG.PCW_USB0_USB0_IO {MIO 28 .. 39} \
-    CONFIG.PCW_USB_RESET_ENABLE {0} \
+    CONFIG.PCW_USB_RESET_ENABLE {1} \
     CONFIG.PCW_USB_RESET_POLARITY {Active Low} \
+    CONFIG.PCW_USB_RESET_SELECT {Share reset pin} \
     CONFIG.PCW_USE_AXI_NONSECURE {0} \
     CONFIG.PCW_USE_CROSS_TRIGGER {0} \
     CONFIG.PCW_USE_M_AXI_GP0 {1} \
   ] $processing_system7_0
 
 
-  # Create instance: switches, and set properties
-  set switches [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 switches ]
-  set_property -dict [list \
-    CONFIG.GPIO_BOARD_INTERFACE {sws_4bits} \
-    CONFIG.USE_BOARD_FLOW {true} \
-  ] $switches
-
+  # Create instance: FENRIR_TOP_0, and set properties
+  set block_name FENRIR_TOP
+  set block_cell_name FENRIR_TOP_0
+  if { [catch {set FENRIR_TOP_0 [create_bd_cell -type module -reference $block_name $block_cell_name] } errmsg] } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2095 -severity "ERROR" "Unable to add referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   } elseif { $FENRIR_TOP_0 eq "" } {
+     catch {common::send_gid_msg -ssname BD::TCL -id 2096 -severity "ERROR" "Unable to referenced block <$block_name>. Please add the files for ${block_name}'s definition into the project."}
+     return 1
+   }
+  
+  # Create instance: fenrir_axi_0, and set properties
+  set fenrir_axi_0 [ create_bd_cell -type ip -vlnv xilinx.com:user:fenrir_axi:1.0 fenrir_axi_0 ]
 
   # Create instance: axi_smc, and set properties
   set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
-  set_property -dict [list \
-    CONFIG.NUM_MI {2} \
-    CONFIG.NUM_SI {1} \
-  ] $axi_smc
+  set_property CONFIG.NUM_SI {1} $axi_smc
 
 
   # Create instance: rst_ps7_0_50M, and set properties
   set rst_ps7_0_50M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_50M ]
 
-  # Create instance: leds, and set properties
-  set leds [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 leds ]
-  set_property -dict [list \
-    CONFIG.GPIO_BOARD_INTERFACE {leds_4bits} \
-    CONFIG.USE_BOARD_FLOW {true} \
-  ] $leds
-
-
   # Create interface connections
-  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins switches/S_AXI]
-  connect_bd_intf_net -intf_net axi_smc_M01_AXI [get_bd_intf_pins axi_smc/M01_AXI] [get_bd_intf_pins leds/S_AXI]
-  connect_bd_intf_net -intf_net leds_GPIO [get_bd_intf_ports leds_4bits] [get_bd_intf_pins leds/GPIO]
+  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins fenrir_axi_0/S00_AXI]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins processing_system7_0/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
-  connect_bd_intf_net -intf_net processing_system7_0_GPIO_0 [get_bd_intf_ports btn] [get_bd_intf_pins processing_system7_0/GPIO_0]
   connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins axi_smc/S00_AXI]
-  connect_bd_intf_net -intf_net switches_GPIO [get_bd_intf_ports sws_4bits] [get_bd_intf_pins switches/GPIO]
 
   # Create port connections
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_0  [get_bd_pins FENRIR_TOP_0/o_class_count_0] \
+  [get_bd_pins fenrir_axi_0/class_count_0]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_1  [get_bd_pins FENRIR_TOP_0/o_class_count_1] \
+  [get_bd_pins fenrir_axi_0/class_count_1]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_2  [get_bd_pins FENRIR_TOP_0/o_class_count_2] \
+  [get_bd_pins fenrir_axi_0/class_count_2]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_3  [get_bd_pins FENRIR_TOP_0/o_class_count_3] \
+  [get_bd_pins fenrir_axi_0/class_count_3]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_4  [get_bd_pins FENRIR_TOP_0/o_class_count_4] \
+  [get_bd_pins fenrir_axi_0/class_count_4]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_5  [get_bd_pins FENRIR_TOP_0/o_class_count_5] \
+  [get_bd_pins fenrir_axi_0/class_count_5]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_6  [get_bd_pins FENRIR_TOP_0/o_class_count_6] \
+  [get_bd_pins fenrir_axi_0/class_count_6]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_7  [get_bd_pins FENRIR_TOP_0/o_class_count_7] \
+  [get_bd_pins fenrir_axi_0/class_count_7]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_8  [get_bd_pins FENRIR_TOP_0/o_class_count_8] \
+  [get_bd_pins fenrir_axi_0/class_count_8]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_9  [get_bd_pins FENRIR_TOP_0/o_class_count_9] \
+  [get_bd_pins fenrir_axi_0/class_count_9]
+  connect_bd_net -net FENRIR_TOP_0_o_class_count_10  [get_bd_pins FENRIR_TOP_0/o_class_count_10] \
+  [get_bd_pins fenrir_axi_0/class_count_10]
+  connect_bd_net -net FENRIR_TOP_0_o_flags  [get_bd_pins FENRIR_TOP_0/o_flags] \
+  [get_bd_pins fenrir_axi_0/flags]
+  connect_bd_net -net fenrir_axi_0_ctrl  [get_bd_pins fenrir_axi_0/ctrl] \
+  [get_bd_pins FENRIR_TOP_0/i_ctrl]
+  connect_bd_net -net fenrir_axi_0_fc1_lif_cfg  [get_bd_pins fenrir_axi_0/fc1_lif_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc1_lif_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc1_nrnldr_cfg  [get_bd_pins fenrir_axi_0/fc1_nrnldr_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc1_nrnldr_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc1_nrnwrt_cfg  [get_bd_pins fenrir_axi_0/fc1_nrnwrt_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc1_nrnwrt_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc1_synldr_cfg  [get_bd_pins fenrir_axi_0/fc1_synldr_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc1_synldr_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc2_lif_cfg  [get_bd_pins fenrir_axi_0/fc2_lif_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc2_lif_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc2_nrnldr_cfg  [get_bd_pins fenrir_axi_0/fc2_nrnldr_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc2_nrnldr_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc2_nrnwrt_cfg  [get_bd_pins fenrir_axi_0/fc2_nrnwrt_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc2_nrnwrt_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fc2_synldr_cfg  [get_bd_pins fenrir_axi_0/fc2_synldr_cfg] \
+  [get_bd_pins FENRIR_TOP_0/i_fc2_synldr_reg_cfg_0]
+  connect_bd_net -net fenrir_axi_0_fifo_write  [get_bd_pins fenrir_axi_0/fifo_write] \
+  [get_bd_pins FENRIR_TOP_0/i_ps_fifo]
   connect_bd_net -net processing_system7_0_FCLK_CLK0  [get_bd_pins processing_system7_0/FCLK_CLK0] \
   [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] \
   [get_bd_pins axi_smc/aclk] \
-  [get_bd_pins switches/s_axi_aclk] \
+  [get_bd_pins fenrir_axi_0/s00_axi_aclk] \
   [get_bd_pins rst_ps7_0_50M/slowest_sync_clk] \
-  [get_bd_pins leds/s_axi_aclk]
+  [get_bd_pins FENRIR_TOP_0/i_sysclk]
   connect_bd_net -net processing_system7_0_FCLK_RESET0_N  [get_bd_pins processing_system7_0/FCLK_RESET0_N] \
   [get_bd_pins rst_ps7_0_50M/ext_reset_in]
   connect_bd_net -net rst_ps7_0_50M_peripheral_aresetn  [get_bd_pins rst_ps7_0_50M/peripheral_aresetn] \
-  [get_bd_pins switches/s_axi_aresetn] \
-  [get_bd_pins axi_smc/aresetn] \
-  [get_bd_pins leds/s_axi_aresetn]
+  [get_bd_pins fenrir_axi_0/s00_axi_aresetn] \
+  [get_bd_pins axi_smc/aresetn]
 
   # Create address segments
-  assign_bd_address -offset 0x41210000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs leds/S_AXI/Reg] -force
-  assign_bd_address -offset 0x41200000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs switches/S_AXI/Reg] -force
+  assign_bd_address -offset 0x43C00000 -range 0x00010000 -target_address_space [get_bd_addr_spaces processing_system7_0/Data] [get_bd_addr_segs fenrir_axi_0/S00_AXI/S00_AXI_reg] -force
 
 
   # Restore current instance
