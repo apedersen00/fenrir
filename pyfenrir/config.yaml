@@ -1,0 +1,43 @@
+# General Settings
+model: "FenrirFC"                           # See available models in src/model.py
+seed: 0                                     # Random seed for reproducability
+device: "auto"                              # "auto", "cuda", "cpu"
+data_dir: "data"                            # Relative path to where DVSGesture data is/will be saved
+log_dir: "logs"                             # Directory for log files
+model_dir: "models"                         # Directory for saved models
+gradient_log_file: "gradient_norms_log.txt" # Name of the gradient log file
+num_classes: 11
+num_workers: 2
+
+# Training Hyperparameters
+num_epochs: 20
+batch_size: 64
+lr: 0.003                                   # Initial learning rate (3.0e-3)
+betas: [0.9, 0.999]                         # Adam optimizer beta values
+t_0: 190                                    # Initial period for CosineAnnealingLR
+eta_min: 0                                  # Minimum learning rate for CosineAnnealingLR
+correct_rate: 0.5                           # Correct rate for loss function
+incorrect_rate: 0.1                         # Incorrect rate for loss function
+
+# Data Parameters
+target_width: 60
+target_height: 60
+frame_length_us: 16600.0                    # 16.6ms for 60fps
+n_timesteps: 180                            # Number of timesteps for padded frames
+
+# Quantization
+fc1_bits: 4
+fc2_bits: 4
+
+# Conv parameters
+conv1_out: 12
+conv2_out: 5
+kernel_size: 3
+
+# Fully-connected parameters
+fc1_beta: 0.1
+fc2_beta: 0.1
+fc1_thr: 1.0
+fc2_thr: 1.0
+fc1_multiplier: 10
+fc2_multiplier: 10
