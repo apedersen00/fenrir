@@ -9,7 +9,6 @@
 
 # Ignore actual vivado project
 vivado/fenrir
-vivado/fenrir_v2
 
 # Ignore dataset files
 python/data/
