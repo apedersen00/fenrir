@@ -263,7 +263,7 @@ static int initShutdownHandler() {
         return (EXIT_FAILURE);
     }
 
-    return 1;
+    return EXIT_SUCCESS;
 }
 
 static void globalShutdownSignalHandler(int signal) {
