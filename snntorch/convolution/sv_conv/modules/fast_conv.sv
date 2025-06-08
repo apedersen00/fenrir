@@ -49,7 +49,7 @@ module fast_conv #(
     
     // go to next state
     always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
-        if (ctrl_port.reset) begin
+        if (!ctrl_port.reset) begin
             state <= IDLE;
         end else begin
             state <= next_state;
@@ -58,12 +58,7 @@ module fast_conv #(
     //update next state
     always_comb begin
         // drives interfaces event_port and ctrl_port
-        if (ctrl_port.reset) begin
-            next_state = IDLE;
-            event_stored = 1'b0;
-            event_coord = {0, 0};
-            event_port.event_ack = 1'b0;
-        end else begin
+        
 
             case (state)
 
@@ -98,10 +93,10 @@ module fast_conv #(
                 end
 
             endcase
-        end
+        
     end
 
-always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
+always_ff @(posedge ctrl_port.clk) begin
     
     if (state == PROCESSING && next_state==PROCESSING) begin
         conv_counter++;
@@ -113,17 +108,7 @@ end
 
 // Drive read an mem ports
 always_comb begin
-    if (ctrl_port.reset) begin
-        // Reset the read and write ports
-        mem_read.coord_get = '{0, 0};
-        mem_read.read_req = 1'b0;
-        mem_write.coord_wtr = '{0, 0};
-        mem_write.write_req = 1'b0;
-        for (int i = 0; i < CHANNELS; i++) begin
-            mem_write.data_in[i] = '0;
-        end
-    end else begin
-
+    
         case (state)
         
             PREPARE_PROCESSING: begin
@@ -168,18 +153,13 @@ always_comb begin
             end
 
         endcase
-    end
+    
 end
 
 
 always_comb begin
     // Drives following signals: coords_list, coords_count, coord_list_ready, conv_active, conv_coord_counter
-    if (ctrl_port.reset) begin
-        for (int i = 0; i < MAX_COORDS_TO_UPDATE; i++) begin
-            coords_list[i] = '{0, 0};
-            coords_count = 0;
-        end
-    end else begin
+    
         case (state)
             //Calculate the coordinates used for the convolution
             PREPARE_PROCESSING: begin
@@ -217,7 +197,7 @@ always_comb begin
             
             end
         endcase
-    end
+    
 end
 
 

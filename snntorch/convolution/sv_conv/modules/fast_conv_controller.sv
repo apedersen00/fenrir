@@ -22,7 +22,14 @@ module fast_conv_controller #(
     // =========================================================================
     parameter int FIFO_DATA_WIDTH           = 2 * COORD_BITS,
     parameter int INPUT_FIFO_EVENT_CAPACITY = DEFAULT_INPUT_FIFO_EVENT_CAPACITY, // 1024 samples
-    parameter int INPUT_FIFO_ADDR_WIDTH     = $clog2(INPUT_FIFO_EVENT_CAPACITY)
+    parameter int INPUT_FIFO_ADDR_WIDTH     = $clog2(INPUT_FIFO_EVENT_CAPACITY),
+
+    // =========================================================================
+    // Output FIFO params
+    // =========================================================================
+    
+    parameter int OUTPUT_FIFO_DATA_WIDTH = (DEFAULT_COORD_BITS - 1) * 2 + CHANNELS + 1 
+    
 
 )(
     // =========================================================================
@@ -55,7 +62,9 @@ module fast_conv_controller #(
     // =========================================================================
     // Output FIFO
     // =========================================================================
-    input logic output_fifo_full
+    input logic output_fifo_full,
+    output logic output_write_enable,
+    output logic [OUTPUT_FIFO_DATA_WIDTH - 1 : 0] output_fifo_data
 
 );
     // =========================================================================
@@ -208,7 +217,7 @@ module fast_conv_controller #(
     // =========================================================================
     assign conv_ctrl_bus.clk = clk;
     assign conv_ctrl_bus.enable = sys_enable;
-    assign conv_ctrl_bus.reset = sys_reset || !rst_n;
+    assign conv_ctrl_bus.reset = sys_reset || rst_n;
     
     assign capture_ctrl_bus.clk = clk;
     assign capture_ctrl_bus.enable = sys_enable;
@@ -216,7 +225,7 @@ module fast_conv_controller #(
 
     assign pooling_ctrl_bus.clk = clk;
     assign pooling_ctrl_bus.enable = sys_enable && (state == POOL_MODE);
-    assign pooling_ctrl_bus.reset = sys_reset || !rst_n;
+    assign pooling_ctrl_bus.reset = sys_reset || rst_n;
     assign pooling_module_done = pooling_ctrl_bus.done;
     assign pooling_module_active = pooling_ctrl_bus.active;
 
@@ -290,7 +299,9 @@ module fast_conv_controller #(
     ) sum_pooling_inst (
         .ctrl_port(pooling_ctrl_bus.pooling),
         .mem_read(pool_read_bus.read_port),
-        .mem_write(pool_write_bus.write_port)
+        .mem_write(pool_write_bus.write_port),
+        .output_valid(output_write_enable),
+        .output_vector(output_fifo_data)
     );
 
     // =========================================================================
@@ -333,6 +344,7 @@ module fast_conv_controller #(
     // =========================================================================
     // Debug and Monitoring
     // =========================================================================
+    `ifndef SYNTHESIS
     initial begin
         $display("=== Fast Convolution Controller Configuration ===");
         $display("Image Size: %0dx%0d pixels", IMG_WIDTH, IMG_HEIGHT);
@@ -379,5 +391,7 @@ module fast_conv_controller #(
                      capture_to_conv_bus.event_ack);
         end
     end
+    
+    `endif
 
 endmodule
