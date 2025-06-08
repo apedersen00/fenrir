@@ -24,7 +24,7 @@ module sum_pooling #(
     localparam int no_of_windows = no_of_coords / 4; 
     localparam int no_of_windows_one_axis = IMG_WIDTH / 2;
     
-    assign ctrl_port.active = (state == PROCESSING);
+    assign ctrl_port.active = (state == PROCESSING); // or maybe PAUSE also?
     assign ctrl_port.done = (next_state == IDLE);
 
     vec2_t coord_start = '{0, 0};
@@ -117,8 +117,7 @@ always_comb begin
                 window.x = coord_start.x + coord_counter[0];
                 window.y = coord_start.y + coord_counter[1];
                 window_coord = window;
-                //window_coord.x = coord_start.x + coord_counter[0];
-                //window_coord.y = coord_start.y + coord_counter[1];
+                
                 mem_read.coord_get = window;
                 mem_read.read_req = 1'b1; 
 
@@ -131,6 +130,9 @@ always_comb begin
             end
 
             PAUSE: begin
+                if (next_state == PAUSE) begin
+                end else if (next_state == PROCESSING) begin
+                end
             end
 
         endcase
