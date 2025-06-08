@@ -91,26 +91,26 @@ architecture syn of DUAL_PORT_BRAM is
         return RAM;
     end function;
 
-    shared variable RAM : ram_type := InitRamFromFile(FILENAME);
+    signal RAM : ram_type := InitRamFromFile(FILENAME);
+    signal raddr_reg : std_logic_vector(i_raddr'range);
 
     begin
 
     process(i_clk)
     begin
-        if i_clk'event and i_clk = '1' then
+        if rising_edge(i_clk) then
+            -- Write Port
             if i_we = '1' then
-                RAM(conv_integer(i_waddr)) := i_wdata;
+                RAM(to_integer(unsigned(i_waddr))) <= i_wdata;
+            end if;
+
+            -- Read Port
+            if i_re = '1' then
+                raddr_reg <= i_raddr;
             end if;
         end if;
     end process;
 
-    process(i_clk)
-    begin
-        if i_clk'event and i_clk = '1' then
-            if i_re = '1' then
-                o_rdata <= RAM(conv_integer(i_raddr));
-            end if;
-        end if;
-    end process;
+    o_rdata <= RAM(to_integer(unsigned(raddr_reg)));
 
 end syn;
