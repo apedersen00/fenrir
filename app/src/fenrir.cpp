@@ -136,7 +136,7 @@ int main(void) {
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
-    const auto timestep_interval    = milliseconds(10);
+    const auto timestep_interval    = microseconds(16600);
     const auto counters_interval    = milliseconds(1000);
     const uint32_t TIMESTEP_EVENT   = 4096;
 
