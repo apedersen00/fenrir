@@ -122,22 +122,14 @@ int main(void) {
      */
     handle.sendDefaultConfig();
     handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_EVENT_ON_ONLY, true);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_BIAS_SIMPLE_VERY_LOW, true);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_X_START_ADDRESS, 0);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_X_END_ADDRESS, 480);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_Y_START_ADDRESS, 0);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_Y_END_ADDRESS, 480);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_CROPPER_ENABLE, true);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_ENABLE, true);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL, DVX_DVS_CHIP_SUBSAMPLE_HORIZONTAL_EIGHTH);
-    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL, DVX_DVS_CHIP_SUBSAMPLE_VERTICAL_EIGHTH);
+    handle.configSet(DVX_DVS_CHIP, DVX_DVS_CHIP_BIAS_SIMPLE, true);
 
     // Start receiving data
     handle.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     handle.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
     const auto timestep_interval    = microseconds(16600);
-    const auto counters_interval    = milliseconds(1000);
+    const auto counters_interval    = microseconds(1000000);
     const uint32_t TIMESTEP_EVENT   = 4096;
 
     auto last_timestep_check = steady_clock::now();
@@ -152,6 +144,8 @@ int main(void) {
     }
 
     std::unordered_set<uint32_t> fired_addresses_in_timestep;
+
+    fenrir_regs->control = 0x00000003;
 
 	while (!globalShutdown.load(memory_order_relaxed)) {
         // Receive event packet
@@ -170,8 +164,22 @@ int main(void) {
 				std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
 					= std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
+                const uint16_t CROP_X_MAX = 480;
+                const uint16_t CROP_Y_MAX = 480;
+                const uint16_t SUBSAMPLE_FACTOR = 8;
+
                 for (const auto &event : *polarity) {
-                    uint32_t flat_address = (uint32_t)event.getY() * TARGET_WIDTH + (uint32_t)event.getX();
+                    uint16_t x = event.getX();
+                    uint16_t y = event.getY();
+
+                    if (x >= CROP_X_MAX || y >= CROP_Y_MAX) {
+                        continue;
+                    }
+        
+                    uint16_t subsampled_x = x / SUBSAMPLE_FACTOR;
+                    uint16_t subsampled_y = y / SUBSAMPLE_FACTOR;
+
+                    uint32_t flat_address = (uint32_t)subsampled_y * TARGET_WIDTH + (uint32_t)subsampled_x;
 
                     if (fired_addresses_in_timestep.insert(flat_address).second) {
                         writeEvent(fenrir_regs, flat_address);
@@ -182,7 +190,8 @@ int main(void) {
 
         auto current_time = steady_clock::now();
 
-        if (duration_cast<milliseconds>(current_time - last_timestep_check) >= timestep_interval) {
+        if (duration_cast<microseconds>(current_time - last_timestep_check) >= timestep_interval) {
+
             last_timestep_check = current_time;
 
             fired_addresses_in_timestep.clear();
@@ -190,27 +199,35 @@ int main(void) {
             fenrir_regs->write = TIMESTEP_EVENT;
         }
 
-        if (duration_cast<milliseconds>(current_time - last_counters_check) >= counters_interval) {
+        if (duration_cast<microseconds>(current_time - last_counters_check) >= counters_interval) {
             last_counters_check = current_time;
 
-            uint64_t max_count = 0;
+            uint32_t max_delta = 0;
             int max_index = -1;
+
+            printf("--- Interval Report ---\n");
 
             for (int i = 0; i < 11; i++) {
                 uint32_t current_count = fenrir_regs->class_counts[i];
+
                 uint32_t delta = current_count - last_read_counts[i];
-                running_class_counts[i] += delta;
                 last_read_counts[i] = current_count;
 
-                if (running_class_counts[i] > max_count) {
-                    max_count = running_class_counts[i];
+                if (delta > 0) {
+                    printf("  Class '%s': %u new events\n", class_map[i].c_str(), delta);
+                }
+
+                if (delta > max_delta) {
+                    max_delta = delta;
                     max_index = i;
                 }
             }
 
-            if (max_index != -1 && max_index < class_map.size()) {
-                printf("Most active gesture: %s (total: %llu events)\n", 
-                       class_map[max_index].c_str(), (unsigned long long)max_count);
+            if (max_index != -1 && max_delta > 0) {
+                printf("\nMost active gesture THIS interval: %s (%u events)\n\n",
+                       class_map[max_index].c_str(), max_delta);
+            } else {
+                printf("\nNo significant gesture activity in this interval.\n\n");
             }
         }
 
@@ -221,6 +238,8 @@ int main(void) {
         perror("munmap() failed");
     }
     close(mem_fd);
+
+    fenrir_regs->control = 0x00000000;
 
     printf("Shutdown successful.\n");
 
