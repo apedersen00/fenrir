@@ -150,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument('--load_model_path', type=str, default=None, help='Path to load a pre-trained model state_dict from.')
     parser.add_argument('--save_model_name', type=str, default="fenrir_dvsgesture", help='Base name for saving the trained model. _best.pth" will be appended.')
     
-    parser.add_argument('--plots', action='store_true', help='Save plot of loss and LR to the log directory after training.')
+    parser.add_argument('--plot', action='store_true', help='Save plot of loss and LR to the log directory after training.')
 
     cli_args = parser.parse_args()
     main(cli_args)
