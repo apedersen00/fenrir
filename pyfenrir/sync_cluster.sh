@@ -1,2 +1,2 @@
-rsync -avzP albert@gpucluster.st.lab.au.dk:~/fenrir/snn_gesture_trainer/models .
-rsync -avzP albert@gpucluster.st.lab.au.dk:~/fenrir/snn_gesture_trainer/logs .
+rsync -avzP albert@gpucluster.st.lab.au.dk:~/fenrir/pyfenrir/models .
+rsync -avzP albert@gpucluster.st.lab.au.dk:~/fenrir/pyfenrir/logs .
