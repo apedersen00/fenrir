@@ -49,7 +49,7 @@ module Convolution2d #(
   
     // Counter registers and conv status
     logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] conv_counter = 0; // Counter for kernel positions
-    logic [$clog2(IN_CHANNELS)-1:0] current_channel = 0; // Current channel being processed
+    logic [$clog2(IN_CHANNELS)-1:0] channel_counter = 0; // Current channel being processed
     logic conv_active = 0; // Indicates if convolution is active
     // ==================================================================
     // Counters
@@ -61,15 +61,21 @@ module Convolution2d #(
             case (state)
                 PREPARE_PROCESSING: begin
                     // set first channel as the current channel
-                    current_channel <= channels_to_process_list[0];
                     conv_counter <= 0;
                     conv_active <= 1; // Start convolution processing
                 end
 
                 PROCESSING: begin
-                    if (conv_counter == 9) begin
+                    if (conv_counter == (KERNEL_SIZE ** 2) && channel_counter == (channels_count - 1)) begin
+                        // done condition
                         conv_active <= 0; // End convolution processing
                         conv_counter <= 0; // Reset counter for next event
+                        channel_counter <= 0; // Reset channel counter
+                    end else if (conv_counter == (KERNEL_SIZE ** 2)) begin
+                        // Move to the next channel
+                        channel_counter <= channel_counter + 1; // Increment channel counter
+                        conv_counter <= 0; // Reset kernel position counter for the next channel
+
                     end else begin
                         conv_counter <= conv_counter + 1; // Increment kernel position counter
                     end
@@ -117,6 +123,8 @@ module Convolution2d #(
                 end
                 coord_list_ready = (coords_count > 0);
             end
+
+            PROCESSING: begin end // lol just keeping the stuff alive
 
             default: begin
                 coords_count = 0;
@@ -166,7 +174,7 @@ module Convolution2d #(
                     next_state = IDLE; // Go back to IDLE after processing
                 end
                 event_ack = 0; // Reset acknowledgment after processing
-                event_stored = 0;
+                event_stored = 1;
             end
         endcase
     end 
