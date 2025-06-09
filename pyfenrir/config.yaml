@@ -1,5 +1,5 @@
 # General Settings
-model: "FenrirFC"                           # See available models in src/model.py
+model: "FenrirNet"                           # See available models in src/model.py
 seed: 0                                     # Random seed for reproducability
 device: "auto"                              # "auto", "cuda", "cpu"
 data_dir: "data"                            # Relative path to where DVSGesture data is/will be saved
