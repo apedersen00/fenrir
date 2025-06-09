@@ -42,8 +42,12 @@ class FenrirNet(nn.Module):
         self.pool4 = SpikePooling2D(num_channels=conv4_out, kernel_size=2, stride=2)
 
         self.fc1_beta   = torch.nn.Parameter(torch.tensor(fc1_beta_init), requires_grad=True)
-        self.fc1        = qnn.QuantLinear((h // 16) * (w // 16) * conv4_out, num_classes, bias=False, weight_bit_width=fc1_bits)
+        self.fc1        = qnn.QuantLinear((h // 16) * (w // 16) * conv4_out, 64, bias=False, weight_bit_width=fc1_bits)
         self.lif1       = snn.Leaky(beta=1.0, threshold=fc1_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
+
+        self.fc2_beta   = torch.nn.Parameter(torch.tensor(fc2_beta_init), requires_grad=True)
+        self.fc2        = qnn.QuantLinear(64, num_classes, bias=False, weight_bit_width=fc2_bits)
+        self.lif2       = snn.Leaky(beta=1.0, threshold=fc2_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
 
     def forward(self, x: torch.Tensor):
 
@@ -54,11 +58,13 @@ class FenrirNet(nn.Module):
         conv_mem3 = torch.zeros(B, self.conv3.out_channels, H//4, W//4, device=x.device)
         conv_mem4 = torch.zeros(B, self.conv4.out_channels, H//8, W//8, device=x.device)
         fc_mem1   = self.lif1.init_leaky()
+        fc_mem2   = self.lif2.init_leaky()
 
         # Record output spikes
         spk_rec = []
 
         scale_fc1 = self.fc1.quant_weight().scale
+        scale_fc2 = self.fc2.quant_weight().scale
 
         for t in range(T):
 
@@ -81,13 +87,12 @@ class FenrirNet(nn.Module):
             spk5, fc_mem1 = self.lif1(cur1, fc_mem1)
             fc_mem1 = NetUtils.beta_clamp(fc_mem1, self.fc1_beta)
 
-            spk_rec.append(spk5)
+            cur2 = self.fc2(spk5)
+            fc_mem2 = NetUtils.mem_clamp(fc_mem2, scale_fc2, multiplier=self.fc2_multiplier)
+            spk6, fc_mem2 = self.lif2(cur2, fc_mem2)
+            fc_mem2 = NetUtils.beta_clamp(fc_mem2, self.fc2_beta)
 
-            conv_mem1   = conv_mem1.detach()
-            conv_mem2   = conv_mem2.detach()
-            conv_mem3   = conv_mem3.detach()
-            conv_mem4   = conv_mem4.detach()
-            fc_mem1     = fc_mem1.detach()
+            spk_rec.append(spk6)
 
         return torch.stack(spk_rec)
 
