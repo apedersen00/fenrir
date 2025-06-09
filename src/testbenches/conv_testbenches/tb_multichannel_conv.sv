@@ -11,6 +11,14 @@ module tb_conv_multichannel;
     logic rst_n = 0;
     always #5 clk = ~clk;  // 10 ns period
 
+    output_vector_t test_event = 
+    '{
+        0, // timestep
+        5, // x coordinate
+        3, // y coordinate
+        'b11 // spikes for each channel (2 channels, both active)
+    };
+
     // instantiate the bus interface (no ports)
     kernel_bram_if #(
         .IN_CHANNELS  (IN_CHANNELS),
@@ -24,10 +32,22 @@ module tb_conv_multichannel;
         .KERNEL_SIZE       (KERNEL_SIZE),
         .IN_CHANNELS       (IN_CHANNELS),
         .OUT_CHANNELS      (OUT_CHANNELS)
-    ) dut (
+    ) mem_kernel (
         .clk      (clk),
         .rst_n    (rst_n),
         .bram_port(kernel_bram_bus.bram_module)
+    );
+
+    // add convolution module to the testbench
+    Convolution2d #(
+        .IN_CHANNELS  (IN_CHANNELS),
+        .OUT_CHANNELS (OUT_CHANNELS),
+        .KERNEL_SIZE  (KERNEL_SIZE)
+    ) conv_module (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .bram_port(kernel_bram_bus.conv_module),
+        .event_in (test_event)
     );
 
     initial begin

@@ -4,9 +4,12 @@ package snn_interfaces_pkg;
     parameter int DEFAULT_IMG_WIDTH = 32;
     parameter int DEFAULT_IMG_HEIGHT = 32;
     parameter int DEFAULT_NEURON_BITS = 9;
-    parameter int DEFAULT_CHANNELS = 2;
+    parameter int DEFAULT_CHANNELS = 2; // refactor later
     parameter int DEFAULT_INPUT_FIFO_EVENT_CAPACITY = 1024;
+
     parameter int DEFAULT_KERNEL_BITS = 6;
+    parameter int DEFAULT_IN_CHANNELS = 6;
+    parameter int DEFAULT_OUT_CHANNELS = 6;
     
     //
     parameter int OUTPUT_FIFO_DATA_WIDTH = (DEFAULT_COORD_BITS - 1) * 2 + DEFAULT_CHANNELS + 1;
@@ -46,7 +49,7 @@ package snn_interfaces_pkg;
         logic [DEFAULT_COORD_BITS-2:0] x;
         logic [DEFAULT_COORD_BITS-2:0] y;
         spike_vector_t spikes;
-    } output_vector_t;
+    } output_vector_t; // TODO invent a generalized vector type for tranmission between layers
 
     function automatic string coord_to_string(input vec2_t coord);
         return $sformatf("(%0d,%0d)", coord.x, coord.y);
