@@ -83,6 +83,12 @@ class FenrirNet(nn.Module):
 
             spk_rec.append(spk5)
 
+            conv_mem1   = conv_mem1.detach()
+            conv_mem2   = conv_mem2.detach()
+            conv_mem3   = conv_mem3.detach()
+            conv_mem4   = conv_mem4.detach()
+            fc_mem1     = fc_mem1.detach()
+
         return torch.stack(spk_rec)
 
 class FenrirFC(nn.Module):
