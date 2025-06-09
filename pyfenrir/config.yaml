@@ -23,7 +23,7 @@ incorrect_rate: 0.1                         # Incorrect rate for loss function
 target_width: 128
 target_height: 128
 frame_length_us: 10000.0                    # 16.6ms for 60fps
-n_timesteps: 120                            # Number of timesteps for padded frames
+n_timesteps: 200                            # Number of timesteps for padded frames
 
 # Quantization
 fc1_bits: 4
