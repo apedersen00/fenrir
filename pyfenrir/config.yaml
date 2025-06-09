@@ -32,7 +32,7 @@ fc2_bits: 4
 # Conv parameters
 conv1_out: 8
 conv2_out: 16
-conv3_out: 16
+conv3_out: 8
 conv4_out: 16
 kernel_size: 3
 
