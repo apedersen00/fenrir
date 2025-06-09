@@ -39,7 +39,7 @@ class FenrirNet(nn.Module):
         self.pool1 = SpikePooling2D(num_channels=conv1_out, kernel_size=2, stride=2)
         self.pool2 = SpikePooling2D(num_channels=conv2_out, kernel_size=2, stride=2)
         self.pool3 = SpikePooling2D(num_channels=conv3_out, kernel_size=2, stride=2)
-        self.pool3 = SpikePooling2D(num_channels=conv4_out, kernel_size=2, stride=2)
+        self.pool4 = SpikePooling2D(num_channels=conv4_out, kernel_size=2, stride=2)
 
         self.fc1_beta   = torch.nn.Parameter(torch.tensor(fc1_beta_init), requires_grad=True)
         self.fc1        = qnn.QuantLinear((h // 16) * (w // 16) * conv4_out, num_classes, bias=False, weight_bit_width=fc1_bits)
@@ -70,11 +70,11 @@ class FenrirNet(nn.Module):
             conv2_out = self.conv2(spk1)
             conv_mem2, spk2 = self.pool2(conv_mem2, conv2_out)
 
-            conv3_out = self.conv2(spk2)
-            conv_mem3, spk3 = self.pool2(conv_mem3, conv3_out)
+            conv3_out = self.conv3(spk2)
+            conv_mem3, spk3 = self.pool3(conv_mem3, conv3_out)
 
-            conv4_out = self.conv2(spk3)
-            conv_mem4, spk4 = self.pool2(conv_mem4, conv4_out)
+            conv4_out = self.conv4(spk3)
+            conv_mem4, spk4 = self.pool4(conv_mem4, conv4_out)
 
             cur1 = self.fc1(spk4.view(B, -1))
             fc_mem1 = NetUtils.mem_clamp(fc_mem1, scale_fc1, multiplier=self.fc1_multiplier)
