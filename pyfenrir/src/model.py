@@ -28,26 +28,19 @@ class FenrirNet(nn.Module):
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=conv1_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
         self.conv2 = nn.Conv2d(in_channels=conv1_out, out_channels=conv2_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
-        self.conv3 = nn.Conv2d(in_channels=conv2_out, out_channels=conv3_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
-        self.conv4 = nn.Conv2d(in_channels=conv3_out, out_channels=conv4_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
+        self.conv3 = nn.Conv2d(in_channels=conv1_out, out_channels=conv3_out, kernel_size=kernel_size, stride=1, padding=1, padding_mode='zeros', bias=False)
 
         nn.init.kaiming_normal_(self.conv1.weight)
         nn.init.kaiming_normal_(self.conv2.weight)
         nn.init.kaiming_normal_(self.conv3.weight)
-        nn.init.kaiming_normal_(self.conv4.weight)
 
         self.pool1 = SpikePooling2D(num_channels=conv1_out, kernel_size=2, stride=2)
         self.pool2 = SpikePooling2D(num_channels=conv2_out, kernel_size=2, stride=2)
         self.pool3 = SpikePooling2D(num_channels=conv3_out, kernel_size=2, stride=2)
-        self.pool4 = SpikePooling2D(num_channels=conv4_out, kernel_size=2, stride=2)
 
         self.fc1_beta   = torch.nn.Parameter(torch.tensor(fc1_beta_init), requires_grad=True)
-        self.fc1        = qnn.QuantLinear((h // 16) * (w // 16) * conv4_out, 64, bias=False, weight_bit_width=fc1_bits)
+        self.fc1        = qnn.QuantLinear((h // 8) * (w // 8) * conv3_out, num_classes, bias=False, weight_bit_width=fc1_bits)
         self.lif1       = snn.Leaky(beta=1.0, threshold=fc1_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
-
-        self.fc2_beta   = torch.nn.Parameter(torch.tensor(fc2_beta_init), requires_grad=True)
-        self.fc2        = qnn.QuantLinear(64, num_classes, bias=False, weight_bit_width=fc2_bits)
-        self.lif2       = snn.Leaky(beta=1.0, threshold=fc2_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
 
     def forward(self, x: torch.Tensor):
 
@@ -56,15 +49,12 @@ class FenrirNet(nn.Module):
         conv_mem1 = torch.zeros(B, self.conv1.out_channels, H, W, device=x.device)
         conv_mem2 = torch.zeros(B, self.conv2.out_channels, H//2, W//2, device=x.device)
         conv_mem3 = torch.zeros(B, self.conv3.out_channels, H//4, W//4, device=x.device)
-        conv_mem4 = torch.zeros(B, self.conv4.out_channels, H//8, W//8, device=x.device)
         fc_mem1   = self.lif1.init_leaky()
-        fc_mem2   = self.lif2.init_leaky()
 
         # Record output spikes
         spk_rec = []
 
         scale_fc1 = self.fc1.quant_weight().scale
-        scale_fc2 = self.fc2.quant_weight().scale
 
         for t in range(T):
 
@@ -79,20 +69,12 @@ class FenrirNet(nn.Module):
             conv3_out = self.conv3(spk2)
             conv_mem3, spk3 = self.pool3(conv_mem3, conv3_out)
 
-            conv4_out = self.conv4(spk3)
-            conv_mem4, spk4 = self.pool4(conv_mem4, conv4_out)
-
-            cur1 = self.fc1(spk4.view(B, -1))
+            cur1 = self.fc1(spk3.view(B, -1))
             fc_mem1 = NetUtils.mem_clamp(fc_mem1, scale_fc1, multiplier=self.fc1_multiplier)
-            spk5, fc_mem1 = self.lif1(cur1, fc_mem1)
+            spk4, fc_mem1 = self.lif1(cur1, fc_mem1)
             fc_mem1 = NetUtils.beta_clamp(fc_mem1, self.fc1_beta)
 
-            cur2 = self.fc2(spk5)
-            fc_mem2 = NetUtils.mem_clamp(fc_mem2, scale_fc2, multiplier=self.fc2_multiplier)
-            spk6, fc_mem2 = self.lif2(cur2, fc_mem2)
-            fc_mem2 = NetUtils.beta_clamp(fc_mem2, self.fc2_beta)
-
-            spk_rec.append(spk6)
+            spk_rec.append(spk4)
 
         return torch.stack(spk_rec)
 

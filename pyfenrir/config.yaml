@@ -20,8 +20,8 @@ correct_rate: 0.5                           # Correct rate for loss function
 incorrect_rate: 0.1                         # Incorrect rate for loss function
 
 # Data Parameters
-target_width: 64
-target_height: 64
+target_width: 128
+target_height: 128
 frame_length_us: 16600.0                    # 16.6ms for 60fps
 n_timesteps: 120                            # Number of timesteps for padded frames
 
@@ -30,10 +30,9 @@ fc1_bits: 4
 fc2_bits: 4
 
 # Conv parameters
-conv1_out: 16
+conv1_out: 32
 conv2_out: 32
-conv3_out: 64
-conv4_out: 64
+conv3_out: 16
 kernel_size: 3
 
 # Fully-connected parameters
