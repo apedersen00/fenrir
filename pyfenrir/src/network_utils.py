@@ -33,20 +33,18 @@ class SpikePooling2D(nn.Module):
         self.stride = stride
 
     def forward(self, membrane, conv_out):
-        membrane.add_(conv_out)
-        membrane.sub_(self.decay.view(1, -1, 1, 1))
+        current_potential = membrane + conv_out
+        current_potential = current_potential - self.decay.view(1, -1, 1, 1)
 
-        # Pool for spike output only
-        pooled = F.avg_pool2d(membrane, kernel_size=self.kernel_size, stride=self.stride) * (self.kernel_size ** 2)
+        pooled = F.avg_pool2d(current_potential, kernel_size=self.kernel_size, stride=self.stride) * (self.kernel_size ** 2)
         spikes = SurrogateSpike.apply(pooled, self.threshold.view(1, -1, 1, 1))
 
-        # 1. Find which neurons crossed the threshold
-        neurons_threshold_crossed = membrane > self.threshold.view(1, -1, 1, 1)
+        next_membrane_state = current_potential.clone()
         
-        # 2. Reset only those neurons in-place (no new tensors created)
-        membrane[neurons_threshold_crossed] = self.reset_value
+        neurons_threshold_crossed = next_membrane_state > self.threshold.view(1, -1, 1, 1)
+        next_membrane_state[neurons_threshold_crossed] = self.reset_value
 
-        return membrane, spikes
+        return next_membrane_state, spikes
 
 class NetUtils():
     @staticmethod
