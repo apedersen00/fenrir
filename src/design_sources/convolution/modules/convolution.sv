@@ -42,6 +42,44 @@ module Convolution2d #(
     logic coord_list_ready = 1'b0;
     logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] kernel_idx [0:KERNEL_SIZE*KERNEL_SIZE-1];
 
+    // registers for controlling which channels to process
+    logic [$clog2(IN_CHANNELS)-1:0] channels_to_process_list [0:IN_CHANNELS-1];
+    logic [$clog2(IN_CHANNELS):0] channels_count = 0;
+    
+  
+    // Counter registers and conv status
+    logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] conv_counter = 0; // Counter for kernel positions
+    logic [$clog2(IN_CHANNELS)-1:0] current_channel = 0; // Current channel being processed
+    logic conv_active = 0; // Indicates if convolution is active
+    // ==================================================================
+    // Counters
+    // ==================================================================
+    always_ff @(posedge clk) begin
+        if (!rst_n) begin
+        end else begin
+
+            case (state)
+                PREPARE_PROCESSING: begin
+                    // set first channel as the current channel
+                    current_channel <= channels_to_process_list[0];
+                    conv_counter <= 0;
+                    conv_active <= 1; // Start convolution processing
+                end
+
+                PROCESSING: begin
+                    if (conv_counter == 9) begin
+                        conv_active <= 0; // End convolution processing
+                        conv_counter <= 0; // Reset counter for next event
+                    end else begin
+                        conv_counter <= conv_counter + 1; // Increment kernel position counter
+                    end
+
+                end
+            endcase 
+
+        end
+    end
+
 
     // ==================================================================
     // Calculate the coordinates and kernel positions for the convolution
@@ -70,17 +108,34 @@ module Convolution2d #(
                         end
                     end
                 end 
+                channels_count = 0;
+                for (int i = 0; i < IN_CHANNELS; i++) begin
+                    if (event_spikes[i]) begin
+                        channels_to_process_list[channels_count] = i;
+                        channels_count++;
+                    end
+                end
                 coord_list_ready = (coords_count > 0);
             end
 
             default: begin
-                
-                
+                coords_count = 0;
+                coord_list_ready = 0;
+                for (int i = 0; i < MAX_COORDS_TO_UPDATE; i++) begin
+                    coords_to_update[i] = '0; // Reset coordinates
+                    kernel_idx[i] = '0; // Reset kernel indices
+                end
+                for (int i = 0; i < IN_CHANNELS; i++) begin
+                    channels_to_process_list[i] = '0; // Reset channel list
+                end
+                channels_count = 0; // Reset channel count
             end
         endcase
     end
 
-    // Obligatory state machine logic
+    // ==================================================================
+    // State machine logic
+    // ==================================================================
     always_comb begin
 
         case (state)
@@ -105,8 +160,13 @@ module Convolution2d #(
             end
 
             PROCESSING: begin
-                next_state = IDLE;
+                if (conv_active) begin
+                    next_state = PROCESSING; // Continue processing
+                end else begin
+                    next_state = IDLE; // Go back to IDLE after processing
+                end
                 event_ack = 0; // Reset acknowledgment after processing
+                event_stored = 0;
             end
         endcase
     end 
