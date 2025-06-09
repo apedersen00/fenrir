@@ -1,9 +1,18 @@
 module kernel_bram #(
-    parameter int DATA_WIDTH = 36,
-    parameter int ADDR_WIDTH = 11,
+    parameter int KERNEL_WEIGHT_BITS = 6,
+    parameter int KERNEL_SIZE = 3,
+    parameter int IN_CHANNELS = 6,
+    parameter int OUT_CHANNELS = 6,
+    
+    parameter int DATA_WIDTH = KERNEL_WEIGHT_BITS * OUT_CHANNELS,
+    // figure out how many kernel weights total
+    parameter int TOTAL_KERNEL_POSITIONS = IN_CHANNELS * KERNEL_SIZE * KERNEL_SIZE,
+    parameter int ADDR_WIDTH = $clog2(TOTAL_KERNEL_POSITIONS),
     parameter string INIT_FILE = ""  // Optional initialization file
 )(
-    dp_bram_if.bram_module bram_port
+    input logic clk,
+    input logic rst_n,
+    kernel_bram_if.bram_module bram_port
 );
 
     localparam int MEM_DEPTH = 2**ADDR_WIDTH;
@@ -25,14 +34,16 @@ module kernel_bram #(
     end
 
     // single port BRAM: Read/Write operations
-    always_ff @(posedge bram_port.clk) begin
-        if (bram_port.en_a) begin
-            // Read operation (always happens when enabled)
-            bram_port.data_out_a <= memory[bram_port.addr_a];
-            
-            // Write operation (only when write enable is asserted)
-            if (bram_port.we_a) begin
-                memory[bram_port.addr_a] <= bram_port.data_in_a;
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            // optional: handle sync reset if desired
+        end else if (bram_port.en) begin
+            // always read when enabled
+            bram_port.data_out <= memory[bram_port.addr];
+
+            // write when WE is asserted
+            if (bram_port.we) begin
+                memory[bram_port.addr] <= bram_port.data_in;
             end
         end
     end

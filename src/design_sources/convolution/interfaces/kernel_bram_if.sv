@@ -10,10 +10,6 @@ interface kernel_bram_if #(
     parameter int ADDR_WIDTH = $clog2(TOTAL_KERNEL_POSITIONS)
 );
     // Single port BRAM interface for kernel weights
-
-    logic clk;
-    logic rst_n;
-
     logic [ADDR_WIDTH-1:0] addr;      // Address for kernel weights
     logic [DATA_WIDTH-1:0] data_in;   // Data input for kernel weights
     logic [DATA_WIDTH-1:0] data_out;  // Data output from kernel weights
@@ -21,8 +17,6 @@ interface kernel_bram_if #(
     logic                  en;        // Enable signal for kernel weights
 
     modport bram_module(
-        input clk,
-        input rst_n,
         input addr,
         input data_in,
         output data_out,
