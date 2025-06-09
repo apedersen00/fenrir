@@ -7,9 +7,12 @@ module tb_conv_multichannel;
                    KERNEL_SIZE  = 3;
 
     // clock/reset for DUT
-    logic clk = 0;
+    logic clk = 1;
     logic rst_n = 0;
     always #5 clk = ~clk;  // 10 ns period
+
+    logic event_valid = 0;
+    logic event_ack = 0;
 
     output_vector_t test_event = 
     '{
@@ -47,21 +50,23 @@ module tb_conv_multichannel;
         .clk      (clk),
         .rst_n    (rst_n),
         .bram_port(kernel_bram_bus.conv_module),
-        .event_in (test_event)
+        .event_in (test_event),
+        .event_valid(event_valid),
+        .event_ack (event_ack)
     );
 
     initial begin
         // reset pulse
-        rst_n = 0; #20;
+        rst_n = 0;
+        repeat (5) @(posedge clk);
         rst_n = 1;
 
-        // write addr=0
-        kernel_bram_bus.addr    = 0;
-        kernel_bram_bus.data_in = 'h3F;
-        kernel_bram_bus.we      = 1;
-        kernel_bram_bus.en      = 1;
-        #10;
-
+        // wait for reset to settle
+        repeat (2) @(posedge clk);
+        event_valid = 1; // signal that an event is valid
+        @(posedge event_ack);
+        $display("Event acknowledged");
+        event_valid = 0; // reset event valid
         // read it back
         kernel_bram_bus.we = 0;
         #10;
