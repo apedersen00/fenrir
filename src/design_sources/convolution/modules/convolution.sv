@@ -12,8 +12,9 @@ module Convolution2d #(
     input logic clk,
     input logic rst_n,
     
-    kernel_bram_if.conv_module bram_port,
-
+    kernel_bram_if.conv_module mem_kernel,
+    arbiter_if.read_port mem_read,
+    arbiter_if.write_port mem_write,
     // temporary fake interface for events
     input output_vector_t event_in, //TODO : replace with interface for events (capture event)
     input logic event_valid, //TODO : replace with interface for events (capture event)
@@ -46,7 +47,6 @@ module Convolution2d #(
     logic [$clog2(IN_CHANNELS)-1:0] channels_to_process_list [0:IN_CHANNELS-1];
     logic [$clog2(IN_CHANNELS):0] channels_count = 0;
     
-  
     // Counter registers and conv status
     logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] conv_counter = 0; // Counter for kernel positions
     logic [$clog2(IN_CHANNELS)-1:0] channel_counter = 0; // Current channel being processed
@@ -86,6 +86,38 @@ module Convolution2d #(
         end
     end
 
+    // ==================================================================
+    // MEMORY DRIVERS
+    // ==================================================================
+    always_comb begin
+
+        case (state)
+        PROCESSING: begin
+            
+            if (conv_counter != (KERNEL_SIZE ** 2)) begin
+                mem_read.coord_get = coords_to_update[conv_counter];
+                mem_read.read_req = 1; // Request read from memory
+            end else begin
+                mem_read.read_req = 0; // No read request on last iteration
+                mem_read.coord_get = {'0, '0}; // Reset coordinate to avoid invalid reads
+            end
+
+            if (conv_counter > 0) begin
+                mem_write.coord_wtr = coords_to_update[conv_counter - 1];
+                mem_write.write_req = 1;
+                //mem_write.data_in = '0;
+            end else begin
+                mem_write.write_req = 0; // No write request on first iteration
+                mem_write.coord_wtr = {'0, '0}; // Reset coordinate to avoid invalid writes
+                //mem_write.data_in = '0; // Reset data input
+            end
+            
+
+        end
+        endcase
+
+
+    end
 
     // ==================================================================
     // Calculate the coordinates and kernel positions for the convolution
