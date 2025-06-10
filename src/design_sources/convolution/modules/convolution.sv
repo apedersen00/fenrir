@@ -94,15 +94,22 @@ module Convolution2d #(
         case (state)
         PROCESSING: begin
             
-            if (conv_counter != (KERNEL_SIZE ** 2)) begin
+            if (conv_counter != (KERNEL_SIZE ** 2) && conv_active) begin
                 mem_read.coord_get = coords_to_update[conv_counter];
                 mem_read.read_req = 1; // Request read from memory
+
+                // Read kernel
+                mem_kernel.addr = '0;
+                mem_kernel.en = 1; // Enable kernel BRAM
+
             end else begin
                 mem_read.read_req = 0; // No read request on last iteration
                 mem_read.coord_get = {'0, '0}; // Reset coordinate to avoid invalid reads
+                mem_kernel.en = 0; // Disable kernel BRAM
+                mem_kernel.addr = '0; // Reset address to avoid invalid reads
             end
 
-            if (conv_counter > 0) begin
+            if (conv_counter > 0 && conv_active) begin
                 mem_write.coord_wtr = coords_to_update[conv_counter - 1];
                 mem_write.write_req = 1;
                 //mem_write.data_in = '0;
