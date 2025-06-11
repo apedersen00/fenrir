@@ -11,49 +11,32 @@ interface fifo_if #(
     logic [DATA_WIDTH-1:0] write_data;
 
     // Control signals
-    logic empty;     // No data in the FIFO
-    logic full;      // FIFO is full
-    logic read_en;   // Read enable signal
-    logic write_en;  // Write enable signal
-
-    // Consumer modport (reads from FIFO)
+    logic empty;        // No data in the FIFO
+    logic full;         // FIFO is full
+    logic read_en;      // Read enable signal
+    logic write_en;     // Write enable signal
+    logic full_next;    // One sample before full
+    logic almost_empty; // One sample before empty
+    
     modport consumer(
         input  read_data,
         input  empty,
-        output read_en,
-        input  full
+        input  almost_empty,
+        output read_en
     );
 
-    // Producer modport (writes to FIFO)
-    modport producer(
-        output write_data,
-        output write_en,
-        input  empty,
-        input  full
-    );
-
-    // FIFO module modport - MUST have clk/rst_n
+    // FIFO module modport
     modport fifo_module(
         input  clk,
         input  rst_n,
         output read_data,
         output full,
+        output full_next,
         output empty,
+        output almost_empty,
         input  write_data,
         input  read_en,
         input  write_en
-    );
-
-    // Debug/monitor modport - useful for timing analysis
-    modport monitor(
-        input clk,
-        input rst_n,
-        input read_data,
-        input write_data,
-        input full,
-        input read_en,
-        input write_en,
-        input empty
     );
 
 endinterface
