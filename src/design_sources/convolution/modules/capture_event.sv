@@ -1,145 +1,84 @@
-import snn_interfaces_pkg::*;
+import conv_pkg::*;
 
 module capture_event #(
-    parameter int DATA_WIDTH = DEFAULT_COORD_BITS * 2,  // For packed coordinates
-    parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
-    parameter int IMG_WIDTH  = DEFAULT_IMG_WIDTH
+
+    parameter int DATA_WIDTH,
+    parameter int IMG_HEIGHT,
+    parameter int IMG_WIDTH,
+    parameter int BITS_PER_COORDINATE,
+    parameter int IN_CHANNELS
+
 )(
-    fifo_if.consumer        fifo_port,
-    snn_event_if.capture    conv_port,
-    snn_control_if.capture  ctrl_port
+    output logic timestep,
+    fifo_if.consumer fifo_port,
+    event_if.capture event_port
 );
 
-    // Extract clock from control interface
-    logic clk;
-    logic rst_n;
-    assign clk = ctrl_port.clk;
-    assign rst_n = !ctrl_port.reset;  // Convert active-high reset to active-low
+typedef enum logic [1:0] {
+    IDLE,
+    VALIDATE,
+    OUTPUTTING
+} state_t;
 
-    // Internal state
-    typedef enum logic [1:0] {
-        IDLE,
-        READING,
-        OUTPUTTING
-    } state_t;
-    
-    state_t current_state, next_state;
-    logic read_cycle_count;  // Track cycles in READING state
+state_t current_state, next_state;
 
-    // Capture condition logic
-    logic can_capture;
-    assign can_capture = ctrl_port.enable &&
-                        !ctrl_port.reset &&
-                        conv_port.event_ready &&
-                        !fifo_port.empty &&
-                        (current_state == IDLE);
+typedef struct packed {
+    logic timestep;
+    logic [BITS_PER_COORDINATE-1:0] x;
+    logic [BITS_PER_COORDINATE-1:0] y;
+    logic [IN_CHANNELS-1:0] spikes;
+} event_t;
 
-    // State machine for proper handshaking
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            current_state <= IDLE;
-            read_cycle_count <= 1'b0;
-        end else begin
-            current_state <= next_state;
-            
-            // Count cycles in READING state
-            if (current_state == READING) begin
-                read_cycle_count <= ~read_cycle_count;  // Toggle: 0 → 1 → 0
+event_t event_data;
+assign event_data = event_t'(fifo_port.read_data);
+assign timestep = event_data.timestep;
+
+always_ff @(posedge event_port.clk or negedge event_port.rst_n) begin
+    if (!event_port.rst_n) begin
+        current_state <= IDLE;
+    end else begin
+        current_state <= next_state;
+    end
+end
+
+always_comb begin
+
+    case (current_state)
+
+        IDLE: begin
+            if (!fifo_port.empty) begin // remember to check if conv is ready later
+                next_state = VALIDATE;
+                fifo_port.read_en = 1;
             end else begin
-                read_cycle_count <= 1'b0;
+                next_state = IDLE;
+                fifo_port.read_en = 0;
             end
         end
-    end
-    
-    // Next state logic
-    always_comb begin
-        case (current_state)
-            IDLE: begin
-                if (can_capture) begin
-                    next_state = READING;
-                end else begin
-                    next_state = IDLE;
-                end
-            end
-            
-            READING: begin
-                if (read_cycle_count == 1'b1) begin
-                    // Second cycle in READING - data is now valid, go to OUTPUTTING
+
+        VALIDATE: begin
+            fifo_port.read_en = 0; // Stop reading from FIFO
+            if (event_data.timestep) begin
+                next_state = IDLE;
+            end else begin
+                if (event_data.x < IMG_WIDTH && event_data.y < IMG_HEIGHT) begin
+                    event_port.event_data = event_data; // Pass the event data
+                    event_port.event_valid = 1; // Indicate valid event
                     next_state = OUTPUTTING;
                 end else begin
-                    // First cycle in READING - stay here for FIFO data to appear
-                    next_state = READING;
+                    next_state = IDLE; // Invalid coordinates, go back to IDLE
                 end
             end
-            
-            OUTPUTTING: begin
-                if (conv_port.event_valid && conv_port.event_ack) begin
-                    next_state = IDLE;
-                end else begin
-                    next_state = OUTPUTTING;
-                end
-            end
-            
-            default: next_state = IDLE;
-        endcase
-    end
+        end
 
-    // FIFO read control
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            fifo_port.read_en <= 1'b0;
-        end else begin
-            if (current_state == IDLE && can_capture) begin
-                fifo_port.read_en <= 1'b1;
-            end else if (current_state == READING && read_cycle_count == 1'b0) begin
-                // Keep read_en high for first cycle only
-                fifo_port.read_en <= 1'b0;
+        OUTPUTTING: begin
+            if (event_port.conv_ack) begin
+                event_port.event_valid = 0; // Acknowledge the event
+                next_state = IDLE; // Go back to IDLE after acknowledgment
             end else begin
-                fifo_port.read_en <= 1'b0;
+                next_state = OUTPUTTING; // Wait for acknowledgment
             end
         end
-    end
 
-    // Data conversion and output
-    always_ff @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            conv_port.event_coord <= '0;
-            conv_port.event_valid <= 1'b0;
-        end else begin
-            case (current_state)
-                IDLE: begin
-                    conv_port.event_valid <= 1'b0;
-                end
-                
-                READING: begin
-                    if (read_cycle_count == 1'b1) begin
-                        // Second cycle of READING - prepare data AND assert valid
-                        // This ensures event_valid goes high when we enter OUTPUTTING
-                        conv_port.event_coord <= unpack_coordinates(fifo_port.read_data);
-                        conv_port.event_valid <= 1'b1;
-                    end else begin
-                        // First cycle of READING - keep valid low
-                        conv_port.event_valid <= 1'b0;
-                    end
-                end
-                
-                OUTPUTTING: begin
-                    // Keep valid high until acknowledgment received
-                    if (conv_port.event_ack) begin
-                        conv_port.event_valid <= 1'b0;  // Immediately go low when ack received
-                    end else begin
-                        conv_port.event_valid <= 1'b1;  // Stay high until ack
-                    end
-                end
-                
-                default: begin
-                    conv_port.event_valid <= 1'b0;
-                end
-            endcase
-        end
-    end
-
-    // Status reporting
-    assign ctrl_port.active = (current_state != IDLE);
-
+    endcase
+end
 endmodule

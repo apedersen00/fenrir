@@ -6,15 +6,15 @@ use ieee.math_real.all;
 entity conv2d_wrapper is
     generic(
         KERNEL_SIZE: integer := 3;
-        IN_CHANNELS: integer := 2;
+        IN_CHANNELS: integer := 1;
         OUT_CHANNELS: integer := 2;
         IMG_HEIGHT: integer := 8;
         IMG_WIDTH: integer := 8;
 
         BITS_PER_KERNEL_WEIGHT: integer := 6;
         BITS_PER_NEURON: integer := 9;
-        INPUT_FIFO_EVENT_CAPACITY: integer := 1024;
-        BITS_PER_COORDINATE: integer := 4
+        INPUT_FIFO_EVENT_CAPACITY: integer := 4096;
+        BITS_PER_COORDINATE: integer := 7
     );
     port(
         -- control signals

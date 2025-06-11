@@ -44,8 +44,15 @@ module CONV2D #(
     localparam int IN_FIFO_DATA_WIDTH = BITS_PER_COORDINATE * 2 + IN_CHANNELS + 1; // ts, x, y, spikes
     localparam int IN_FIFO_ADDR_WIDTH = $clog2(INPUT_FIFO_EVENT_CAPACITY);
 
-    logic input_fifo_full;
-    logic input_fifo_empty;
+    // ==========================================================
+    // Input FIFO
+    // ==========================================================
+
+    
+    logic fifo_full;
+    logic fifo_empty;
+    logic fifo_read_enable;
+    logic [IN_FIFO_DATA_WIDTH-1:0] fifo_read_data;
 
     fifo_if #(
         .DATA_WIDTH(IN_FIFO_DATA_WIDTH),
@@ -54,11 +61,12 @@ module CONV2D #(
         .clk(clk),
         .rst_n(rst_n)
     );
+    // Producer side connections (from external)
     assign input_fifo_interface.write_data = input_fifo_data;
     assign input_fifo_interface.write_en = input_write_enable;
     assign input_fifo_full_next = input_fifo_interface.full_next;
+    assign fifo_full = input_fifo_interface.full;
     
-    // Instances
     fifo #(
         .DATA_WIDTH(IN_FIFO_DATA_WIDTH),
         .ADDR_WIDTH(IN_FIFO_ADDR_WIDTH)
@@ -66,5 +74,26 @@ module CONV2D #(
         .fifo_port(input_fifo_interface.fifo_module)
     );
 
+    logic timestep;
+
+    event_if #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .IN_CHANNELS(IN_CHANNELS)
+    ) event_interface (
+        .clk(clk),
+        .rst_n(rst_n)
+    );
+    
+    capture_event #(
+        .DATA_WIDTH(IN_FIFO_DATA_WIDTH),
+        .IMG_HEIGHT(IMG_HEIGHT),
+        .IMG_WIDTH(IMG_WIDTH),
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .IN_CHANNELS(IN_CHANNELS)
+    ) capture_event_instance(
+        .timestep(timestep),
+        .fifo_port(input_fifo_interface.consumer),
+        .event_port(event_interface.capture)
+    );
 
 endmodule
