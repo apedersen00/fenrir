@@ -1,14 +1,14 @@
 import conv_pkg::*; // Import the kernel BRAM interface
 
 module Convolution2d #(
-    parameter int COORD_BITS = DEFAULT_BITS_PER_COORDINATE_IN,
-    parameter int IN_CHANNELS = DEFAULT_IN_CHANNELS,
-    parameter int OUT_CHANNELS = DEFAULT_OUT_CHANNELS,
-    parameter int IMG_WIDTH = DEFAULT_IMG_WIDTH,
-    parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
-    parameter int BITS_PER_NEURON = DEFAULT_BITS_PER_NEURON,
-    parameter int BITS_PER_KERNEL_WEIGHT = DEFAULT_BITS_PER_KERNEL_WEIGHT,
-    parameter int KERNEL_SIZE = DEFAULT_KERNEL_SIZE
+    parameter int BITS_PER_COORDINATE,
+    parameter int IN_CHANNELS,
+    parameter int OUT_CHANNELS,
+    parameter int IMG_WIDTH,
+    parameter int IMG_HEIGHT,
+    parameter int BITS_PER_NEURON,
+    parameter int BITS_PER_KERNEL_WEIGHT,
+    parameter int KERNEL_SIZE
 )(
     input logic clk,
     input logic rst_n,
@@ -16,14 +16,24 @@ module Convolution2d #(
     kernel_bram_if.conv_module mem_kernel,
     arbiter_if.read_port mem_read,
     arbiter_if.write_port mem_write,
-    // temporary fake interface for events
-    input input_vector_t event_in, //TODO : replace with interface for events (capture event)
-    input logic event_valid, //TODO : replace with interface for events (capture event)
-    output logic event_ack //TODO : replace with interface for events (capture event)
+    event_if.convolution capture
+
 );
 
     localparam int KERNEL_OFFSET = KERNEL_SIZE / 2;
     localparam int MAX_COORDS_TO_UPDATE = KERNEL_SIZE * KERNEL_SIZE;
+
+    typedef struct packed {
+        logic timestep;
+        logic [BITS_PER_COORDINATE-1:0] x;
+        logic [BITS_PER_COORDINATE-1:0] y;
+        logic [IN_CHANNELS-1:0] spikes; // Spike vector for input channels
+    } event_t;
+
+    typedef struct packed {
+        logic [BITS_PER_COORDINATE-1:0] x;
+        logic [BITS_PER_COORDINATE-1:0] y;
+    } vec2_t;
 
     typedef enum logic [1:0] {
         IDLE,
@@ -31,11 +41,14 @@ module Convolution2d #(
         PROCESSING
     } state_t;
 
+    typedef logic signed [BITS_PER_KERNEL_WEIGHT-1:0] kernel_weight_vector_t [0:OUT_CHANNELS-1];
+    typedef logic signed [BITS_PER_NEURON-1:0] feature_map_t [0:OUT_CHANNELS-1];
+
     state_t state, next_state = IDLE;
 
     // registers for event storage
     vec2_t event_coord;
-    spike_vector_in_t event_spikes;
+    logic[IN_CHANNELS-1:0] event_spikes;
     logic event_stored = 0; 
 
     // TEMP DEBUG
@@ -64,6 +77,15 @@ module Convolution2d #(
         end else begin
 
             case (state)
+
+                IDLE: begin
+                    if (next_state == PREPARE_PROCESSING) begin
+                        conv_active <= 1;
+                    end else begin
+                        conv_active <= 0; // Reset convolution active state
+                    end
+                end
+
                 PREPARE_PROCESSING: begin
                     // set first channel as the current channel
                     conv_counter <= 0;
@@ -193,34 +215,38 @@ module Convolution2d #(
 
         case (state)
             IDLE: begin
-                if (event_valid && !event_stored) begin
+                if (capture.event_valid && !event_stored) begin
                     next_state = PREPARE_PROCESSING;
-                    event_coord.x = event_in.x;
-                    event_coord.y = event_in.y;
-                    event_spikes = event_in.spikes;
+                    event_coord.x = capture.event_data.x;
+                    event_coord.y = capture.event_data.y;
+                    event_spikes = capture.event_data.spikes;
                     event_stored = 1;
                 end else begin
                     next_state = IDLE;
-                    event_ack = 0; // Do not acknowledge if no event is stored
-                    event_coord = '0; // Reset coordinates
-                    event_spikes = '0; // Reset spikes
+                    capture.conv_ack = 0; 
+                    capture.conv_ready = 1;
+                    event_coord = '0; 
+                    event_spikes = '0; 
                 end   
             end
 
             PREPARE_PROCESSING: begin
                 next_state = PROCESSING;
-                event_ack = 1; // Acknowledge the event
+                capture.conv_ack = 1; // Acknowledge the event
+                capture.conv_ready = 0; // Indicate that convolution is not ready yet
             end
 
             PROCESSING: begin
                 if (conv_active) begin
                     next_state = PROCESSING; // Continue processing
                     event_stored = 1;
+                    capture.conv_ready = 0; // Indicate that convolution is not ready yet
                 end else begin
                     next_state = IDLE; // Go back to IDLE after processing
                     event_stored = 0; // Reset event storage
+                    capture.conv_ready = 1; // Indicate that convolution is ready for the next event
                 end
-                event_ack = 0; // Reset acknowledgment after processing
+                capture.conv_ack = 0; // Reset acknowledgment after processing
                 
             end
         endcase
@@ -233,5 +259,46 @@ module Convolution2d #(
             state <= next_state;
         end
     end
+
+    // ==================================================================
+    // Functions
+    // ==================================================================
+    function automatic kernel_weight_vector_t bram_to_kernel_weight_vector(
+        input logic [OUT_CHANNELS * BITS_PER_KERNEL_WEIGHT - 1:0] bram_data
+    );
+
+        kernel_weight_vector_t result;
+
+        for (int channel = 0; channel < OUT_CHANNELS; channel++) begin
+            result[channel] = bram_data[channel * BITS_PER_KERNEL_WEIGHT +: BITS_PER_KERNEL_WEIGHT];
+        end
+
+        return result;
+
+    endfunction
+
+    function automatic feature_map_t add_kernel_weights_to_feature_map(
+        input feature_map_t fm,
+        input kernel_weight_vector_t kernel_weights
+    );
+        feature_map_t result;
+
+        for (int channel = 0; channel < OUT_CHANNELS; channel++) begin
+
+            automatic logic signed [BITS_PER_NEURON:0] result_before_clamp;
+            result_before_clamp = fm[channel] + kernel_weights[channel];
+
+            if (result_before_clamp > $signed({1'b0, {BITS_PER_NEURON - 1{1'b1}}})) begin
+                result[channel] = {1'b0, {BITS_PER_NEURON - 1{1'b1}}}; // Clamp to max value
+            end else if (result_before_clamp < $signed({1'b1, {BITS_PER_NEURON - 1{1'b0}}})) begin
+                result[channel] = {1'b1, {BITS_PER_NEURON - 1{1'b0}}}; // Clamp to min value
+            end else begin
+                result[channel] = result_before_clamp; // No clamping needed
+            end
+        end
+
+        return result;
+    endfunction
+
 
 endmodule

@@ -8,8 +8,8 @@ end entity;
 architecture tb of test_wrapper is
 
     constant BITS_PER_COORDINATE : integer := 7;
-    constant IN_CHANNELS : integer := 2;
-    constant OUT_CHANNELS : integer := 2;
+    constant IN_CHANNELS : integer := 6;
+    constant OUT_CHANNELS : integer := 12;
     constant INPUT_FIFO_EVENT_CAPACITY : integer := 4096;
 
 
@@ -47,8 +47,8 @@ begin
             KERNEL_SIZE => 3,
             IN_CHANNELS => IN_CHANNELS,
             OUT_CHANNELS => OUT_CHANNELS,
-            IMG_HEIGHT => 8,
-            IMG_WIDTH => 16,
+            IMG_HEIGHT => 30,
+            IMG_WIDTH => 40,
 
             BITS_PER_KERNEL_WEIGHT => 6,
             BITS_PER_NEURON => 9,
@@ -92,7 +92,7 @@ begin
             '0',
             std_logic_vector(to_unsigned(5, BITS_PER_COORDINATE)),
             std_logic_vector(to_unsigned(6, BITS_PER_COORDINATE)),
-            "11"
+            "111111"
         );
         input_write_enable <= '1';
         -- Add further stimulus here if needed

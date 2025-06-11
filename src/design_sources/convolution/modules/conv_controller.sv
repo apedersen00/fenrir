@@ -2,16 +2,16 @@ import conv_pkg::*;
 
 module CONV2D #(
 
-    parameter int KERNEL_SIZE = DEFAULT_KERNEL_SIZE,
-    parameter int IN_CHANNELS = DEFAULT_IN_CHANNELS,
-    parameter int OUT_CHANNELS = DEFAULT_OUT_CHANNELS,
-    parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
-    parameter int IMG_WIDTH = DEFAULT_IMG_WIDTH,
+    parameter int KERNEL_SIZE,
+    parameter int IN_CHANNELS,
+    parameter int OUT_CHANNELS,
+    parameter int IMG_HEIGHT,
+    parameter int IMG_WIDTH,
 
-    parameter int BITS_PER_KERNEL_WEIGHT = DEFAULT_BITS_PER_KERNEL_WEIGHT,
-    parameter int BITS_PER_NEURON = DEFAULT_BITS_PER_NEURON,
-    parameter int INPUT_FIFO_EVENT_CAPACITY = DEFAULT_INPUT_FIFO_EVENT_CAPACITY,
-    parameter int BITS_PER_COORDINATE = DEFAULT_BITS_PER_COORDINATE_IN
+    parameter int BITS_PER_KERNEL_WEIGHT,
+    parameter int BITS_PER_NEURON,
+    parameter int INPUT_FIFO_EVENT_CAPACITY,
+    parameter int BITS_PER_COORDINATE
     
 )(
 
@@ -44,11 +44,10 @@ module CONV2D #(
     localparam int IN_FIFO_DATA_WIDTH = BITS_PER_COORDINATE * 2 + IN_CHANNELS + 1; // ts, x, y, spikes
     localparam int IN_FIFO_ADDR_WIDTH = $clog2(INPUT_FIFO_EVENT_CAPACITY);
 
+
     // ==========================================================
     // Input FIFO
     // ==========================================================
-
-    
     logic fifo_full;
     logic fifo_empty;
     logic fifo_read_enable;
@@ -113,6 +112,27 @@ module CONV2D #(
     );
 
     // ==========================================================
+    // BRAM For KERNELS
+    // ==========================================================
+    kernel_bram_if #(
+        .BITS_PER_KERNEL_WEIGHT(BITS_PER_KERNEL_WEIGHT),
+        .KERNEL_SIZE(KERNEL_SIZE),
+        .IN_CHANNELS(IN_CHANNELS),
+        .OUT_CHANNELS(OUT_CHANNELS)
+    ) mem_kernel_bus ();
+
+    kernel_bram #(
+        .BITS_PER_KERNEL_WEIGHT(BITS_PER_KERNEL_WEIGHT),
+        .KERNEL_SIZE(KERNEL_SIZE),
+        .IN_CHANNELS(IN_CHANNELS),
+        .OUT_CHANNELS(OUT_CHANNELS)
+    ) mem_kernel_instance (
+        .clk(clk),
+        .rst_n(rst_n),
+        .bram_port(mem_kernel_bus.bram_module)
+    );
+
+    // ==========================================================
     // ARBITER
     // ==========================================================
 
@@ -156,6 +176,27 @@ module CONV2D #(
         .bram_port(bram_feature_map_bus.arbiter)
     );
 
+    // ==========================================================
+    // CONVOLUTION MODULE
+    // ==========================================================
+
+    Convolution2d #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .IN_CHANNELS(IN_CHANNELS),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .IMG_WIDTH(IMG_WIDTH),
+        .IMG_HEIGHT(IMG_HEIGHT),
+        .BITS_PER_NEURON(BITS_PER_NEURON),
+        .BITS_PER_KERNEL_WEIGHT(BITS_PER_KERNEL_WEIGHT),
+        .KERNEL_SIZE(KERNEL_SIZE)
+    ) convolution_instance (
+        .clk(clk),
+        .rst_n(rst_n),
+        .mem_kernel(mem_kernel_bus.conv_module),
+        .mem_read(conv_read.read_port),
+        .mem_write(conv_write.write_port),
+        .capture(event_interface.convolution)
+    );
 
 
 endmodule
