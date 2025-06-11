@@ -1,5 +1,4 @@
 package conv_pkg;
-
     // CONVOLUTION PARAMETERS
     parameter int DEFAULT_KERNEL_SIZE = 3;
     parameter int DEFAULT_IN_CHANNELS = 2;
@@ -37,6 +36,12 @@ package conv_pkg;
 
     typedef logic signed [DEFAULT_BITS_PER_NEURON-1:0] feature_map_t [0:DEFAULT_OUT_CHANNELS-1];
     typedef logic signed [DEFAULT_BITS_PER_KERNEL_WEIGHT-1:0] kernel_weight_vector_t [0:DEFAULT_OUT_CHANNELS-1];
+
+    typedef enum logic{
+        CONVOLUTION,
+        POOLING
+    } arbiter_mode_t;
+
 
     function automatic feature_map_t add_kernel_weights_to_feature_map(
         input feature_map_t fm,
