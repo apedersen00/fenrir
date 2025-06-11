@@ -71,12 +71,12 @@ module Convolution2d #(
                 end
 
                 PROCESSING: begin
-                    if (conv_counter == (KERNEL_SIZE ** 2) && channel_counter == (channels_count - 1)) begin
+                    if (conv_counter == coords_count && channel_counter == (channels_count - 1)) begin
                         // done condition
                         conv_active <= 0; // End convolution processing
                         conv_counter <= 0; // Reset counter for next event
                         channel_counter <= 0; // Reset channel counter
-                    end else if (conv_counter == (KERNEL_SIZE ** 2)) begin
+                    end else if (conv_counter == coords_count) begin
                         // Move to the next channel
                         channel_counter <= channel_counter + 1; // Increment channel counter
                         conv_counter <= 0; // Reset kernel position counter for the next channel
@@ -99,7 +99,7 @@ module Convolution2d #(
         case (state)
         PROCESSING: begin
             
-            if (conv_counter != (KERNEL_SIZE ** 2) && conv_active) begin
+            if (conv_counter != coords_count && conv_active) begin
                 mem_read.coord_get = coords_to_update[conv_counter];
                 mem_read.read_req = 1; // Request read from memory
 
@@ -215,11 +215,13 @@ module Convolution2d #(
             PROCESSING: begin
                 if (conv_active) begin
                     next_state = PROCESSING; // Continue processing
+                    event_stored = 1;
                 end else begin
                     next_state = IDLE; // Go back to IDLE after processing
+                    event_stored = 0; // Reset event storage
                 end
                 event_ack = 0; // Reset acknowledgment after processing
-                event_stored = 1;
+                
             end
         endcase
     end 

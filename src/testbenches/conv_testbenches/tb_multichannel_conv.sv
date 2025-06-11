@@ -22,14 +22,20 @@ module tb_conv_multichannel;
     logic event_valid = 0;
     logic event_ack = 0;
 
-    input_vector_t test_event = 
-    '{
-        0, // timestep
-        5, // x coordinate
-        3, // y coordinate
-        'b11 // spikes for each channel (2 channels, both active)
+    input_vector_t test_events [0:3] = '{
+        '{timestep: 1'b0, x: 8'd5, y: 8'd3, spikes: 2'b11},  // Event 0
+        '{timestep: 1'b0, x: 8'd5, y: 8'd4, spikes: 2'b11},  // Event 1  
+        '{timestep: 1'b0, x: 8'd0, y: 8'd0, spikes: 2'b01},
+        '{timestep: 1'b0, x: 8'd0, y: 8'd5, spikes: 2'b10}   // Event 2
     };
-    
+
+    logic [1:0] event_phase = 0;  // 2 bits for 3 events (0, 1, 2)
+
+// Select current event based on phase
+input_vector_t test_event;
+assign test_event = test_events[event_phase];
+
+    logic event_phase = 0;
     // instantiate the bus interface (no ports)
     kernel_bram_if #(
         .IN_CHANNELS  (IN_CHANNELS),
@@ -144,13 +150,36 @@ module tb_conv_multichannel;
         @(posedge event_ack);
         $display("Event acknowledged");
         event_valid = 0; // reset event valid
-        // read it back
-        kernel_bram_bus.we = 0;
-        #10;
-        $display("Read back: %h", kernel_bram_bus.data_out);
+        
+        @(posedge !ctrl_bus.active);
+        $writememb("test_mem0.mem", bram_inst.memory);
+        event_phase = 1;
+        @(posedge clk);
+        event_valid = 1; // signal that an event is valid
+        @(posedge event_ack);
+        event_valid = 0; // reset event valid
 
-        #400;
-        $writememb("test_mem.mem", bram_inst.memory);
+        @(posedge !ctrl_bus.active);
+        $writememb("test_mem1.mem", bram_inst.memory);
+        event_phase = 2;
+        @(posedge clk);
+        event_valid = 1; // signal that an event is valid
+        @(posedge event_ack);
+        event_valid = 0; // reset event valid
+
+        @(posedge !ctrl_bus.active);
+        $writememb("test_mem2.mem", bram_inst.memory);
+        event_phase = 3;
+        @(posedge clk);
+        event_valid = 1; // signal that an event is valid
+        @(posedge event_ack);
+        event_valid = 0; // reset event valid
+
+
+        @(posedge !ctrl_bus.active);
+        #(100);
+        $writememb("test_mem3.mem", bram_inst.memory);
+        $display("Test completed, memory contents written to test_mem.mem");
         $finish;
     end
 endmodule
