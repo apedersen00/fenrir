@@ -96,4 +96,66 @@ module CONV2D #(
         .event_port(event_interface.capture)
     );
 
+    // ==========================================================
+    // BRAM For Feauter MAPS
+    // ==========================================================
+
+    dp_bram_if #(
+        .DATA_WIDTH(MEM_FEATURE_MAP_WIDTH),
+        .ADDR_WIDTH(MEM_FEATURE_MAP_ADDRESS_WIDTH)
+    ) bram_feature_map_bus ();
+    
+    dp_bram #(
+        .DATA_WIDTH(MEM_FEATURE_MAP_WIDTH),
+        .ADDR_WIDTH(MEM_FEATURE_MAP_ADDRESS_WIDTH)
+    ) bram_feature_map_instance (
+        .bram_port(bram_feature_map_bus.bram_module)
+    );
+
+    // ==========================================================
+    // ARBITER
+    // ==========================================================
+
+    arbiter_mode_t arbiter_mode = CONVOLUTION;
+
+    arbiter_if #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON)
+    ) conv_read();
+    arbiter_if #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON)
+    ) conv_write();
+    arbiter_if #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON)
+    ) pool_read();
+    arbiter_if #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON)
+    ) pool_write();
+
+    arbiter #(
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON),
+        .IMG_WIDTH(IMG_WIDTH),
+        .IMG_HEIGHT(IMG_HEIGHT)
+    ) arbiter_instance(
+        .clk(clk),
+        .rst_n(rst_n),
+        .mode(arbiter_mode),
+        .conv_read_port(conv_read),
+        .conv_write_port(conv_write),
+        .pool_read_port(pool_read),
+        .pool_write_port(pool_write),
+        .bram_port(bram_feature_map_bus.arbiter)
+    );
+
+
+
 endmodule

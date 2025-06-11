@@ -1,6 +1,6 @@
 module dp_bram #(
-    parameter int DATA_WIDTH = 36,
-    parameter int ADDR_WIDTH = 11,
+    parameter int DATA_WIDTH,
+    parameter int ADDR_WIDTH,
     parameter string INIT_FILE = ""  // Optional initialization file
 )(
     dp_bram_if.bram_module bram_port

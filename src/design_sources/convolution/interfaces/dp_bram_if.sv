@@ -1,6 +1,6 @@
 interface dp_bram_if #(
-    parameter int DATA_WIDTH = 16,    
-    parameter int ADDR_WIDTH = 10     
+    parameter int DATA_WIDTH,
+    parameter int ADDR_WIDTH
 );
 
     // Clock and reset - driven by arbiter
@@ -53,19 +53,4 @@ interface dp_bram_if #(
         output en_b
     );
 
-    // Monitor modport for debugging and verification
-    modport monitor(
-        input clk,
-        input rst_n,
-        input addr_a,
-        input data_in_a,
-        input data_out_a,
-        input we_a,
-        input en_a,
-        input addr_b,
-        input data_in_b,
-        input data_out_b,
-        input we_b,
-        input en_b
-    );
 endinterface
