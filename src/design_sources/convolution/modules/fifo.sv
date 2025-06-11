@@ -10,7 +10,7 @@ module fifo #(
 
     // BRAM memory with Vivado-specific attributes
     (* ram_style = "block" *) 
-    (* ram_decomp = "power" *)
+    //(* ram_decomp = "power" *)
     logic [DATA_WIDTH-1:0] memory [0:FIFO_DEPTH-1];
     
     // Binary pointers with extra bit for full/empty distinction
@@ -46,7 +46,9 @@ module fifo #(
     // BRAM Read Port - Always read, output register handles control
     // This is the key pattern Vivado recognizes for BRAM
     always_ff @(posedge fifo_port.clk) begin
-        fifo_port.read_data <= memory[read_addr];
+        if (read_enable) begin
+            fifo_port.read_data <= memory[read_addr];
+        end
     end
 
     // Write pointer management

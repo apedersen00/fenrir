@@ -42,9 +42,4 @@ package conv_pkg;
         POOLING
     } arbiter_mode_t;
 
-
-    
-    
-    
-
 endpackage

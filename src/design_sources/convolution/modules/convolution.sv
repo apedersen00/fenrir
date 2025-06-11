@@ -12,7 +12,8 @@ module Convolution2d #(
 )(
     input logic clk,
     input logic rst_n,
-    
+    output logic convolution_active,
+
     kernel_bram_if.conv_module mem_kernel,
     arbiter_if.read_port mem_read,
     arbiter_if.write_port mem_write,
@@ -27,7 +28,7 @@ module Convolution2d #(
         logic timestep;
         logic [BITS_PER_COORDINATE-1:0] x;
         logic [BITS_PER_COORDINATE-1:0] y;
-        logic [IN_CHANNELS-1:0] spikes; // Spike vector for input channels
+        logic [IN_CHANNELS-1:0] spikes;
     } event_t;
 
     typedef struct packed {
@@ -68,7 +69,9 @@ module Convolution2d #(
     // Counter registers and conv status
     logic [$clog2(MAX_COORDS_TO_UPDATE)-1:0] conv_counter = 0; // Counter for kernel positions
     logic [$clog2(IN_CHANNELS)-1:0] channel_counter = 0; // Current channel being processed
+
     logic conv_active = 0; // Indicates if convolution is active
+    assign convolution_active = conv_active; // Output to indicate convolution status
     // ==================================================================
     // Counters
     // ==================================================================
@@ -232,21 +235,21 @@ module Convolution2d #(
 
             PREPARE_PROCESSING: begin
                 next_state = PROCESSING;
-                capture.conv_ack = 1; // Acknowledge the event
-                capture.conv_ready = 0; // Indicate that convolution is not ready yet
+                capture.conv_ack = 1; 
+                capture.conv_ready = 0;
             end
 
             PROCESSING: begin
                 if (conv_active) begin
-                    next_state = PROCESSING; // Continue processing
+                    next_state = PROCESSING; 
                     event_stored = 1;
-                    capture.conv_ready = 0; // Indicate that convolution is not ready yet
+                    capture.conv_ready = 0; 
                 end else begin
-                    next_state = IDLE; // Go back to IDLE after processing
-                    event_stored = 0; // Reset event storage
-                    capture.conv_ready = 1; // Indicate that convolution is ready for the next event
+                    next_state = IDLE; 
+                    event_stored = 0; 
+                    capture.conv_ready = 1; 
                 end
-                capture.conv_ack = 0; // Reset acknowledgment after processing
+                capture.conv_ack = 0; 
                 
             end
         endcase

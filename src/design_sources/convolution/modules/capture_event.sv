@@ -10,6 +10,7 @@ module capture_event #(
 
 )(
     output logic timestep,
+    input logic enable,
     fifo_if.consumer fifo_port,
     event_if.capture event_port
 );
@@ -46,7 +47,7 @@ always_comb begin
     case (current_state)
 
         IDLE: begin
-            if (!fifo_port.empty) begin // remember to check if conv is ready later
+            if (!fifo_port.empty && event_port.conv_ready && enable) begin // remember to check if conv is ready later
                 next_state = VALIDATE;
                 fifo_port.read_en = 1;
             end else begin

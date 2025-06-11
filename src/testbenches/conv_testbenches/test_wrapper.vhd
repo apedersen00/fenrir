@@ -53,7 +53,8 @@ begin
             BITS_PER_KERNEL_WEIGHT => 6,
             BITS_PER_NEURON => 9,
             INPUT_FIFO_EVENT_CAPACITY => INPUT_FIFO_EVENT_CAPACITY,
-            BITS_PER_COORDINATE => BITS_PER_COORDINATE
+            BITS_PER_COORDINATE => BITS_PER_COORDINATE,
+            KERNEL_WEIGHTS_INIT_FILE => ""
         )
         port map (
             clk   => clk,
@@ -92,15 +93,27 @@ begin
             '0',
             std_logic_vector(to_unsigned(5, BITS_PER_COORDINATE)),
             std_logic_vector(to_unsigned(6, BITS_PER_COORDINATE)),
-            "111111"
+            "101011"
         );
         input_write_enable <= '1';
         -- Add further stimulus here if needed
         wait until rising_edge(clk);
         input_write_enable <= '0';
         
-        wait for 200 ns;
+        wait for 100 ns;
+        -- Add more input data to the FIFO
+        input_fifo_data <= pack_event_data(
+            '1',
+            std_logic_vector(to_unsigned(0, BITS_PER_COORDINATE)),
+            std_logic_vector(to_unsigned(0, BITS_PER_COORDINATE)),
+            "000000"
+        );
 
+        input_write_enable <= '1';
+        wait until rising_edge(clk);
+        input_write_enable <= '0';
+
+        wait for 1000 ns;
         -- End simulation
         assert false report "Simulation Ended" severity note;
         wait;

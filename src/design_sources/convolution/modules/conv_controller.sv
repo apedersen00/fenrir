@@ -11,7 +11,9 @@ module CONV2D #(
     parameter int BITS_PER_KERNEL_WEIGHT,
     parameter int BITS_PER_NEURON,
     parameter int INPUT_FIFO_EVENT_CAPACITY,
-    parameter int BITS_PER_COORDINATE
+    parameter int BITS_PER_COORDINATE,
+
+    parameter string KERNEL_WEIGHTS_INIT_FILE = ""
     
 )(
 
@@ -44,6 +46,15 @@ module CONV2D #(
     localparam int IN_FIFO_DATA_WIDTH = BITS_PER_COORDINATE * 2 + IN_CHANNELS + 1; // ts, x, y, spikes
     localparam int IN_FIFO_ADDR_WIDTH = $clog2(INPUT_FIFO_EVENT_CAPACITY);
 
+    // Typedefs
+    typedef enum logic [1:0] {
+        CONVOLUTION,
+        POOLING,
+        PAUSE
+    } state_t;
+
+    state_t state, next_state;
+
 
     // ==========================================================
     // Input FIFO
@@ -74,6 +85,9 @@ module CONV2D #(
     );
 
     logic timestep;
+    logic enable_event_capture;
+
+    assign enable_event_capture = 1;
 
     event_if #(
         .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
@@ -91,6 +105,7 @@ module CONV2D #(
         .IN_CHANNELS(IN_CHANNELS)
     ) capture_event_instance(
         .timestep(timestep),
+        .enable(enable_event_capture),
         .fifo_port(input_fifo_interface.consumer),
         .event_port(event_interface.capture)
     );
@@ -125,7 +140,8 @@ module CONV2D #(
         .BITS_PER_KERNEL_WEIGHT(BITS_PER_KERNEL_WEIGHT),
         .KERNEL_SIZE(KERNEL_SIZE),
         .IN_CHANNELS(IN_CHANNELS),
-        .OUT_CHANNELS(OUT_CHANNELS)
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .INIT_FILE(KERNEL_WEIGHTS_INIT_FILE)
     ) mem_kernel_instance (
         .clk(clk),
         .rst_n(rst_n),
@@ -180,6 +196,8 @@ module CONV2D #(
     // CONVOLUTION MODULE
     // ==========================================================
 
+    logic convolution_active;
+
     Convolution2d #(
         .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
         .IN_CHANNELS(IN_CHANNELS),
@@ -192,11 +210,38 @@ module CONV2D #(
     ) convolution_instance (
         .clk(clk),
         .rst_n(rst_n),
+        .convolution_active(convolution_active),
         .mem_kernel(mem_kernel_bus.conv_module),
         .mem_read(conv_read.read_port),
         .mem_write(conv_write.write_port),
         .capture(event_interface.convolution)
     );
 
+    always_ff @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            state <= CONVOLUTION;
+            next_state <= CONVOLUTION;
+        end else if (enable) begin
+            state <= next_state;
+        end
+
+    end
+
+    always_comb begin
+        case (state)
+
+            CONVOLUTION: begin
+                
+            end
+
+            POOLING: begin
+            end
+
+            PAUSE: begin
+            end
+
+
+        endcase 
+    end
 
 endmodule

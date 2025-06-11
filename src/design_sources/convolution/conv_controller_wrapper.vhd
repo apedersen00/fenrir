@@ -14,7 +14,9 @@ entity conv2d_wrapper is
         BITS_PER_KERNEL_WEIGHT: integer := 6;
         BITS_PER_NEURON: integer := 9;
         INPUT_FIFO_EVENT_CAPACITY: integer := 4096;
-        BITS_PER_COORDINATE: integer := 7
+        BITS_PER_COORDINATE: integer := 7;
+
+        KERNEL_WEIGHTS_INIT_FILE: string := ""
     );
     port(
         -- control signals
@@ -48,7 +50,8 @@ begin
             BITS_PER_KERNEL_WEIGHT => BITS_PER_KERNEL_WEIGHT,
             BITS_PER_NEURON => BITS_PER_NEURON,
             INPUT_FIFO_EVENT_CAPACITY => INPUT_FIFO_EVENT_CAPACITY,
-            BITS_PER_COORDINATE => BITS_PER_COORDINATE
+            BITS_PER_COORDINATE => BITS_PER_COORDINATE,
+            KERNEL_WEIGHTS_INIT_FILE => KERNEL_WEIGHTS_INIT_FILE
         )
         port map(
             clk => clk,
