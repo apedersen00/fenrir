@@ -1,4 +1,4 @@
-import snn_interfaces_pkg::*;
+
 
 module tb_conv_multichannel;
     // parameters
@@ -22,7 +22,7 @@ module tb_conv_multichannel;
     logic event_valid = 0;
     logic event_ack = 0;
 
-    output_vector_t test_event = 
+    input_vector_t test_event = 
     '{
         0, // timestep
         5, // x coordinate
@@ -42,7 +42,9 @@ module tb_conv_multichannel;
         .KERNEL_WEIGHT_BITS(6),
         .KERNEL_SIZE       (KERNEL_SIZE),
         .IN_CHANNELS       (IN_CHANNELS),
-        .OUT_CHANNELS      (OUT_CHANNELS)
+        .OUT_CHANNELS      (OUT_CHANNELS),
+        .INIT_FILE         ("C:\\Users\\alext\\fenrir\\python\\notebooks\\kernel_weights.mem")
+
     ) mem_kernel (
         .clk      (clk),
         .rst_n    (rst_n),
@@ -125,10 +127,10 @@ module tb_conv_multichannel;
         .mem_write(conv_write_bus.write_port)
     );
 
-    assign ctrl_bus.arbiter.conv_or_pool = 0;
+    assign ctrl_bus.arbiter.conv_or_pool = 1;
     assign ctrl_bus.arbiter.enable = 1;
     assign ctrl_bus.arbiter.reset = 1;
-
+    
 
     initial begin
         // reset pulse
@@ -148,7 +150,7 @@ module tb_conv_multichannel;
         $display("Read back: %h", kernel_bram_bus.data_out);
 
         #400;
-
+        $writememb("test_mem.mem", bram_inst.memory);
         $finish;
     end
 endmodule

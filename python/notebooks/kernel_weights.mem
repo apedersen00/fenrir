@@ -1,0 +1,26 @@
+// Simple kernel weights for visual inspection
+// Input channels: 0, 1
+// Output channels: 2 each (edge_detector+blur, sharpen+identity)
+//
+// Input Channel 0
+@000 07F  // pos(0,0) weights: [-1, 1]
+@001 0BF  // pos(0,1) weights: [-1, 2]
+@002 07F  // pos(0,2) weights: [-1, 1]
+@003 0BF  // pos(1,0) weights: [-1, 2]
+@004 108  // pos(1,1) weights: [8, 4]
+@005 0BF  // pos(1,2) weights: [-1, 2]
+@006 07F  // pos(2,0) weights: [-1, 1]
+@007 0BF  // pos(2,1) weights: [-1, 2]
+@008 07F  // pos(2,2) weights: [-1, 1]
+
+// Input Channel 1
+@009 000  // pos(0,0) weights: [0, 0]
+@00A 03F  // pos(0,1) weights: [-1, 0]
+@00B 000  // pos(0,2) weights: [0, 0]
+@00C 03F  // pos(1,0) weights: [-1, 0]
+@00D 045  // pos(1,1) weights: [5, 1]
+@00E 03F  // pos(1,2) weights: [-1, 0]
+@00F 000  // pos(2,0) weights: [0, 0]
+@010 03F  // pos(2,1) weights: [-1, 0]
+@011 000  // pos(2,2) weights: [0, 0]
+

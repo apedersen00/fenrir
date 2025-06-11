@@ -1,13 +1,14 @@
-import snn_interfaces_pkg::*;
+import conv_pkg::*; // Import the kernel BRAM interface
+
 module Convolution2d #(
-    parameter int COORD_BITS = DEFAULT_COORD_BITS,
+    parameter int COORD_BITS = DEFAULT_BITS_PER_COORDINATE_IN,
     parameter int IN_CHANNELS = DEFAULT_IN_CHANNELS,
     parameter int OUT_CHANNELS = DEFAULT_OUT_CHANNELS,
     parameter int IMG_WIDTH = DEFAULT_IMG_WIDTH,
     parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
-    parameter int BITS_PER_NEURON = DEFAULT_NEURON_BITS,
-    parameter int BITS_PER_KERNEL_WEIGHT = DEFAULT_KERNEL_BITS,
-    parameter int KERNEL_SIZE = 3
+    parameter int BITS_PER_NEURON = DEFAULT_BITS_PER_NEURON,
+    parameter int BITS_PER_KERNEL_WEIGHT = DEFAULT_BITS_PER_KERNEL_WEIGHT,
+    parameter int KERNEL_SIZE = DEFAULT_KERNEL_SIZE
 )(
     input logic clk,
     input logic rst_n,
@@ -16,7 +17,7 @@ module Convolution2d #(
     arbiter_if.read_port mem_read,
     arbiter_if.write_port mem_write,
     // temporary fake interface for events
-    input output_vector_t event_in, //TODO : replace with interface for events (capture event)
+    input input_vector_t event_in, //TODO : replace with interface for events (capture event)
     input logic event_valid, //TODO : replace with interface for events (capture event)
     output logic event_ack //TODO : replace with interface for events (capture event)
 );
@@ -34,8 +35,12 @@ module Convolution2d #(
 
     // registers for event storage
     vec2_t event_coord;
-    spike_vector_t event_spikes;
+    spike_vector_in_t event_spikes;
     logic event_stored = 0; 
+
+    // TEMP DEBUG
+    kernel_weight_vector_t kernel_weights; // Temporary storage for kernel weights
+
 
     // registers for coordinates to update and kernel positions
     vec2_t coords_to_update [0:MAX_COORDS_TO_UPDATE-1];
@@ -99,20 +104,21 @@ module Convolution2d #(
                 mem_read.read_req = 1; // Request read from memory
 
                 // Read kernel
-                mem_kernel.addr = '0;
+                mem_kernel.addr = channels_to_process_list[channel_counter] * KERNEL_SIZE**2 + kernel_idx[conv_counter];             
                 mem_kernel.en = 1; // Enable kernel BRAM
 
             end else begin
                 mem_read.read_req = 0; // No read request on last iteration
                 mem_read.coord_get = {'0, '0}; // Reset coordinate to avoid invalid reads
+                mem_kernel.addr = '0;
                 mem_kernel.en = 0; // Disable kernel BRAM
-                mem_kernel.addr = '0; // Reset address to avoid invalid reads
             end
 
             if (conv_counter > 0 && conv_active) begin
                 mem_write.coord_wtr = coords_to_update[conv_counter - 1];
                 mem_write.write_req = 1;
-                //mem_write.data_in = '0;
+                kernel_weights = bram_to_kernel_weight_vector(mem_kernel.data_out); // Read kernel weights from BRAM
+                mem_write.data_in = add_kernel_weights_to_feature_map(mem_read.data_out, kernel_weights); // Add kernel weights to feature map
             end else begin
                 mem_write.write_req = 0; // No write request on first iteration
                 mem_write.coord_wtr = {'0, '0}; // Reset coordinate to avoid invalid writes
@@ -139,7 +145,7 @@ module Convolution2d #(
 
                         automatic int _x = event_coord.x + dx;
                         automatic int _y = event_coord.y + dy;
-                        automatic int flat_idx = (dy + KERNEL_OFFSET) + (dx + KERNEL_OFFSET) * KERNEL_SIZE;
+                        automatic int flat_idx = (dy + KERNEL_OFFSET)  * KERNEL_SIZE + (dx + KERNEL_OFFSET);
                         if (   _x >= 0 
                             && _x < IMG_WIDTH
                             && _y >= 0

@@ -1,11 +1,11 @@
-import snn_interfaces_pkg::*;
+import conv_pkg::*;
 
 interface arbiter_if #(
-    parameter int COORD_BITS = DEFAULT_COORD_BITS,
-    parameter int CHANNELS = DEFAULT_CHANNELS,
-    parameter int BITS_PER_CHANNEL = DEFAULT_NEURON_BITS
+    parameter int COORD_BITS = DEFAULT_BITS_PER_COORDINATE_IN,
+    parameter int CHANNELS = DEFAULT_OUT_CHANNELS,
+    parameter int BITS_PER_CHANNEL = DEFAULT_BITS_PER_NEURON
 );
-    typedef snn_interfaces_pkg::feature_map_t fm_array_t; // Use feature map type for the convolutions
+    typedef conv_pkg::feature_map_t fm_array_t; // Use feature map type for the convolutions
     
     // Read signals
     vec2_t coord_get;        // coordinate to read from

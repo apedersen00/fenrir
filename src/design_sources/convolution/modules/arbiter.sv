@@ -1,9 +1,9 @@
-import snn_interfaces_pkg::*;
+import conv_pkg::*;
 
 module arbiter #(
-    parameter int COORD_BITS = DEFAULT_COORD_BITS,
-    parameter int CHANNELS = DEFAULT_CHANNELS,
-    parameter int BITS_PER_CHANNEL = DEFAULT_NEURON_BITS,
+    parameter int COORD_BITS = DEFAULT_BITS_PER_COORDINATE_IN,
+    parameter int CHANNELS = DEFAULT_OUT_CHANNELS,
+    parameter int BITS_PER_CHANNEL = DEFAULT_BITS_PER_NEURON,
     parameter int IMG_WIDTH = DEFAULT_IMG_WIDTH,
     parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
     // BRAM parameters
