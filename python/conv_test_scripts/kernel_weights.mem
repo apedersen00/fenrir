@@ -1,27 +1,45 @@
 // Kernel weights for Vivado BRAM initialization
-// Input channels: 2
-// Output channels: 4
+// Input channels: 4
+// Output channels: 8
 // Kernel size: 3x3
 // Bits per weight: 6
-// Total bits per word: 24
+// Total bits per word: 48
 // Data format: output_ch0[5:0], output_ch1[11:6], ...
 // Address format: in_channel * 9 + position
 
-@000 000FC0  // In_ch0 pos(0,0) weights: [0, -1, 0, 0]
-@001 FC0FC0  // In_ch0 pos(0,1) weights: [0, -1, 0, -1]
-@002 000FC0  // In_ch0 pos(0,2) weights: [0, -1, 0, 0]
-@003 FC0FC0  // In_ch0 pos(1,0) weights: [0, -1, 0, -1]
-@004 141201  // In_ch0 pos(1,1) weights: [1, 8, 1, 5]
-@005 FC0FC0  // In_ch0 pos(1,2) weights: [0, -1, 0, -1]
-@006 000FC0  // In_ch0 pos(2,0) weights: [0, -1, 0, 0]
-@007 FC0FC0  // In_ch0 pos(2,1) weights: [0, -1, 0, -1]
-@008 000FC0  // In_ch0 pos(2,2) weights: [0, -1, 0, 0]
-@009 FC0FFF  // In_ch1 pos(0,0) weights: [-1, -1, 0, -1]
-@00A FC0F80  // In_ch1 pos(0,1) weights: [0, -2, 0, -1]
-@00B FC0FC1  // In_ch1 pos(0,2) weights: [1, -1, 0, -1]
-@00C FC003E  // In_ch1 pos(1,0) weights: [-2, 0, 0, -1]
-@00D 201000  // In_ch1 pos(1,1) weights: [0, 0, 1, 8]
-@00E FC0002  // In_ch1 pos(1,2) weights: [2, 0, 0, -1]
-@00F FC007F  // In_ch1 pos(2,0) weights: [-1, 1, 0, -1]
-@010 FC0080  // In_ch1 pos(2,1) weights: [0, 2, 0, -1]
-@011 FC0041  // In_ch1 pos(2,2) weights: [1, 1, 0, -1]
+@000 -00000FFF040  // In_ch0 pos(0,0) weights: [0, -1, 0, 0, -1, -1, 0, -1]
+@001 -0007F03F040  // In_ch0 pos(0,1) weights: [0, -1, 0, -1, 0, -2, 0, -1]
+@002 -0003EFFF040  // In_ch0 pos(0,2) weights: [0, -1, 0, 0, 1, -1, 0, -1]
+@003 00003EFC0FC0  // In_ch0 pos(1,0) weights: [0, -1, 0, -1, -2, 0, 0, -1]
+@004 000000141201  // In_ch0 pos(1,1) weights: [1, 8, 1, 5, 0, 0, 1, 8]
+@005 000002FC0FC0  // In_ch0 pos(1,2) weights: [0, -1, 0, -1, 2, 0, 0, -1]
+@006 00007F000FC0  // In_ch0 pos(2,0) weights: [0, -1, 0, 0, -1, 1, 0, -1]
+@007 -0007F03F040  // In_ch0 pos(2,1) weights: [0, -1, 0, -1, 0, 2, 0, -1]
+@008 000041000FC0  // In_ch0 pos(2,2) weights: [0, -1, 0, 0, 1, 1, 0, -1]
+@009 -0003F001000  // In_ch1 pos(0,0) weights: [0, 0, -1, -1, 0, -1, 0, 0]
+@00A -0003F07F040  // In_ch1 pos(0,1) weights: [0, -1, 0, -2, 0, -1, 0, -1]
+@00B -0003F03F000  // In_ch1 pos(0,2) weights: [0, 0, 1, -1, 0, -1, 0, 0]
+@00C -0003FFC1040  // In_ch1 pos(1,0) weights: [0, -1, -2, 0, 0, -1, 0, -1]
+@00D 000001000141  // In_ch1 pos(1,1) weights: [1, 5, 0, 0, 1, 8, 1, 5]
+@00E -0003FFFD040  // In_ch1 pos(1,2) weights: [0, -1, 2, 0, 0, -1, 0, -1]
+@00F -0003FF81000  // In_ch1 pos(2,0) weights: [0, 0, -1, 1, 0, -1, 0, 0]
+@010 -0003FF7F040  // In_ch1 pos(2,1) weights: [0, -1, 0, 2, 0, -1, 0, -1]
+@011 -0003FFBF000  // In_ch1 pos(2,2) weights: [0, 0, 1, 1, 0, -1, 0, 0]
+@012 000000FC0FFF  // In_ch2 pos(0,0) weights: [-1, -1, 0, -1, 0, 0, -1, -1]
+@013 -0003F03F080  // In_ch2 pos(0,1) weights: [0, -2, 0, -1, 0, -1, 0, -2]
+@014 000000FC0FC1  // In_ch2 pos(0,2) weights: [1, -1, 0, -1, 0, 0, 1, -1]
+@015 -0003F03FFC2  // In_ch2 pos(1,0) weights: [-2, 0, 0, -1, 0, -1, -2, 0]
+@016 000041201000  // In_ch2 pos(1,1) weights: [0, 0, 1, 8, 1, 5, 0, 0]
+@017 -0003F03FFFE  // In_ch2 pos(1,2) weights: [2, 0, 0, -1, 0, -1, 2, 0]
+@018 000000FC007F  // In_ch2 pos(2,0) weights: [-1, 1, 0, -1, 0, 0, -1, 1]
+@019 -0003F03FF80  // In_ch2 pos(2,1) weights: [0, 2, 0, -1, 0, -1, 0, 2]
+@01A 000000FC0041  // In_ch2 pos(2,2) weights: [1, 1, 0, -1, 0, 0, 1, 1]
+@01B -00000FFF040  // In_ch3 pos(0,0) weights: [0, -1, 0, 0, -1, -1, 0, -1]
+@01C -0007F03F040  // In_ch3 pos(0,1) weights: [0, -1, 0, -1, 0, -2, 0, -1]
+@01D -0003EFFF040  // In_ch3 pos(0,2) weights: [0, -1, 0, 0, 1, -1, 0, -1]
+@01E 00003EFC0FC0  // In_ch3 pos(1,0) weights: [0, -1, 0, -1, -2, 0, 0, -1]
+@01F 000000141201  // In_ch3 pos(1,1) weights: [1, 8, 1, 5, 0, 0, 1, 8]
+@020 000002FC0FC0  // In_ch3 pos(1,2) weights: [0, -1, 0, -1, 2, 0, 0, -1]
+@021 00007F000FC0  // In_ch3 pos(2,0) weights: [0, -1, 0, 0, -1, 1, 0, -1]
+@022 -0007F03F040  // In_ch3 pos(2,1) weights: [0, -1, 0, -1, 0, 2, 0, -1]
+@023 000041000FC0  // In_ch3 pos(2,2) weights: [0, -1, 0, 0, 1, 1, 0, -1]

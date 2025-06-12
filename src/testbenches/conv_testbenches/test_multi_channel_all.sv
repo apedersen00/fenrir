@@ -8,8 +8,8 @@ module snn_testbench;
     
     // Core SNN Parameters
     localparam int KERNEL_SIZE = 3;
-    localparam int IN_CHANNELS = 2;
-    localparam int OUT_CHANNELS = 4;
+    localparam int IN_CHANNELS = 4;
+    localparam int OUT_CHANNELS = 8;
     localparam int IMG_HEIGHT = 8;
     localparam int IMG_WIDTH = 8;
     
