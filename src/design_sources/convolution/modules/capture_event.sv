@@ -58,6 +58,7 @@ always_comb begin
 
         VALIDATE: begin
             fifo_port.read_en = 0; // Stop reading from FIFO
+            
             if (event_data.timestep) begin
                 next_state = IDLE;
             end else begin

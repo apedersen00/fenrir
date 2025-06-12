@@ -247,39 +247,64 @@ def print_event_samples(events, max_samples=10):
               f"spikes=0b{spike_str} (0x{event['spikes']:X})")
 
 
-def save_events_to_hex_file(events, args):
-    """Save events to SystemVerilog-friendly hex file"""
+def save_events_to_binary_file(events, args):
+    """Save events to SystemVerilog-friendly binary file"""
     # Create output directory
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
     
     # Calculate bit packing parameters
     event_width = 1 + 2 * args.bits_per_coord + args.in_channels
-    hex_width = (event_width + 3) // 4  # Round up to nearest hex digit
     
-    filename = output_dir / f"{args.prefix}_events.hex"
+    filename = output_dir / f"{args.prefix}_events.mem"
     
     with open(filename, 'w') as f:
-        f.write(f"// Generated event file for SNN testbench\n")
+        f.write(f"// Generated event file for SNN testbench (binary format)\n")
         f.write(f"// Format: [timestep][x][y][spikes]\n")
-        f.write(f"// Total bits: {event_width}, Hex width: {hex_width}\n")
+        f.write(f"// Total bits: {event_width}\n")
         f.write(f"// Events: {len(events)}\n")
-        f.write(f"// Bit layout: timestep({args.bits_per_coord + args.in_channels + 1}), ")
-        f.write(f"x({args.bits_per_coord + args.in_channels}:{args.in_channels + 1}), ")
-        f.write(f"y({args.in_channels}:1), spikes({args.in_channels - 1}:0)\n\n")
+        
+        # Calculate bit positions for documentation
+        spikes_lsb = 0
+        spikes_msb = args.in_channels - 1
+        y_lsb = args.in_channels
+        y_msb = args.in_channels + args.bits_per_coord - 1
+        x_lsb = args.in_channels + args.bits_per_coord
+        x_msb = args.in_channels + 2 * args.bits_per_coord - 1
+        ts_bit = event_width - 1
+        
+        f.write(f"// Bit layout: timestep({ts_bit}), x({x_msb}:{x_lsb}), y({y_msb}:{y_lsb}), spikes({spikes_msb}:{spikes_lsb})\n\n")
         
         for i, event in enumerate(events):
             # Pack event into binary: [timestep][x][y][spikes]
-            packed_value = 0
-            packed_value |= (event['timestep'] & 1) << (event_width - 1)
-            packed_value |= (event['x'] & ((1 << args.bits_per_coord) - 1)) << (args.bits_per_coord + args.in_channels)
-            packed_value |= (event['y'] & ((1 << args.bits_per_coord) - 1)) << args.in_channels
-            packed_value |= (event['spikes'] & ((1 << args.in_channels) - 1))
+            # MSB                                            LSB
+            # [  ts  ][      x      ][      y      ][spikes]
             
-            # Write as hex with comment
-            f.write(f"{packed_value:0{hex_width}X}  // Event {i}: "
+            # Build binary string piece by piece for clarity
+            ts_bin = f"{event['timestep']:01b}"
+            x_bin = f"{event['x']:0{args.bits_per_coord}b}"
+            y_bin = f"{event['y']:0{args.bits_per_coord}b}"
+            spikes_bin = f"{event['spikes']:0{args.in_channels}b}"
+            
+            # Concatenate to form complete binary string
+            full_binary = ts_bin + x_bin + y_bin + spikes_bin
+            
+            # Verify total width
+            assert len(full_binary) == event_width, f"Binary width mismatch: {len(full_binary)} != {event_width}"
+            
+            # Write binary with comment
+            f.write(f"{full_binary}  // Event {i}: "
                    f"ts={event['timestep']}, x={event['x']}, y={event['y']}, "
-                   f"spikes=0x{event['spikes']:X}\n")
+                   f"spikes=0x{event['spikes']:X} | {ts_bin}_{x_bin}_{y_bin}_{spikes_bin}\n")
+            
+            # Debug output for first event
+            if i == 0:
+                print(f"Debug Event 0 packing:")
+                print(f"  ts={event['timestep']} -> '{ts_bin}' (1 bit)")
+                print(f"  x={event['x']} -> '{x_bin}' ({args.bits_per_coord} bits)")
+                print(f"  y={event['y']} -> '{y_bin}' ({args.bits_per_coord} bits)")
+                print(f"  spikes=0x{event['spikes']:X} -> '{spikes_bin}' ({args.in_channels} bits)")
+                print(f"  full_binary='{full_binary}' ({len(full_binary)} bits)")
     
     print(f"\nEvents saved to: {filename}")
     return filename
@@ -326,7 +351,7 @@ def main():
     print_event_samples(events)
     
     # Save to file
-    save_events_to_hex_file(events, args)
+    save_events_to_binary_file(events, args)
 
 
 if __name__ == "__main__":

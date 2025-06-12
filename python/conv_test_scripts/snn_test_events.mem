@@ -1,0 +1,16 @@
+// Generated event file for SNN testbench (binary format)
+// Format: [timestep][x][y][spikes]
+// Total bits: 11
+// Events: 10
+// Bit layout: timestep(10), x(9:7), y(6:4), spikes(3:0)
+
+00001100100  // Event 0: ts=0, x=0, y=6, spikes=0x4 | 0_000_110_0100
+00000010101  // Event 1: ts=0, x=0, y=1, spikes=0x5 | 0_000_001_0101
+01100010001  // Event 2: ts=0, x=6, y=1, spikes=0x1 | 0_110_001_0001
+00011110010  // Event 3: ts=0, x=1, y=7, spikes=0x2 | 0_001_111_0010
+01101100010  // Event 4: ts=0, x=6, y=6, spikes=0x2 | 0_110_110_0010
+01010000010  // Event 5: ts=0, x=5, y=0, spikes=0x2 | 0_101_000_0010
+01001110001  // Event 6: ts=0, x=4, y=7, spikes=0x1 | 0_100_111_0001
+00000011000  // Event 7: ts=0, x=0, y=1, spikes=0x8 | 0_000_001_1000
+01111011001  // Event 8: ts=0, x=7, y=5, spikes=0x9 | 0_111_101_1001
+01001011011  // Event 9: ts=0, x=4, y=5, spikes=0xB | 0_100_101_1011
