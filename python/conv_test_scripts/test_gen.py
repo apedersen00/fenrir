@@ -1,26 +1,29 @@
 #!/usr/bin/env python3
 """
-SNN Event Generator for SystemVerilog Testbench
-Generates event files and configuration for spiking neural network testing
+Enhanced SNN Event Generator for SystemVerilog Testbench and PyTorch
+Generates event files for Vivado simulation and PyTorch-compatible data for comparison
 """
 
 import argparse
 import sys
 import random
 import math
+import numpy as np
+import json
 from pathlib import Path
+from typing import List, Dict, Tuple, Optional
 
 
 def parse_arguments():
     """Parse command line arguments for SNN event generation"""
     parser = argparse.ArgumentParser(
-        description='Generate SNN event files and configuration for SystemVerilog testbench',
+        description='Generate SNN event files and PyTorch-compatible data for testing',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   %(prog)s 2 4 100 8 8 7
-  %(prog)s 1 2 50 16 16 8 --timestep_idx 25
-  %(prog)s 3 6 200 32 32 8 --output_dir test_data --prefix my_test
+  %(prog)s 1 2 50 16 16 8 --timestep_idx 25 --torch_output
+  %(prog)s 3 6 200 32 32 8 --output_dir test_data --prefix my_test --torch_output
         """
     )
     
@@ -51,9 +54,23 @@ Examples:
     parser.add_argument('--seed', type=int, default=None,
                        help='Random seed for reproducible event generation')
     
-    parser.add_argument('--pattern', type=str, choices=['random', 'cross', 'corners'], 
+    parser.add_argument('--pattern', type=str, choices=['random', 'cross', 'corners', 'grid'], 
                        default='random',
                        help='Event generation pattern (default: random)')
+    
+    # PyTorch-specific arguments
+    parser.add_argument('--torch_output', action='store_true',
+                       help='Generate PyTorch-compatible files (.npy and .json)')
+    
+    parser.add_argument('--accumulation_mode', type=str, choices=['binary', 'count', 'weighted'],
+                       default='binary',
+                       help='How to accumulate spikes into feature maps (default: binary)')
+    
+    parser.add_argument('--time_windows', type=int, default=1,
+                       help='Number of time windows for PyTorch data (default: 1)')
+    
+    parser.add_argument('--normalize_torch', action='store_true',
+                       help='Normalize PyTorch tensors to [0,1] range')
     
     return parser.parse_args()
 
@@ -96,6 +113,10 @@ def validate_arguments(args):
         if args.timestep_idx >= args.num_events:
             errors.append(f"timestep_idx ({args.timestep_idx}) must be less than num_events ({args.num_events})")
     
+    # Check PyTorch-specific arguments
+    if args.time_windows <= 0:
+        errors.append("time_windows must be positive")
+    
     return errors
 
 
@@ -104,6 +125,7 @@ def generate_events(args):
     # Set random seed if provided
     if args.seed is not None:
         random.seed(args.seed)
+        np.random.seed(args.seed)
     
     events = []
     
@@ -113,6 +135,8 @@ def generate_events(args):
         events = generate_cross_pattern(args)
     elif args.pattern == 'corners':
         events = generate_corners_pattern(args)
+    elif args.pattern == 'grid':
+        events = generate_grid_pattern(args)
     
     return events
 
@@ -235,6 +259,106 @@ def generate_corners_pattern(args):
     return events
 
 
+def generate_grid_pattern(args):
+    """Generate regular grid pattern"""
+    events = []
+    step_x = max(1, args.img_w // 4)
+    step_y = max(1, args.img_h // 4)
+    
+    # Generate grid points
+    for y in range(0, args.img_h, step_y):
+        for x in range(0, args.img_w, step_x):
+            if len(events) < args.num_events:
+                # Alternate channels in checkerboard pattern
+                channel = ((x // step_x) + (y // step_y)) % args.in_channels
+                event = {
+                    'timestep': 0,
+                    'x': x,
+                    'y': y,
+                    'spikes': 1 << channel
+                }
+                events.append(event)
+    
+    # Fill remaining with random events
+    while len(events) < args.num_events:
+        x = random.randint(0, args.img_w - 1)
+        y = random.randint(0, args.img_h - 1)
+        if not any(e['x'] == x and e['y'] == y for e in events):
+            event = {
+                'timestep': 0,
+                'x': x,
+                'y': y,
+                'spikes': random.randint(1, (1 << args.in_channels) - 1)
+            }
+            events.append(event)
+    
+    # Add timestep event if specified
+    if args.timestep_idx is not None and args.timestep_idx < len(events):
+        events[args.timestep_idx]['timestep'] = 1
+        events[args.timestep_idx]['spikes'] = 0
+    
+    return events
+
+
+def events_to_torch_tensor(events: List[Dict], args) -> Tuple[np.ndarray, Dict]:
+    """Convert events to PyTorch-compatible tensor format"""
+    
+    # Split events into time windows
+    non_timestep_events = [e for e in events if e['timestep'] == 0]
+    events_per_window = len(non_timestep_events) // args.time_windows
+    
+    # Initialize tensor: [time_windows, channels, height, width]
+    tensor_shape = (args.time_windows, args.in_channels, args.img_h, args.img_w)
+    feature_maps = np.zeros(tensor_shape, dtype=np.float32)
+    
+    for window_idx in range(args.time_windows):
+        start_idx = window_idx * events_per_window
+        end_idx = start_idx + events_per_window
+        if window_idx == args.time_windows - 1:  # Last window gets remaining events
+            end_idx = len(non_timestep_events)
+        
+        window_events = non_timestep_events[start_idx:end_idx]
+        
+        for event in window_events:
+            x, y = event['x'], event['y']
+            spikes = event['spikes']
+            
+            # Process each channel
+            for ch in range(args.in_channels):
+                if spikes & (1 << ch):  # Check if channel is active
+                    if args.accumulation_mode == 'binary':
+                        feature_maps[window_idx, ch, y, x] = 1.0
+                    elif args.accumulation_mode == 'count':
+                        feature_maps[window_idx, ch, y, x] += 1.0
+                    elif args.accumulation_mode == 'weighted':
+                        # Weight by event order (later events have higher weight)
+                        weight = (start_idx + len([e for e in window_events if e == event])) / len(non_timestep_events)
+                        feature_maps[window_idx, ch, y, x] += weight
+    
+    # Normalize if requested
+    if args.normalize_torch:
+        max_val = feature_maps.max()
+        if max_val > 0:
+            feature_maps = feature_maps / max_val
+    
+    # Metadata
+    metadata = {
+        'shape': tensor_shape,
+        'total_events': len(events),
+        'non_timestep_events': len(non_timestep_events),
+        'events_per_window': events_per_window,
+        'accumulation_mode': args.accumulation_mode,
+        'normalized': args.normalize_torch,
+        'time_windows': args.time_windows,
+        'img_size': [args.img_w, args.img_h],
+        'channels': args.in_channels,
+        'pattern': args.pattern,
+        'seed': args.seed
+    }
+    
+    return feature_maps, metadata
+
+
 def print_event_samples(events, max_samples=10):
     """Print first up to 10 events as samples"""
     print(f"\nGenerated {len(events)} events")
@@ -277,10 +401,6 @@ def save_events_to_binary_file(events, args):
         
         for i, event in enumerate(events):
             # Pack event into binary: [timestep][x][y][spikes]
-            # MSB                                            LSB
-            # [  ts  ][      x      ][      y      ][spikes]
-            
-            # Build binary string piece by piece for clarity
             ts_bin = f"{event['timestep']:01b}"
             x_bin = f"{event['x']:0{args.bits_per_coord}b}"
             y_bin = f"{event['y']:0{args.bits_per_coord}b}"
@@ -296,18 +416,57 @@ def save_events_to_binary_file(events, args):
             f.write(f"{full_binary}  // Event {i}: "
                    f"ts={event['timestep']}, x={event['x']}, y={event['y']}, "
                    f"spikes=0x{event['spikes']:X} | {ts_bin}_{x_bin}_{y_bin}_{spikes_bin}\n")
-            
-            # Debug output for first event
-            if i == 0:
-                print(f"Debug Event 0 packing:")
-                print(f"  ts={event['timestep']} -> '{ts_bin}' (1 bit)")
-                print(f"  x={event['x']} -> '{x_bin}' ({args.bits_per_coord} bits)")
-                print(f"  y={event['y']} -> '{y_bin}' ({args.bits_per_coord} bits)")
-                print(f"  spikes=0x{event['spikes']:X} -> '{spikes_bin}' ({args.in_channels} bits)")
-                print(f"  full_binary='{full_binary}' ({len(full_binary)} bits)")
     
-    print(f"\nEvents saved to: {filename}")
+    print(f"\nVivado events saved to: {filename}")
     return filename
+
+
+def save_torch_files(events, args):
+    """Save PyTorch-compatible files"""
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(exist_ok=True)
+    
+    # Convert events to tensor
+    feature_maps, metadata = events_to_torch_tensor(events, args)
+    
+    # Save numpy file
+    numpy_file = output_dir / f"{args.prefix}_torch_input.npy"
+    np.save(numpy_file, feature_maps)
+    print(f"PyTorch tensor saved to: {numpy_file}")
+    
+    # Save metadata as JSON
+    json_file = output_dir / f"{args.prefix}_torch_metadata.json"
+    with open(json_file, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    print(f"PyTorch metadata saved to: {json_file}")
+    
+    # Save raw events as JSON for analysis
+    events_json_file = output_dir / f"{args.prefix}_events.json"
+    with open(events_json_file, 'w') as f:
+        events_data = {
+            'events': events,
+            'config': {
+                'in_channels': args.in_channels,
+                'out_channels': args.out_channels,
+                'img_size': [args.img_w, args.img_h],
+                'bits_per_coord': args.bits_per_coord,
+                'pattern': args.pattern,
+                'seed': args.seed
+            }
+        }
+        json.dump(events_data, f, indent=2)
+    print(f"Events JSON saved to: {events_json_file}")
+    
+    # Print tensor statistics
+    print(f"\nPyTorch tensor statistics:")
+    print(f"  Shape: {feature_maps.shape}")
+    print(f"  Min: {feature_maps.min():.3f}")
+    print(f"  Max: {feature_maps.max():.3f}")
+    print(f"  Mean: {feature_maps.mean():.3f}")
+    print(f"  Non-zero elements: {np.count_nonzero(feature_maps)}/{feature_maps.size}")
+    print(f"  Sparsity: {(1 - np.count_nonzero(feature_maps)/feature_maps.size)*100:.1f}%")
+    
+    return numpy_file, json_file, events_json_file
 
 
 def main():
@@ -323,7 +482,7 @@ def main():
         sys.exit(1)
     
     # Print parsed configuration for verification
-    print("Parsed configuration:")
+    print("Configuration:")
     print(f"  Input channels: {args.in_channels}")
     print(f"  Output channels: {args.out_channels}")
     print(f"  Number of events: {args.num_events}")
@@ -335,6 +494,12 @@ def main():
     print(f"  Pattern: {args.pattern}")
     print(f"  Random seed: {args.seed if args.seed is not None else 'None (random)'}")
     
+    if args.torch_output:
+        print(f"  PyTorch output: Enabled")
+        print(f"  Time windows: {args.time_windows}")
+        print(f"  Accumulation mode: {args.accumulation_mode}")
+        print(f"  Normalize: {args.normalize_torch}")
+    
     # Calculate derived values
     max_coord_val = (1 << args.bits_per_coord) - 1
     event_width = 1 + 2 * args.bits_per_coord + args.in_channels
@@ -342,7 +507,6 @@ def main():
     print(f"\nDerived values:")
     print(f"  Maximum coordinate value: {max_coord_val}")
     print(f"  Event width (bits): {event_width}")
-    print(f"  Event width (hex digits): {(event_width + 3) // 4}")
     
     # Generate events
     events = generate_events(args)
@@ -350,8 +514,14 @@ def main():
     # Print sample events
     print_event_samples(events)
     
-    # Save to file
+    # Save Vivado-compatible file
     save_events_to_binary_file(events, args)
+    
+    # Save PyTorch-compatible files if requested
+    if args.torch_output:
+        save_torch_files(events, args)
+    
+    print(f"\n✓ Event generation complete!")
 
 
 if __name__ == "__main__":
