@@ -13,7 +13,9 @@ module CONV2D #(
     parameter int INPUT_FIFO_EVENT_CAPACITY,
     parameter int BITS_PER_COORDINATE,
 
-    parameter string KERNEL_WEIGHTS_INIT_FILE = ""
+    parameter string KERNEL_WEIGHTS_INIT_FILE = "",
+    parameter string THRESHOLD_VECTOR_FILE = "",
+    parameter string DECAY_VECTOR_FILE = ""
     
 )(
 
@@ -54,7 +56,6 @@ module CONV2D #(
     } state_t;
 
     state_t state, next_state;
-
 
     // ==========================================================
     // Input FIFO
@@ -215,6 +216,34 @@ module CONV2D #(
         .mem_read(conv_read.read_port),
         .mem_write(conv_write.write_port),
         .capture(event_interface.convolution)
+    );
+
+    // ==========================================================
+    // POOLING MODULE
+    // ==========================================================
+
+    logic pooling_active;
+    logic pooling_enable;
+    logic pooling_done;
+
+    sum_pooling #(
+        .OUT_CHANNELS(OUT_CHANNELS),
+        .BITS_PER_NEURON(BITS_PER_NEURON),
+        .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
+        .IMG_WIDTH(IMG_WIDTH),
+        .IMG_HEIGHT(IMG_HEIGHT),
+        .THRESHOLD_VECTOR_FILE(THRESHOLD_VECTOR_FILE),
+        .DECAY_VECTOR_FILE(DECAY_VECTOR_FILE)
+    ) sum_pooling_instance (
+        .clk(clk),
+        .reset(rst_n),
+        .enable(pooling_enable),
+        .active(pooling_active),
+        .pooling_done(pooling_done),
+        .mem_read(pool_read.read_port),
+        .mem_write(pool_write.write_port),
+        .output_valid(output_fifo_write_enable),
+        .output_vector(output_fifo_data)
     );
 
     always_ff @(posedge clk or negedge rst_n) begin

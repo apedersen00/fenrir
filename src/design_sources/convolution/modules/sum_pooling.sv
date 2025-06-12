@@ -1,13 +1,20 @@
-import snn_interfaces_pkg::*;
-
 module sum_pooling #(
-    parameter int CHANNELS = DEFAULT_CHANNELS,
-    parameter int BITS_PER_CHANNEL = DEFAULT_NEURON_BITS,
-    parameter int IMG_WIDTH = DEFAULT_IMG_WIDTH,
-    parameter int IMG_HEIGHT = DEFAULT_IMG_HEIGHT,
-    parameter int OUT_VECTOR_WIDTH = (DEFAULT_COORD_BITS - 1) * 2 + CHANNELS + 1
+    parameter int OUT_CHANNELS,
+    parameter int BITS_PER_NEURON,
+    parameter int BITS_PER_COORDINATE,
+    parameter int IMG_WIDTH,
+    parameter int IMG_HEIGHT,
+    parameter int OUT_VECTOR_WIDTH = (BITS_PER_COORDINATE - 1) * 2 + OUT_CHANNELS + 1, //+1 for timestep,
+
+    parameter string THRESHOLD_VECTOR_FILE = "",
+    parameter string DECAY_VECTOR_FILE = "" //TODO : implement file reading for threshold and decay vectors
 )(
-    snn_control_if.pooling ctrl_port,
+    input logic clk,
+    input logic reset,
+    input logic enable,
+    output logic active,
+    output logic pooling_done,
+
     arbiter_if.read_port mem_read,
     arbiter_if.write_port mem_write,
 
@@ -21,6 +28,23 @@ module sum_pooling #(
         PROCESSING
     } state_t;
 
+    typedef struct packed {
+        logic [BITS_PER_COORDINATE-1:0] x;
+        logic [BITS_PER_COORDINATE-1:0] y;
+    } vec2_t;
+
+    typedef struct packed {
+        logic timestep;
+        logic [BITS_PER_COORDINATE-2:0] x; // -1 because we use 2 bits for x and y
+        logic [BITS_PER_COORDINATE-2:0] y; // -1 because we use 2 bits for x and y
+        logic [OUT_CHANNELS-1:0] spikes; // spikes for each channel
+    } output_vector_t;
+
+    typedef logic signed [BITS_PER_NEURON-1:0] feature_map_t [0:OUT_CHANNELS-1];
+
+    localparam feature_map_t decay_vector = '{default: 0}; //TODO set actual decay value
+    localparam feature_map_t threshold_vector = '{default: 0}; // TODO: set actual threshold value
+
     state_t state = IDLE;
     state_t next_state;
 
@@ -28,8 +52,8 @@ module sum_pooling #(
     localparam int no_of_windows = no_of_coords / 4; 
     localparam int no_of_windows_one_axis = IMG_WIDTH / 2;
     
-    assign ctrl_port.active = (state == PROCESSING); // or maybe PAUSE also?
-    assign ctrl_port.done = (next_state == IDLE);
+    assign active = (state == PROCESSING); // or maybe PAUSE also?
+    assign pooling_done = (next_state == IDLE);
 
     vec2_t coord_start = '{0, 0};
     vec2_t previous_coord = '{0, 0};
@@ -49,17 +73,17 @@ module sum_pooling #(
     feature_map_t pooled_maps;
     
 
-always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
-    if (!ctrl_port.reset) begin
+always_ff @(posedge clk or negedge reset) begin
+    if (!reset) begin
         state <= IDLE;
     end else begin
         state <= next_state;
     end
 end
 
-always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
+always_ff @(posedge clk or negedge reset) begin
     // drive counters
-    if (!ctrl_port.reset) begin
+    if (!reset) begin
         row_counter <= 0;
         col_counter <= 0;
         coord_counter <= 0;
@@ -104,8 +128,8 @@ always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
 end
 
 // Keep window coordinates and update pooled maps
-always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
-    if (!ctrl_port.reset) begin
+always_ff @(posedge clk or negedge reset) begin
+    if (!reset) begin
         window_coord <= '{0, 0};
         previous_coord_anchor <= '{0, 0};
         last_output_vector <= '{default: 0};
@@ -122,8 +146,8 @@ always_ff @(posedge ctrl_port.clk or negedge ctrl_port.reset) begin
 
         end else if (coord_counter == 0) begin
             
-            automatic logic [DEFAULT_COORD_BITS-2:0] x = previous_coord_anchor.x >> 1;
-            automatic logic [DEFAULT_COORD_BITS-2:0] y = previous_coord_anchor.y >> 1;
+            automatic logic [BITS_PER_COORDINATE-2:0] x = previous_coord_anchor.x >> 1;
+            automatic logic [BITS_PER_COORDINATE-2:0] y = previous_coord_anchor.y >> 1;
             automatic output_vector_t temp_spike_vector = '{default: 0};
             pooled_maps <= combine_feature_maps(
                 pooled_maps,
@@ -216,14 +240,12 @@ always_comb begin
     
 end
 
-
 always_comb begin
-
 
         case (state)
 
             IDLE: begin
-                if (ctrl_port.enable) begin
+                if (enable) begin
                     next_state = PROCESSING;
                 end else begin
                     next_state = IDLE; // stay in idle state
@@ -232,22 +254,112 @@ always_comb begin
             PROCESSING: begin
                 if (done) begin
                     next_state = IDLE;
-                end else if (!ctrl_port.enable) begin
+                end else if (!enable) begin
                     next_state = PAUSE;
                 end else begin
                     next_state = PROCESSING;
                 end
             end
             PAUSE: begin
-                if (ctrl_port.enable) begin
+                if (enable) begin
                     next_state = PROCESSING;
                 end else begin
                     next_state = PAUSE; // stay in pause state
                 end
             end
         endcase
-
-    
-
 end
+
+// ===========================================================
+// Helper functions
+// ===========================================================
+
+    function automatic feature_map_t combine_feature_maps(
+        input feature_map_t fm_a,
+        input feature_map_t fm_b
+    );
+        feature_map_t result;
+
+        for (int ch = 0; ch < OUT_CHANNELS; ch++) begin
+
+            automatic logic signed [BITS_PER_NEURON:0] result_before_clamp;
+            result_before_clamp = fm_a[ch] + fm_b[ch];
+
+            if (result_before_clamp > $signed({1'b0, {BITS_PER_NEURON-1{1'b1}}})) begin
+
+                result[ch] = {1'b0, {BITS_PER_NEURON-1{1'b1}}};  // Max positive value
+
+            end else if (result_before_clamp < $signed({1'b1, {BITS_PER_NEURON-1{1'b0}}})) begin
+
+                result[ch] = {1'b1, {BITS_PER_NEURON-1{1'b0}}};  // Max negative value
+
+            end else begin
+
+                result[ch] = result_before_clamp[BITS_PER_NEURON-1:0];  // Normal case
+
+            end
+
+        end 
+        return result;
+    endfunction
+
+    function automatic feature_map_t reset_to_zero_if_above_threshold(
+        input feature_map_t feature_map,
+        input feature_map_t threshold_vector
+    );
+
+        feature_map_t result;
+
+        for (int ch = 0; ch < OUT_CHANNELS; ch++) begin
+
+            if (feature_map[ch] >= threshold_vector[ch]) begin
+                result[ch] = '0;
+            end else begin
+                result[ch] = feature_map[ch];
+            end
+
+        end
+
+        return result;
+
+    endfunction;
+
+    function automatic output_vector_t create_output_spike_vector(
+        input feature_map_t pooled_maps,
+        input feature_map_t threshold_vector,
+        input logic [BITS_PER_COORDINATE-2:0] x,
+        input logic [BITS_PER_COORDINATE-2:0] y,
+        input logic is_last_event
+    );
+
+        output_vector_t result;
+        result.timestep = is_last_event;
+        result.x = x;
+        result.y = y;
+        result.spikes = '0; // Initialize spikes to zero
+
+        for (int ch = 0; ch < OUT_CHANNELS; ch++) begin
+
+            if (pooled_maps[ch] >= threshold_vector[ch]) begin
+
+                result.spikes[ch] = 1'b1;
+
+            end else begin
+
+                result.spikes[ch] = 1'b0;
+
+            end
+
+        end
+
+        return result;
+
+    endfunction
+
+    function automatic logic [OUT_VECTOR_WIDTH - 1: 0] pack_output_vector(
+        input output_vector_t output_vector
+    );
+        return output_vector;
+    endfunction
+
 endmodule

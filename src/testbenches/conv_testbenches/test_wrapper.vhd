@@ -54,7 +54,9 @@ begin
             BITS_PER_NEURON => 9,
             INPUT_FIFO_EVENT_CAPACITY => INPUT_FIFO_EVENT_CAPACITY,
             BITS_PER_COORDINATE => BITS_PER_COORDINATE,
-            KERNEL_WEIGHTS_INIT_FILE => ""
+            KERNEL_WEIGHTS_INIT_FILE => "",
+            THRESHOLD_VECTOR_FILE => "",
+            DECAY_VECTOR_FILE => ""
         )
         port map (
             clk   => clk,
