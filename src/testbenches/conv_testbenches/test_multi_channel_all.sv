@@ -113,6 +113,9 @@ module snn_testbench;
     logic output_fifo_write_enable;
     logic output_fifo_full_next;
     
+
+    logic module_active;
+    logic module_was_active;
     // ============================================================
     // CLOCK GENERATION
     // ============================================================
@@ -123,7 +126,30 @@ module snn_testbench;
         forever #(CLK_PERIOD/2) clk = ~clk;
     end
     
-    
+    // ============================================================
+    // DUMP FILES
+    // ============================================================
+    int memory_dump_counter = 0;
+    always @(posedge clk) begin
+        if(rst_n) begin
+        
+            module_was_active <= module_active;
+            if(!module_active && module_was_active) begin
+            
+                string dump_name;
+                #1;
+                @(posedge clk);
+                dump_name = $sformatf("feature_map_mem_%0d.mem", memory_dump_counter);
+                $writememb(dump_name, dut.bram_feature_map_instance.memory);
+                memory_dump_counter = memory_dump_counter + 1;
+
+                $display("[%0t] Memory dump saved to %s", $time, dump_name);
+            
+            end
+
+        end
+    end
+
     // ============================================================
     // TEST STATE MANAGEMENT
     // ============================================================
@@ -182,7 +208,9 @@ module snn_testbench;
         // Output FIFO interface
         .output_fifo_data(output_fifo_data),
         .output_fifo_write_enable(output_fifo_write_enable),
-        .output_fifo_full_next(output_fifo_full_next)
+        .output_fifo_full_next(output_fifo_full_next),
+
+        .active(module_active)
     );
     
     // ============================================================

@@ -32,7 +32,9 @@ module CONV2D #(
     // output FIFO
     output logic [(BITS_PER_COORDINATE - 1) * 2 + OUT_CHANNELS : 0] output_fifo_data,
     output logic output_fifo_write_enable,
-    input logic output_fifo_full_next
+    input logic output_fifo_full_next,
+ 
+    output logic active //TODO just used for simulation purposes, remove later
 );
 
 
@@ -198,6 +200,7 @@ module CONV2D #(
     // ==========================================================
 
     logic convolution_active;
+    assign active = convolution_active;
 
     Convolution2d #(
         .BITS_PER_COORDINATE(BITS_PER_COORDINATE),
