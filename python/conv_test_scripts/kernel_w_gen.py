@@ -115,19 +115,20 @@ class KernelGenerator:
         return kernels
     
     def assign_kernels_to_channels(self, kernel_dict: dict) -> np.ndarray:
-        """Assign kernels to input/output channel combinations"""
         # Shape: [in_channels, out_channels, kernel_size, kernel_size]
         weights = np.zeros((self.in_channels, self.out_channels, 
                            self.kernel_size, self.kernel_size), dtype=np.int8)
         
-        kernel_names = list(kernel_dict.keys())
+        # FIXED: Sort keys for deterministic order
+        kernel_names = sorted(list(kernel_dict.keys()))  # Deterministic order
         kernel_idx = 0
         
         print(f"\nKernel assignments:")
         for in_ch in range(self.in_channels):
             for out_ch in range(self.out_channels):
                 kernel_name = kernel_names[kernel_idx % len(kernel_names)]
-                weights[in_ch, out_ch] = kernel_dict[kernel_name]
+                # FIXED: Copy the kernel, don't reference it
+                weights[in_ch, out_ch] = kernel_dict[kernel_name].copy()
                 print(f"  Channel {in_ch} -> Channel {out_ch}: {kernel_name}")
                 kernel_idx += 1
                 

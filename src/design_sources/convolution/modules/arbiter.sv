@@ -36,8 +36,8 @@ module arbiter #(
     assign bram_port.rst_n = rst_n;
 
     // Coordinate to address conversion function
-    function automatic logic [BRAM_ADDR_WIDTH-1:0] coord_to_addr(input vec2_t coord); //TODO might be wrong about which to multiply
-        return coord.y + coord.x * IMG_WIDTH;  // Row-major addressing
+    function automatic logic [BRAM_ADDR_WIDTH-1:0] coord_to_addr(input vec2_t coord);
+        return coord.y * IMG_WIDTH + coord.x ;  // Row-major addressing
     endfunction
 
     // Inline packing/unpacking to avoid type conflicts

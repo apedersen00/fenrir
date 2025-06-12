@@ -170,7 +170,12 @@ module Convolution2d #(
 
                         automatic int _x = event_coord.x + dx;
                         automatic int _y = event_coord.y + dy;
-                        automatic int flat_idx = (dy + KERNEL_OFFSET)  * KERNEL_SIZE + (dx + KERNEL_OFFSET);
+                        //automatic int flat_idx = (dy + KERNEL_OFFSET)  * KERNEL_SIZE + (dx + KERNEL_OFFSET);
+
+                        automatic int flipped_dy = -dy;
+                        automatic int flipped_dx = -dx;
+                        automatic int flat_idx = (flipped_dy + KERNEL_OFFSET) *KERNEL_SIZE + (flipped_dx + KERNEL_OFFSET);
+
                         if (   _x >= 0 
                             && _x < IMG_WIDTH
                             && _y >= 0
@@ -273,12 +278,15 @@ module Convolution2d #(
         kernel_weight_vector_t result;
 
         for (int channel = 0; channel < OUT_CHANNELS; channel++) begin
-            result[channel] = bram_data[channel * BITS_PER_KERNEL_WEIGHT +: BITS_PER_KERNEL_WEIGHT];
+            //result[channel] = bram_data[channel * BITS_PER_KERNEL_WEIGHT +: BITS_PER_KERNEL_WEIGHT];
+            result[channel] = bram_data[(OUT_CHANNELS-1-channel) * BITS_PER_KERNEL_WEIGHT +: BITS_PER_KERNEL_WEIGHT];
         end
 
         return result;
 
     endfunction
+
+    
 
     function automatic feature_map_t add_kernel_weights_to_feature_map(
         input feature_map_t fm,

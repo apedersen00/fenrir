@@ -1,16 +1,16 @@
 // Generated event file for SNN testbench (binary format)
 // Format: [timestep][x][y][spikes]
-// Total bits: 11
+// Total bits: 9
 // Events: 10
-// Bit layout: timestep(10), x(9:7), y(6:4), spikes(3:0)
+// Bit layout: timestep(8), x(7:5), y(4:2), spikes(1:0)
 
-01110101001  // Event 0: ts=0, x=7, y=2, spikes=0x9 | 0_111_010_1001
-00101110001  // Event 1: ts=0, x=2, y=7, spikes=0x1 | 0_010_111_0001
-00011101000  // Event 2: ts=0, x=1, y=6, spikes=0x8 | 0_001_110_1000
-01110000100  // Event 3: ts=0, x=7, y=0, spikes=0x4 | 0_111_000_0100
-00100001000  // Event 4: ts=0, x=2, y=0, spikes=0x8 | 0_010_000_1000
-00011110101  // Event 5: ts=0, x=1, y=7, spikes=0x5 | 0_001_111_0101
-00001110001  // Event 6: ts=0, x=0, y=7, spikes=0x1 | 0_000_111_0001
-01110011000  // Event 7: ts=0, x=7, y=1, spikes=0x8 | 0_111_001_1000
-00001110000  // Event 8: ts=0, x=0, y=7, spikes=0x0 | 0_000_111_0000
-01001110011  // Event 9: ts=0, x=4, y=7, spikes=0x3 | 0_100_111_0011
+010100110  // Event 0: ts=0, x=5, y=1, spikes=0x2 | 0_101_001_10
+000111110  // Event 1: ts=0, x=1, y=7, spikes=0x2 | 0_001_111_10
+010001011  // Event 2: ts=0, x=4, y=2, spikes=0x3 | 0_100_010_11
+011011101  // Event 3: ts=0, x=6, y=7, spikes=0x1 | 0_110_111_01
+000011110  // Event 4: ts=0, x=0, y=7, spikes=0x2 | 0_000_111_10
+000111111  // Event 5: ts=0, x=1, y=7, spikes=0x3 | 0_001_111_11
+011100010  // Event 6: ts=0, x=7, y=0, spikes=0x2 | 0_111_000_10
+001101111  // Event 7: ts=0, x=3, y=3, spikes=0x3 | 0_011_011_11
+000110110  // Event 8: ts=0, x=1, y=5, spikes=0x2 | 0_001_101_10
+000100111  // Event 9: ts=0, x=1, y=1, spikes=0x3 | 0_001_001_11

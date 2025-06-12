@@ -8,18 +8,18 @@ module snn_testbench;
     
     // Core SNN Parameters
     localparam int KERNEL_SIZE = 3;
-    localparam int IN_CHANNELS = 4;
+    localparam int IN_CHANNELS = 2;
     localparam int OUT_CHANNELS = 4;
     localparam int IMG_HEIGHT = 8;
     localparam int IMG_WIDTH = 8;
     
     // Bit widths
     localparam int BITS_PER_KERNEL_WEIGHT = 6;
-    localparam int BITS_PER_NEURON = 9;
+    localparam int BITS_PER_NEURON = 8;
     localparam int BITS_PER_COORDINATE = 3;
     
     // FIFO and memory parameters
-    localparam int INPUT_FIFO_EVENT_CAPACITY = 8;
+    localparam int INPUT_FIFO_EVENT_CAPACITY = 32;
     
     // File paths (will be set by configuration)
     localparam string KERNEL_WEIGHTS_INIT_FILE = "kernel_weights.mem";

@@ -1,7 +1,7 @@
 {
   "shape": [
     1,
-    4,
+    2,
     8,
     8
   ],
@@ -15,7 +15,7 @@
     8,
     8
   ],
-  "channels": 4,
+  "channels": 2,
   "pattern": "random",
   "seed": null
 }

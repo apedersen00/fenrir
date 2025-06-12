@@ -157,10 +157,16 @@ def generate_random_events(args):
         if is_timestep:
             spikes = 0  # Timestep events have no spikes
         else:
-            # Generate spike pattern with ~30% activity per channel
+            # Generate spike pattern with at least one spike guaranteed
             spikes = 0
+            
+            # First, guarantee at least one spike by randomly selecting one channel
+            guaranteed_channel = random.randint(0, args.in_channels - 1)
+            spikes |= (1 << guaranteed_channel)
+            
+            # Then add additional spikes with ~30% probability per remaining channel
             for ch in range(args.in_channels):
-                if random.random() < 0.3:
+                if ch != guaranteed_channel and random.random() < 0.3:
                     spikes |= (1 << ch)
         
         event = {
@@ -186,7 +192,7 @@ def generate_cross_pattern(args):
             'timestep': 0,
             'x': x,
             'y': center_y,
-            'spikes': 1  # Channel 0 active
+            'spikes': 1  # Channel 0 active (guaranteed at least one spike)
         }
         events.append(event)
     
@@ -197,7 +203,7 @@ def generate_cross_pattern(args):
                 'timestep': 0,
                 'x': center_x,
                 'y': y,
-                'spikes': 1  # Channel 0 active
+                'spikes': 1  # Channel 0 active (guaranteed at least one spike)
             }
             events.append(event)
     
@@ -207,11 +213,20 @@ def generate_cross_pattern(args):
         y = random.randint(0, args.img_h - 1)
         # Skip if this coordinate already exists
         if not any(e['x'] == x and e['y'] == y for e in events):
+            # Guarantee at least one spike
+            guaranteed_channel = random.randint(0, args.in_channels - 1)
+            spikes = 1 << guaranteed_channel
+            
+            # Add additional spikes with probability
+            for ch in range(args.in_channels):
+                if ch != guaranteed_channel and random.random() < 0.3:
+                    spikes |= (1 << ch)
+                    
             event = {
                 'timestep': 0,
                 'x': x,
                 'y': y,
-                'spikes': random.randint(1, (1 << args.in_channels) - 1)
+                'spikes': spikes
             }
             events.append(event)
     
@@ -233,7 +248,7 @@ def generate_corners_pattern(args):
             'timestep': 0,
             'x': x,
             'y': y,
-            'spikes': 1 << (i % args.in_channels)  # Different channel per corner
+            'spikes': 1 << (i % args.in_channels)  # Different channel per corner, guaranteed spike
         }
         events.append(event)
     
@@ -243,11 +258,20 @@ def generate_corners_pattern(args):
         y = random.randint(0, args.img_h - 1)
         # Skip if this coordinate already exists
         if not any(e['x'] == x and e['y'] == y for e in events):
+            # Guarantee at least one spike
+            guaranteed_channel = random.randint(0, args.in_channels - 1)
+            spikes = 1 << guaranteed_channel
+            
+            # Add additional spikes with probability
+            for ch in range(args.in_channels):
+                if ch != guaranteed_channel and random.random() < 0.3:
+                    spikes |= (1 << ch)
+                    
             event = {
                 'timestep': 0,
                 'x': x,
                 'y': y,
-                'spikes': random.randint(1, (1 << args.in_channels) - 1)
+                'spikes': spikes
             }
             events.append(event)
     
@@ -269,7 +293,7 @@ def generate_grid_pattern(args):
     for y in range(0, args.img_h, step_y):
         for x in range(0, args.img_w, step_x):
             if len(events) < args.num_events:
-                # Alternate channels in checkerboard pattern
+                # Alternate channels in checkerboard pattern (guaranteed spike)
                 channel = ((x // step_x) + (y // step_y)) % args.in_channels
                 event = {
                     'timestep': 0,
@@ -284,11 +308,20 @@ def generate_grid_pattern(args):
         x = random.randint(0, args.img_w - 1)
         y = random.randint(0, args.img_h - 1)
         if not any(e['x'] == x and e['y'] == y for e in events):
+            # Guarantee at least one spike
+            guaranteed_channel = random.randint(0, args.in_channels - 1)
+            spikes = 1 << guaranteed_channel
+            
+            # Add additional spikes with probability
+            for ch in range(args.in_channels):
+                if ch != guaranteed_channel and random.random() < 0.3:
+                    spikes |= (1 << ch)
+                    
             event = {
                 'timestep': 0,
                 'x': x,
                 'y': y,
-                'spikes': random.randint(1, (1 << args.in_channels) - 1)
+                'spikes': spikes
             }
             events.append(event)
     

@@ -61,6 +61,8 @@ always_comb begin
             
             if (event_data.timestep) begin
                 next_state = IDLE;
+            end else if(event_data.spikes == 0) begin
+                next_state = IDLE;
             end else begin
                 if (event_data.x < IMG_WIDTH && event_data.y < IMG_HEIGHT) begin
                     event_port.event_data = event_data; // Pass the event data
