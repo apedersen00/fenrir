@@ -153,7 +153,7 @@ module CONV2D #(
     // ARBITER
     // ==========================================================
 
-    arbiter_mode_t arbiter_mode = CONVOLUTION;
+    arbiter_mode_t arbiter_mode = MUX_CONVOLUTION;
 
     arbiter_if #(
         .BITS_PER_COORDINATE(BITS_PER_COORDINATE),

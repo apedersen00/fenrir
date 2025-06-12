@@ -44,7 +44,7 @@ module arbiter #(
     // Pack feature map data to BRAM data width
     logic [BRAM_DATA_WIDTH-1:0] packed_write_data;
     always_comb begin
-        if (mode == CONVOLUTION) begin
+        if (mode == MUX_CONVOLUTION) begin
             // Pack conv write data
             for (int i = 0; i < OUT_CHANNELS; i++) begin
                 packed_write_data[i*BITS_PER_NEURON +: BITS_PER_NEURON] = conv_write_port.data_in[i];
@@ -59,7 +59,7 @@ module arbiter #(
     
     // Unpack BRAM data to feature map data
     always_comb begin
-        if (mode == CONVOLUTION) begin
+        if (mode == MUX_CONVOLUTION) begin
             // Unpack to conv read data
             for (int i = 0; i < OUT_CHANNELS; i++) begin
                 conv_read_port.data_out[i] = bram_port.data_out_a[i*BITS_PER_NEURON +: BITS_PER_NEURON];
@@ -89,7 +89,7 @@ module arbiter #(
     vec2_t read_coord;
     
     always_comb begin
-        if (mode == CONVOLUTION) begin
+        if (mode == MUX_CONVOLUTION) begin
             // Conv phase - conv module reads
             read_req_active = conv_read_port.read_req;
             read_coord = conv_read_port.coord_get;
@@ -116,7 +116,7 @@ module arbiter #(
     feature_map_t write_data;
     
     always_comb begin
-        if (mode == CONVOLUTION) begin
+        if (mode == MUX_CONVOLUTION) begin
             // Conv phase - conv module writes
             write_req_active = conv_write_port.write_req;
             write_coord = conv_write_port.coord_wtr;
