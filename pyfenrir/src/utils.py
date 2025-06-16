@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 def pad_time_dimension(frames, fixed_time_steps=100):
     """
@@ -69,6 +70,19 @@ def plot_loss_lr(loss_list, lr_list, save_path=None):
         fig.tight_layout()
         plt.savefig(os.path.join(save_path, "loss_lr_plot.png"))
         print(f"Plot saved to {os.path.join(save_path, 'loss_lr_plot.png')}")
+
+        data_to_save = {}
+        if loss_list:
+            data_to_save['loss'] = loss_list
+        if lr_list:
+            data_to_save['learning_rate'] = lr_list
+
+        df = pd.DataFrame({key: pd.Series(value) for key, value in data_to_save.items()})
+
+        csv_path = os.path.join(save_path, "loss_lr_data.csv")
+        df.to_csv(csv_path, index_label='Iterations')
+        print(f"Data saved to {csv_path}")
+
     else:
         plt.show()
 
