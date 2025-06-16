@@ -18,6 +18,8 @@ t_0: 340                                    # Initial period for CosineAnnealing
 eta_min: 0                                  # Minimum learning rate for CosineAnnealingLR
 correct_rate: 0.8                           # Correct rate for loss function
 incorrect_rate: 0.1                         # Incorrect rate for loss function
+batch_norm: True
+dropout: 0.07
 
 # Data Parameters
 target_width: 64
