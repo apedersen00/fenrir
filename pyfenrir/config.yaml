@@ -26,8 +26,8 @@ frame_length_us: 10000.0                    # 16.6ms for 60fps
 n_timesteps: 200                            # Number of timesteps for padded frames
 
 # Quantization
-fc1_bits: 4
-fc2_bits: 4
+fc1_bits: 8
+fc2_bits: 8
 
 # Conv parameters
 conv1_out: 8
