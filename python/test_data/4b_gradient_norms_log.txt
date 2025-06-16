@@ -1,0 +1,362 @@
+Gradient Norm Log
+====================
+
+Epoch 0, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 3.878158
+  fc2_beta                                : 0.004050
+  conv1.weight                            : 253.484131
+  conv2.weight                            : 118.773239
+  conv3.weight                            : 56.735313
+  pool1.decay                             : 1554.478149
+  pool1.threshold                         : 23.587067
+  pool2.decay                             : 149.743881
+  pool2.threshold                         : 2.650235
+  pool3.decay                             : 42.441307
+  pool3.threshold                         : 0.610230
+  fc1.weight                              : 122.577751
+  lif1.threshold                          : 2.896171
+  fc2.weight                              : 0.449166
+  lif2.threshold                          : 6.027878
+------------------------------------------------------------
+
+Epoch 1, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.616369
+  fc2_beta                                : 3.238434
+  conv1.weight                            : 32.292831
+  conv2.weight                            : 9.877654
+  conv3.weight                            : 5.810089
+  pool1.decay                             : 253.493454
+  pool1.threshold                         : 2.447991
+  pool2.decay                             : 21.844954
+  pool2.threshold                         : 0.248004
+  pool3.decay                             : 7.323009
+  pool3.threshold                         : 0.038502
+  fc1.weight                              : 3.916493
+  lif1.threshold                          : 0.113301
+  fc2.weight                              : 16.295916
+  lif2.threshold                          : 1.170559
+------------------------------------------------------------
+
+Epoch 2, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.239158
+  fc2_beta                                : 4.506412
+  conv1.weight                            : 39.895626
+  conv2.weight                            : 16.974857
+  conv3.weight                            : 6.820674
+  pool1.decay                             : 403.012512
+  pool1.threshold                         : 9.844018
+  pool2.decay                             : 135.483185
+  pool2.threshold                         : 1.615937
+  pool3.decay                             : 32.693207
+  pool3.threshold                         : 0.170808
+  fc1.weight                              : 4.413552
+  lif1.threshold                          : 0.604611
+  fc2.weight                              : 19.884745
+  lif2.threshold                          : 1.485770
+------------------------------------------------------------
+
+Epoch 3, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.103638
+  fc2_beta                                : 1.392977
+  conv1.weight                            : 108.239738
+  conv2.weight                            : 27.099564
+  conv3.weight                            : 7.019043
+  pool1.decay                             : 938.083984
+  pool1.threshold                         : 12.816527
+  pool2.decay                             : 118.201103
+  pool2.threshold                         : 1.675922
+  pool3.decay                             : 33.565563
+  pool3.threshold                         : 0.133705
+  fc1.weight                              : 4.097081
+  lif1.threshold                          : 0.108678
+  fc2.weight                              : 17.932302
+  lif2.threshold                          : 0.326264
+------------------------------------------------------------
+
+Epoch 4, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.258599
+  fc2_beta                                : 1.786258
+  conv1.weight                            : 58.578262
+  conv2.weight                            : 18.507616
+  conv3.weight                            : 9.103399
+  pool1.decay                             : 335.330414
+  pool1.threshold                         : 5.198578
+  pool2.decay                             : 53.848949
+  pool2.threshold                         : 0.663501
+  pool3.decay                             : 25.452024
+  pool3.threshold                         : 0.138317
+  fc1.weight                              : 4.017406
+  lif1.threshold                          : 0.161233
+  fc2.weight                              : 12.367784
+  lif2.threshold                          : 0.042788
+------------------------------------------------------------
+
+Epoch 5, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.771061
+  fc2_beta                                : 0.835641
+  conv1.weight                            : 56.233536
+  conv2.weight                            : 24.828876
+  conv3.weight                            : 10.450649
+  pool1.decay                             : 594.739014
+  pool1.threshold                         : 10.607881
+  pool2.decay                             : 100.291153
+  pool2.threshold                         : 1.309078
+  pool3.decay                             : 28.581762
+  pool3.threshold                         : 0.160456
+  fc1.weight                              : 4.105199
+  lif1.threshold                          : 0.439326
+  fc2.weight                              : 8.368876
+  lif2.threshold                          : 0.935852
+------------------------------------------------------------
+
+Epoch 6, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.732124
+  fc2_beta                                : 1.933268
+  conv1.weight                            : 84.576271
+  conv2.weight                            : 23.155216
+  conv3.weight                            : 5.827088
+  pool1.decay                             : 858.232361
+  pool1.threshold                         : 12.353032
+  pool2.decay                             : 87.784874
+  pool2.threshold                         : 1.008619
+  pool3.decay                             : 18.933706
+  pool3.threshold                         : 0.105814
+  fc1.weight                              : 3.538804
+  lif1.threshold                          : 0.251070
+  fc2.weight                              : 7.186784
+  lif2.threshold                          : 0.586127
+------------------------------------------------------------
+
+Epoch 7, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.693991
+  fc2_beta                                : 0.106782
+  conv1.weight                            : 109.135757
+  conv2.weight                            : 41.528248
+  conv3.weight                            : 11.003254
+  pool1.decay                             : 1163.860352
+  pool1.threshold                         : 12.644182
+  pool2.decay                             : 95.580551
+  pool2.threshold                         : 1.358418
+  pool3.decay                             : 19.449108
+  pool3.threshold                         : 0.122767
+  fc1.weight                              : 4.125885
+  lif1.threshold                          : 0.412342
+  fc2.weight                              : 7.745717
+  lif2.threshold                          : 0.741872
+------------------------------------------------------------
+
+Epoch 8, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.095286
+  fc2_beta                                : 1.283238
+  conv1.weight                            : 90.373512
+  conv2.weight                            : 48.619194
+  conv3.weight                            : 13.299030
+  pool1.decay                             : 870.161499
+  pool1.threshold                         : 13.905757
+  pool2.decay                             : 147.772934
+  pool2.threshold                         : 1.697740
+  pool3.decay                             : 25.952469
+  pool3.threshold                         : 0.134891
+  fc1.weight                              : 3.969621
+  lif1.threshold                          : 0.246566
+  fc2.weight                              : 9.800860
+  lif2.threshold                          : 0.246593
+------------------------------------------------------------
+
+Epoch 9, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.217385
+  fc2_beta                                : 1.342017
+  conv1.weight                            : 43.136150
+  conv2.weight                            : 26.540768
+  conv3.weight                            : 7.655205
+  pool1.decay                             : 673.449707
+  pool1.threshold                         : 14.077361
+  pool2.decay                             : 121.987411
+  pool2.threshold                         : 1.514047
+  pool3.decay                             : 21.635017
+  pool3.threshold                         : 0.110582
+  fc1.weight                              : 3.961371
+  lif1.threshold                          : 0.305535
+  fc2.weight                              : 5.372573
+  lif2.threshold                          : 0.396644
+------------------------------------------------------------
+
+Epoch 10, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.268815
+  fc2_beta                                : 0.858766
+  conv1.weight                            : 68.890579
+  conv2.weight                            : 32.840797
+  conv3.weight                            : 13.209672
+  pool1.decay                             : 1603.021973
+  pool1.threshold                         : 28.706974
+  pool2.decay                             : 299.004181
+  pool2.threshold                         : 2.802181
+  pool3.decay                             : 36.883835
+  pool3.threshold                         : 0.148724
+  fc1.weight                              : 3.604041
+  lif1.threshold                          : 0.288099
+  fc2.weight                              : 5.838046
+  lif2.threshold                          : 0.377759
+------------------------------------------------------------
+
+Epoch 11, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.636104
+  fc2_beta                                : 1.025099
+  conv1.weight                            : 79.246925
+  conv2.weight                            : 25.792135
+  conv3.weight                            : 9.882628
+  pool1.decay                             : 1008.721558
+  pool1.threshold                         : 17.460613
+  pool2.decay                             : 163.765594
+  pool2.threshold                         : 1.899219
+  pool3.decay                             : 37.775471
+  pool3.threshold                         : 0.167442
+  fc1.weight                              : 4.930236
+  lif1.threshold                          : 0.403659
+  fc2.weight                              : 8.354144
+  lif2.threshold                          : 0.475977
+------------------------------------------------------------
+
+Epoch 12, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.323732
+  fc2_beta                                : 1.221523
+  conv1.weight                            : 60.930656
+  conv2.weight                            : 34.652981
+  conv3.weight                            : 9.106031
+  pool1.decay                             : 539.301514
+  pool1.threshold                         : 13.474261
+  pool2.decay                             : 110.625938
+  pool2.threshold                         : 1.408667
+  pool3.decay                             : 26.615669
+  pool3.threshold                         : 0.106290
+  fc1.weight                              : 3.349581
+  lif1.threshold                          : 0.351888
+  fc2.weight                              : 5.529307
+  lif2.threshold                          : 0.660282
+------------------------------------------------------------
+
+Epoch 13, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.298907
+  fc2_beta                                : 0.907182
+  conv1.weight                            : 77.187752
+  conv2.weight                            : 53.448563
+  conv3.weight                            : 12.636745
+  pool1.decay                             : 561.770203
+  pool1.threshold                         : 6.954656
+  pool2.decay                             : 65.857925
+  pool2.threshold                         : 0.890424
+  pool3.decay                             : 28.278913
+  pool3.threshold                         : 0.139147
+  fc1.weight                              : 4.299931
+  lif1.threshold                          : 0.310232
+  fc2.weight                              : 9.534594
+  lif2.threshold                          : 0.344418
+------------------------------------------------------------
+
+Epoch 14, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.151186
+  fc2_beta                                : 2.323283
+  conv1.weight                            : 58.354347
+  conv2.weight                            : 33.637047
+  conv3.weight                            : 9.113442
+  pool1.decay                             : 794.707458
+  pool1.threshold                         : 10.104342
+  pool2.decay                             : 139.254288
+  pool2.threshold                         : 1.586694
+  pool3.decay                             : 42.995941
+  pool3.threshold                         : 0.179045
+  fc1.weight                              : 4.756382
+  lif1.threshold                          : 0.234289
+  fc2.weight                              : 13.383601
+  lif2.threshold                          : 0.430130
+------------------------------------------------------------
+
+Epoch 15, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.223409
+  fc2_beta                                : 0.117502
+  conv1.weight                            : 144.776871
+  conv2.weight                            : 43.478657
+  conv3.weight                            : 12.307779
+  pool1.decay                             : 942.006165
+  pool1.threshold                         : 12.871179
+  pool2.decay                             : 70.214417
+  pool2.threshold                         : 1.013228
+  pool3.decay                             : 21.486174
+  pool3.threshold                         : 0.155549
+  fc1.weight                              : 4.415972
+  lif1.threshold                          : 0.373044
+  fc2.weight                              : 7.414924
+  lif2.threshold                          : 0.759116
+------------------------------------------------------------
+
+Epoch 16, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.107683
+  fc2_beta                                : 1.683280
+  conv1.weight                            : 55.761353
+  conv2.weight                            : 37.743633
+  conv3.weight                            : 12.405642
+  pool1.decay                             : 663.396606
+  pool1.threshold                         : 10.162374
+  pool2.decay                             : 101.351639
+  pool2.threshold                         : 0.997331
+  pool3.decay                             : 33.599884
+  pool3.threshold                         : 0.156311
+  fc1.weight                              : 4.133029
+  lif1.threshold                          : 0.004787
+  fc2.weight                              : 11.703294
+  lif2.threshold                          : 0.112859
+------------------------------------------------------------
+
+Epoch 17, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.270512
+  fc2_beta                                : 0.750076
+  conv1.weight                            : 43.066185
+  conv2.weight                            : 25.659975
+  conv3.weight                            : 7.641915
+  pool1.decay                             : 1018.855774
+  pool1.threshold                         : 13.709559
+  pool2.decay                             : 125.942421
+  pool2.threshold                         : 1.131098
+  pool3.decay                             : 52.224453
+  pool3.threshold                         : 0.148260
+  fc1.weight                              : 3.286726
+  lif1.threshold                          : 0.016961
+  fc2.weight                              : 4.656639
+  lif2.threshold                          : 0.147555
+------------------------------------------------------------
+
+Epoch 18, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.628688
+  fc2_beta                                : 0.899645
+  conv1.weight                            : 48.914375
+  conv2.weight                            : 37.605824
+  conv3.weight                            : 9.044642
+  pool1.decay                             : 575.980774
+  pool1.threshold                         : 10.361113
+  pool2.decay                             : 101.564453
+  pool2.threshold                         : 1.494813
+  pool3.decay                             : 19.482199
+  pool3.threshold                         : 0.098240
+  fc1.weight                              : 3.940240
+  lif1.threshold                          : 0.117590
+  fc2.weight                              : 6.179316
+  lif2.threshold                          : 0.310882
+------------------------------------------------------------
+
+Epoch 19, Batch 0 - Gradient Norms (Detailed):
+  fc1_beta                                : 0.275807
+  fc2_beta                                : 2.661596
+  conv1.weight                            : 102.252098
+  conv2.weight                            : 41.032211
+  conv3.weight                            : 13.358395
+  pool1.decay                             : 957.704163
+  pool1.threshold                         : 9.259877
+  pool2.decay                             : 69.277802
+  pool2.threshold                         : 0.813468
+  pool3.decay                             : 19.645037
+  pool3.threshold                         : 0.112459
+  fc1.weight                              : 3.445895
+  lif1.threshold                          : 0.231882
+  fc2.weight                              : 10.294477
+  lif2.threshold                          : 1.544810
+------------------------------------------------------------
