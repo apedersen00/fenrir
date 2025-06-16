@@ -44,11 +44,11 @@ class FenrirNet(nn.Module):
         self.pool3 = SpikePooling2D(num_channels=conv3_out, kernel_size=2, stride=2)
 
         self.fc1_beta   = torch.nn.Parameter(torch.tensor(fc1_beta_init), requires_grad=True)
-        self.fc1        = qnn.QuantLinear((h // 8) * (w // 8) * conv3_out, 256, bias=False, weight_bit_width=fc1_bits)
+        self.fc1        = qnn.QuantLinear((h // 8) * (w // 8) * conv3_out, 128, bias=False, weight_bit_width=fc1_bits)
         self.lif1       = snn.Leaky(beta=1.0, threshold=fc1_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
 
         self.fc2_beta   = torch.nn.Parameter(torch.tensor(fc2_beta_init), requires_grad=True)
-        self.fc2        = qnn.QuantLinear(256, num_classes, bias=False, weight_bit_width=fc2_bits)
+        self.fc2        = qnn.QuantLinear(128, num_classes, bias=False, weight_bit_width=fc2_bits)
         self.lif2       = snn.Leaky(beta=1.0, threshold=fc2_thr_init, learn_threshold=True, reset_mechanism='zero', reset_delay=False)
 
         self.dropout    = nn.Dropout(self.dropout_p1)
