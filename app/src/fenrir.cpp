@@ -228,9 +228,9 @@ int main(void) {
 
             noiseFilter.apply(*polarityPacket);
 
-            const uint16_t CROP_X_MAX       = 480;
-            const uint16_t CROP_Y_MAX       = 480;
-            const uint16_t SUBSAMPLE_FACTOR = 8;
+            const uint16_t CROP_X_MAX       = 512;
+            const uint16_t CROP_Y_MAX       = 512;
+            const uint16_t SUBSAMPLE_SHIFT  = 3;    // 2^3 = 8
 
             for (const auto &event : *polarityPacket) {
                 if (!event.isValid()) {
@@ -244,8 +244,8 @@ int main(void) {
                     continue;
                 }
 
-                uint16_t subsampled_x = x / SUBSAMPLE_FACTOR;
-                uint16_t subsampled_y = y / SUBSAMPLE_FACTOR;
+                uint16_t subsampled_x = x >> SUBSAMPLE_SHIFT;
+                uint16_t subsampled_y = y >> SUBSAMPLE_SHIFT;
                 uint32_t flat_address = (uint32_t)subsampled_y * TARGET_WIDTH + (uint32_t)subsampled_x;
 
                 if (fired_addresses_in_timestep.insert(flat_address).second) {
