@@ -2,6 +2,10 @@
 
 Fast Event-Driven Neural Recognition for dvs InfeRence.
 
+## Report
+
+Available [here](https://github.com/apedersen00/fenrir/releases/download/v1.0/fenrir.pdf).
+
 ## Branch Conventions
 
 Three main branch groups:
